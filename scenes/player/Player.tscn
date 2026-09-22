@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://bqx8player01spk"]
+[gd_scene load_steps=6 format=3 uid="uid://bqx8player01spk"]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/player/attack_controller.gd" id="2_attack"]
+[ext_resource type="Script" path="res://scripts/player/ocali_regen.gd" id="3_ocali_regen"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_collision"]
 height = 1.8
@@ -36,3 +37,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -1.2)
 script = ExtResource("2_attack")
 
 [node name="CooldownTimer" type="Timer" parent="AttackController"]
+
+[node name="OcaliRegen" type="Node" parent="."]
+script = ExtResource("3_ocali_regen")

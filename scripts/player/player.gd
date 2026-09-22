@@ -16,6 +16,7 @@ const GRAVITY: float = 20.0
 @onready var camera_pivot: Node3D = $CameraPivot
 @onready var camera: Camera3D = $CameraPivot/Camera
 @onready var attack_controller: AttackController = $AttackController
+@onready var ocali_regen: OcaliRegen = $OcaliRegen
 
 var health: int = max_health
 var ocali: int = max_ocali
@@ -25,6 +26,7 @@ var _camera_pitch: float = 0.0
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	attack_controller.init(self)
+	ocali_regen.init(self)
 
 
 func _unhandled_input(event: InputEvent) -> void:
