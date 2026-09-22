@@ -1,8 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://bqx8player01spk"]
+[gd_scene load_steps=8 format=3 uid="uid://bqx8player01spk"]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/player/attack_controller.gd" id="2_attack"]
 [ext_resource type="Script" path="res://scripts/player/ocali_regen.gd" id="3_ocali_regen"]
+[ext_resource type="Script" path="res://scripts/player/flower_loadout.gd" id="4_loadout"]
+[ext_resource type="Script" path="res://scripts/player/power_handler.gd" id="5_power"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_collision"]
 height = 1.8
@@ -40,3 +42,9 @@ script = ExtResource("2_attack")
 
 [node name="OcaliRegen" type="Node" parent="."]
 script = ExtResource("3_ocali_regen")
+
+[node name="FlowerLoadout" type="Node" parent="."]
+script = ExtResource("4_loadout")
+
+[node name="PowerHandler" type="Node" parent="."]
+script = ExtResource("5_power")

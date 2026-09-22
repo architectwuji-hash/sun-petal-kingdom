@@ -90,3 +90,66 @@ theme_override_font_sizes/font_size = 64
 text = "YOU DIED"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="SlotBar" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -130.0
+offset_top = -70.0
+offset_right = 130.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Slots" type="HBoxContainer" parent="SlotBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 6
+
+[node name="Slot1" type="PanelContainer" parent="SlotBar/Slots"]
+layout_mode = 2
+custom_minimum_size = Vector2(56, 56)
+
+[node name="Label" type="Label" parent="SlotBar/Slots/Slot1"]
+layout_mode = 2
+text = "SF"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Slot2" type="PanelContainer" parent="SlotBar/Slots"]
+layout_mode = 2
+custom_minimum_size = Vector2(56, 56)
+
+[node name="Label" type="Label" parent="SlotBar/Slots/Slot2"]
+layout_mode = 2
+text = "—"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Slot3" type="PanelContainer" parent="SlotBar/Slots"]
+layout_mode = 2
+custom_minimum_size = Vector2(56, 56)
+
+[node name="Label" type="Label" parent="SlotBar/Slots/Slot3"]
+layout_mode = 2
+text = "—"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Slot4" type="PanelContainer" parent="SlotBar/Slots"]
+layout_mode = 2
+custom_minimum_size = Vector2(56, 56)
+
+[node name="Label" type="Label" parent="SlotBar/Slots/Slot4"]
+layout_mode = 2
+text = "—"
+horizontal_alignment = 1
+vertical_alignment = 1

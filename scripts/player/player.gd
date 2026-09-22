@@ -19,6 +19,8 @@ const GRAVITY: float = 20.0
 @onready var camera: Camera3D = $CameraPivot/Camera
 @onready var attack_controller: AttackController = $AttackController
 @onready var ocali_regen: OcaliRegen = $OcaliRegen
+@onready var flower_loadout: FlowerLoadout = $FlowerLoadout
+@onready var power_handler: PowerHandler = $PowerHandler
 
 var health: int = max_health
 var ocali: int = max_ocali
@@ -31,6 +33,7 @@ func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	attack_controller.init(self)
 	ocali_regen.init(self)
+	power_handler.init(self, flower_loadout)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -45,6 +48,16 @@ func _unhandled_input(event: InputEvent) -> void:
 			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	if event.is_action_pressed("melee_attack"):
 		attack_controller.try_melee_attack(camera)
+	if event.is_action_pressed("use_power"):
+		power_handler.use_power()
+	if event.is_action_pressed("slot_1"):
+		flower_loadout.switch_slot(0)
+	if event.is_action_pressed("slot_2"):
+		flower_loadout.switch_slot(1)
+	if event.is_action_pressed("slot_3"):
+		flower_loadout.switch_slot(2)
+	if event.is_action_pressed("slot_4"):
+		flower_loadout.switch_slot(3)
 
 
 func _physics_process(delta: float) -> void:
