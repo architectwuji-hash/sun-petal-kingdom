@@ -3,6 +3,7 @@ class_name Player
 
 signal ocali_changed(current: int, maximum: int)
 signal health_changed(current: int, maximum: int)
+signal died
 
 @export var move_speed: float = 5.0
 @export var sprint_speed: float = 9.0
@@ -10,6 +11,7 @@ signal health_changed(current: int, maximum: int)
 @export var mouse_sensitivity: float = 0.003
 @export var max_health: int = 100
 @export var max_ocali: int = 750
+@export var respawn_delay: float = 3.0
 
 const GRAVITY: float = 20.0
 
@@ -21,6 +23,7 @@ const GRAVITY: float = 20.0
 var health: int = max_health
 var ocali: int = max_ocali
 var _camera_pitch: float = 0.0
+var _is_dead: bool = false
 
 
 func _ready() -> void:
@@ -62,8 +65,12 @@ func _physics_process(delta: float) -> void:
 
 
 func take_damage(amount: int) -> void:
+	if _is_dead:
+		return
 	health = clampi(health - amount, 0, max_health)
 	emit_signal("health_changed", health, max_health)
+	if health <= 0:
+		_die()
 
 
 func spend_ocali(amount: int) -> bool:
@@ -77,3 +84,22 @@ func spend_ocali(amount: int) -> bool:
 func restore_ocali(amount: int) -> void:
 	ocali = clampi(ocali + amount, 0, max_ocali)
 	emit_signal("ocali_changed", ocali, max_ocali)
+
+
+func _die() -> void:
+	_is_dead = true
+	emit_signal("died")
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	await get_tree().create_timer(respawn_delay).timeout
+	_respawn()
+
+
+func _respawn() -> void:
+	health = max_health
+	ocali = max_ocali
+	_is_dead = false
+	global_position = Vector3(0, 1, 0)
+	velocity = Vector3.ZERO
+	emit_signal("health_changed", health, max_health)
+	emit_signal("ocali_changed", ocali, max_ocali)
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
