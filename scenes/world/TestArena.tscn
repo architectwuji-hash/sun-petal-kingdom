@@ -1,6 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://c7testarena01spk"]
+[gd_scene load_steps=8 format=3 uid="uid://c7testarena01spk"]
 
 [ext_resource type="PackedScene" uid="uid://bqx8player01spk" path="res://scenes/player/Player.tscn" id="1_player"]
+[ext_resource type="PackedScene" uid="uid://d8hudpanel01spk" path="res://scenes/ui/HUD.tscn" id="2_hud"]
+[ext_resource type="Script" path="res://scripts/world/test_arena.gd" id="3_test_arena"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
 size = Vector3(40, 0.5, 40)
@@ -18,6 +20,7 @@ background_mode = 2
 sky = SubResource("Sky_env")
 
 [node name="TestArena" type="Node3D"]
+script = ExtResource("3_test_arena")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 rotation_degrees = Vector3(-45, -30, 0)
@@ -39,3 +42,5 @@ mesh = SubResource("BoxMesh_ground")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 
 [node name="Player" parent="PlayerSpawn" instance=ExtResource("1_player")]
+
+[node name="HUD" parent="." instance=ExtResource("2_hud")]
