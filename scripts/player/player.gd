@@ -24,6 +24,7 @@ var _camera_pitch: float = 0.0
 
 
 func _ready() -> void:
+	add_to_group("player")
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	attack_controller.init(self)
 	ocali_regen.init(self)

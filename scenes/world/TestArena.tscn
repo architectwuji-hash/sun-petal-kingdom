@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://bqx8player01spk" path="res://scenes/player/Player.tscn" id="1_player"]
 [ext_resource type="PackedScene" uid="uid://d8hudpanel01spk" path="res://scenes/ui/HUD.tscn" id="2_hud"]
 [ext_resource type="Script" path="res://scripts/world/test_arena.gd" id="3_test_arena"]
-[ext_resource type="PackedScene" uid="uid://e9dummytarget1spk" path="res://scenes/enemies/DummyTarget.tscn" id="4_dummy"]
+[ext_resource type="PackedScene" uid="uid://f0basicenemy1spk" path="res://scenes/enemies/BasicEnemy.tscn" id="4_enemy"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
 size = Vector3(40, 0.5, 40)
@@ -46,11 +46,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 
 [node name="HUD" parent="." instance=ExtResource("2_hud")]
 
-[node name="DummyTarget" parent="." instance=ExtResource("4_dummy")]
+[node name="BasicEnemy" parent="." instance=ExtResource("4_enemy")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -6)
 
-[node name="DummyTarget2" parent="." instance=ExtResource("4_dummy")]
+[node name="BasicEnemy2" parent="." instance=ExtResource("4_enemy")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -6)
 
-[node name="DummyTarget3" parent="." instance=ExtResource("4_dummy")]
+[node name="BasicEnemy3" parent="." instance=ExtResource("4_enemy")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -6)
