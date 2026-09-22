@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://bqx8player01spk"]
+[gd_scene load_steps=5 format=3 uid="uid://bqx8player01spk"]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
+[ext_resource type="Script" path="res://scripts/player/attack_controller.gd" id="2_attack"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_collision"]
 height = 1.8
@@ -30,3 +31,8 @@ current = true
 
 [node name="AttackOrigin" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -0.5)
+
+[node name="AttackController" type="Node" parent="."]
+script = ExtResource("2_attack")
+
+[node name="CooldownTimer" type="Timer" parent="AttackController"]

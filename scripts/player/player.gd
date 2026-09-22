@@ -15,6 +15,7 @@ const GRAVITY: float = 20.0
 
 @onready var camera_pivot: Node3D = $CameraPivot
 @onready var camera: Camera3D = $CameraPivot/Camera
+@onready var attack_controller: AttackController = $AttackController
 
 var health: int = max_health
 var ocali: int = max_ocali
@@ -23,6 +24,7 @@ var _camera_pitch: float = 0.0
 
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	attack_controller.init(self)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -35,6 +37,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		else:
 			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	if event.is_action_pressed("melee_attack"):
+		attack_controller.try_melee_attack(camera)
 
 
 func _physics_process(delta: float) -> void:
