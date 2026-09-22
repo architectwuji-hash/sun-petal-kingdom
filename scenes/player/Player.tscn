@@ -30,7 +30,7 @@ transform = Transform3D(1, 0, 0, 0, 0.9848078, 0.17364818, 0, -0.17364818, 0.984
 current = true
 
 [node name="AttackOrigin" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -0.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -1.2)
 
 [node name="AttackController" type="Node" parent="."]
 script = ExtResource("2_attack")

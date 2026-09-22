@@ -4,12 +4,13 @@ class_name AttackController
 signal attack_landed(damage: int, position: Vector3)
 
 @export var melee_damage: int = 15
-@export var melee_range: float = 2.0
+@export var melee_range: float = 3.0
 @export var melee_ocali_cost: int = 10
 @export var attack_cooldown: float = 0.4
 
 var _can_attack: bool = true
 var _player: Player
+var _attack_origin: Node3D
 
 @onready var _cooldown_timer: Timer = $CooldownTimer
 
@@ -22,32 +23,34 @@ func _ready() -> void:
 
 func init(player: Player) -> void:
 	_player = player
+	_attack_origin = player.get_node("AttackOrigin")
 
 
 func try_melee_attack(camera: Camera3D) -> void:
 	if not _can_attack:
 		return
 	if not _player.spend_ocali(melee_ocali_cost):
-		return  # not enough Ocali
-
+		return
 	_can_attack = false
 	_cooldown_timer.start()
-
 	var space_state := _player.get_world_3d().direct_space_state
-	var center := camera.get_viewport().get_visible_rect().size / 2
-	var origin := camera.project_ray_origin(center)
-	var direction := camera.project_ray_normal(center)
+	var origin := _attack_origin.global_position
+	var direction := -_player.global_transform.basis.z
 	var end := origin + direction * melee_range
-
 	var query := PhysicsRayQueryParameters3D.create(origin, end)
 	query.exclude = [_player.get_rid()]
+	query.collide_with_bodies = true
 	var result := space_state.intersect_ray(query)
-
 	if result:
+		var collider = result["collider"]
 		var hit_pos: Vector3 = result["position"]
 		emit_signal("attack_landed", melee_damage, hit_pos)
-		if result["collider"].has_method("take_damage"):
-			result["collider"].take_damage(melee_damage)
+		if collider.has_method("take_damage"):
+			collider.take_damage(melee_damage)
+		else:
+			print("Hit: ", collider.name, " — no take_damage method")
+	else:
+		print("Melee raycast hit nothing")
 
 
 func _on_cooldown_done() -> void:
