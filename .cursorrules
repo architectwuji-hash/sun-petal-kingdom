@@ -1,0 +1,26 @@
+# Sun Petal Kingdom — Cursor Rules
+
+## Stack
+Godot 4.2, GDScript. All scripts use .gd extension.
+
+## GDScript conventions
+- snake_case for variables and functions
+- PascalCase for class names and node names
+- Always add type hints (var speed: float = 5.0)
+- Use @export for inspector-editable variables
+- Use @onready for node references
+- Define signals at the top of each script
+- extends goes on line 1, class_name on line 2 (if needed)
+
+## Project layout
+- scenes/   — .tscn files
+- scripts/  — .gd files (one per scene/node type)
+- assets/   — art, audio, fonts
+- ui/       — UI scenes only
+- addons/   — third-party Godot plugins
+
+## Godot 4 notes
+- Node3D not Spatial (that's Godot 3)
+- CharacterBody2D / CharacterBody3D for player movement
+- Signals: signal jumped(height: float)
+- Autoloads live in scripts/ with Singleton_ prefix
