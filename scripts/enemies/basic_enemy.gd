@@ -1,19 +1,20 @@
 extends CharacterBody3D
 class_name BasicEnemy
 
-signal died
+signal died(xp_reward: int)
 
-@export var max_health: int = 60
+@export var enemy_level: int = 3
 @export var move_speed: float = 2.5
 @export var attack_range: float = 1.8
-@export var attack_damage: int = 10
 @export var attack_cooldown: float = 1.2
 @export var detection_range: float = 12.0
 
 const GRAVITY: float = 20.0
 const DamageNumberScene := preload("res://scenes/ui/DamageNumber.tscn")
 
-var health: int = max_health
+var max_health: int = 0
+var health: int = 0
+var attack_damage: int = 0
 var _player: Player = null
 var _can_attack: bool = true
 
@@ -23,7 +24,9 @@ var _can_attack: bool = true
 
 
 func _ready() -> void:
+	max_health = enemy_level * 20
 	health = max_health
+	attack_damage = max(1, enemy_level * 3)
 	_update_label()
 	attack_timer.wait_time = attack_cooldown
 	attack_timer.one_shot = true
@@ -74,6 +77,16 @@ func take_damage(amount: int) -> void:
 		die()
 
 
+func die() -> void:
+	emit_signal("died", enemy_level)
+	queue_free()
+
+
+func _update_label() -> void:
+	if health_label:
+		health_label.text = str(health) + " / " + str(max_health)
+
+
 func _spawn_damage_number(amount: int) -> void:
 	var num: DamageNumber = DamageNumberScene.instantiate()
 	get_parent().add_child(num)
@@ -81,13 +94,3 @@ func _spawn_damage_number(amount: int) -> void:
 		randf_range(-0.3, 0.3), 1.6, randf_range(-0.3, 0.3)
 	)
 	num.setup(amount)
-
-
-func die() -> void:
-	emit_signal("died")
-	queue_free()
-
-
-func _update_label() -> void:
-	if health_label:
-		health_label.text = str(health) + " / " + str(max_health)

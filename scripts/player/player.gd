@@ -3,13 +3,13 @@ class_name Player
 
 signal ocali_changed(current: int, maximum: int)
 signal health_changed(current: int, maximum: int)
+signal level_changed(new_level: int, xp: int, xp_required: int)
 signal died
 
 @export var move_speed: float = 5.0
 @export var sprint_speed: float = 9.0
 @export var jump_velocity: float = 5.5
 @export var mouse_sensitivity: float = 0.003
-@export var max_health: int = 100
 @export var max_ocali: int = 750
 @export var respawn_delay: float = 3.0
 
@@ -22,14 +22,28 @@ const GRAVITY: float = 20.0
 @onready var flower_loadout: FlowerLoadout = $FlowerLoadout
 @onready var power_handler: PowerHandler = $PowerHandler
 
-var health: int = max_health
-var ocali: int = max_ocali
+var level: int = 1
+var xp: int = 0
+var max_health: int = 100
+var health: int = 100
+var ocali: int = 750
 var _camera_pitch: float = 0.0
 var _is_dead: bool = false
 
 
+func _get_xp_required() -> int:
+	return level * level * 5
+
+
+func _get_max_health_for_level(lvl: int) -> int:
+	return 100 + (lvl - 1) * 50
+
+
 func _ready() -> void:
 	add_to_group("player")
+	max_health = _get_max_health_for_level(level)
+	health = max_health
+	ocali = max_ocali
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	attack_controller.init(self)
 	ocali_regen.init(self)
@@ -77,6 +91,21 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 
+func add_xp(amount: int) -> void:
+	xp += amount
+	var required: int = _get_xp_required()
+	while xp >= required:
+		xp -= required
+		level += 1
+		max_health = _get_max_health_for_level(level)
+		health = max_health
+		ocali = max_ocali
+		emit_signal("health_changed", health, max_health)
+		emit_signal("ocali_changed", ocali, max_ocali)
+		required = _get_xp_required()
+	emit_signal("level_changed", level, xp, required)
+
+
 func take_damage(amount: int) -> void:
 	if _is_dead:
 		return
@@ -115,4 +144,5 @@ func _respawn() -> void:
 	velocity = Vector3.ZERO
 	emit_signal("health_changed", health, max_health)
 	emit_signal("ocali_changed", ocali, max_ocali)
+	emit_signal("level_changed", level, xp, _get_xp_required())
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)

@@ -3,7 +3,6 @@ class_name AttackController
 
 signal attack_landed(damage: int, position: Vector3)
 
-@export var melee_damage: int = 15
 @export var melee_range: float = 3.0
 @export var melee_ocali_cost: int = 10
 @export var attack_cooldown: float = 0.4
@@ -26,13 +25,14 @@ func init(player: Player) -> void:
 	_attack_origin = player.get_node("AttackOrigin")
 
 
-func try_melee_attack(camera: Camera3D) -> void:
+func try_melee_attack(_camera: Camera3D) -> void:
 	if not _can_attack:
 		return
 	if not _player.spend_ocali(melee_ocali_cost):
 		return
 	_can_attack = false
 	_cooldown_timer.start()
+	var damage: int = _player.level * 10
 	var space_state := _player.get_world_3d().direct_space_state
 	var origin := _attack_origin.global_position
 	var direction := -_player.global_transform.basis.z
@@ -44,13 +44,9 @@ func try_melee_attack(camera: Camera3D) -> void:
 	if result:
 		var collider = result["collider"]
 		var hit_pos: Vector3 = result["position"]
-		emit_signal("attack_landed", melee_damage, hit_pos)
+		emit_signal("attack_landed", damage, hit_pos)
 		if collider.has_method("take_damage"):
-			collider.take_damage(melee_damage)
-		else:
-			print("Hit: ", collider.name, " — no take_damage method")
-	else:
-		print("Melee raycast hit nothing")
+			collider.take_damage(damage)
 
 
 func _on_cooldown_done() -> void:

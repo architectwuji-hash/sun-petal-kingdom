@@ -55,6 +55,26 @@ max_value = 750.0
 value = 750.0
 show_percentage = false
 
+[node name="LevelRow" type="HBoxContainer" parent="StatsPanel/VBox"]
+layout_mode = 2
+
+[node name="LvLabel" type="Label" parent="StatsPanel/VBox/LevelRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(30, 0)
+text = "Lv"
+
+[node name="LevelLabel" type="Label" parent="StatsPanel/VBox/LevelRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 0)
+text = "1  —  0 / 5 XP"
+
+[node name="XPBar" type="ProgressBar" parent="StatsPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(180, 10)
+max_value = 5.0
+value = 0.0
+show_percentage = false
+
 [node name="DeathScreen" type="Control" parent="."]
 visible = false
 layout_mode = 3
