@@ -1,15 +1,9 @@
-[gd_scene load_steps=9 format=3 uid="uid://c7testarena01spk"]
+[gd_scene load_steps=10 format=3 uid="uid://5invlqhtvn1q"]
 
-[ext_resource type="PackedScene" uid="uid://bqx8player01spk" path="res://scenes/player/Player.tscn" id="1_player"]
-[ext_resource type="PackedScene" uid="uid://d8hudpanel01spk" path="res://scenes/ui/HUD.tscn" id="2_hud"]
+[ext_resource type="PackedScene" uid="uid://hrf6sgf4ugqi" path="res://scenes/player/Player.tscn" id="1_player"]
+[ext_resource type="PackedScene" uid="uid://cgbwvjh3il5pc" path="res://scenes/ui/HUD.tscn" id="2_hud"]
 [ext_resource type="Script" path="res://scripts/world/test_arena.gd" id="3_test_arena"]
-[ext_resource type="PackedScene" uid="uid://f0basicenemy1spk" path="res://scenes/enemies/BasicEnemy.tscn" id="4_enemy"]
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
-size = Vector3(40, 0.5, 40)
-
-[sub_resource type="BoxMesh" id="BoxMesh_ground"]
-size = Vector3(40, 0.5, 40)
+[ext_resource type="PackedScene" uid="uid://bakm0x787d2sy" path="res://scenes/enemies/BasicEnemy.tscn" id="4_enemy"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 
@@ -20,11 +14,17 @@ sky_material = SubResource("ProceduralSkyMaterial_sky")
 background_mode = 2
 sky = SubResource("Sky_env")
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
+size = Vector3(40, 0.5, 40)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ground"]
+size = Vector3(40, 0.5, 40)
+
 [node name="TestArena" type="Node3D"]
 script = ExtResource("3_test_arena")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-rotation_degrees = Vector3(-45, -30, 0)
+transform = Transform3D(0.866025, 0.353553, -0.353553, 0, 0.707107, 0.707107, 0.5, -0.612372, 0.612372, 0, 0, 0)
 light_energy = 1.2
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]

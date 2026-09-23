@@ -11,6 +11,7 @@ signal died
 @export var detection_range: float = 12.0
 
 const GRAVITY: float = 20.0
+const DamageNumberScene := preload("res://scenes/ui/DamageNumber.tscn")
 
 var health: int = max_health
 var _player: Player = null
@@ -68,8 +69,18 @@ func _on_attack_ready() -> void:
 func take_damage(amount: int) -> void:
 	health -= amount
 	_update_label()
+	_spawn_damage_number(amount)
 	if health <= 0:
 		die()
+
+
+func _spawn_damage_number(amount: int) -> void:
+	var num: DamageNumber = DamageNumberScene.instantiate()
+	get_parent().add_child(num)
+	num.global_position = global_position + Vector3(
+		randf_range(-0.3, 0.3), 1.6, randf_range(-0.3, 0.3)
+	)
+	num.setup(amount)
 
 
 func die() -> void:
