@@ -1,9 +1,10 @@
-[gd_scene load_steps=10 format=3 uid="uid://5invlqhtvn1q"]
+[gd_scene load_steps=11 format=3 uid="uid://5invlqhtvn1q"]
 
 [ext_resource type="PackedScene" uid="uid://hrf6sgf4ugqi" path="res://scenes/player/Player.tscn" id="1_player"]
 [ext_resource type="PackedScene" uid="uid://cgbwvjh3il5pc" path="res://scenes/ui/HUD.tscn" id="2_hud"]
 [ext_resource type="Script" path="res://scripts/world/test_arena.gd" id="3_test_arena"]
 [ext_resource type="PackedScene" uid="uid://bakm0x787d2sy" path="res://scenes/enemies/BasicEnemy.tscn" id="4_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/world/SunflowerPickup.tscn" id="5_sfpickup"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 
@@ -54,3 +55,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -6)
 
 [node name="BasicEnemy3" parent="." instance=ExtResource("4_enemy")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -6)
+
+[node name="SunflowerPickup" parent="." instance=ExtResource("5_sfpickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -4)

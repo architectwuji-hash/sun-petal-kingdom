@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3 uid="uid://sunflowerpickup01"]
+
+[ext_resource type="Script" path="res://scripts/world/sunflower_pickup.gd" id="1_sfpickup"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_sf"]
+radius = 0.3
+height = 0.6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sf"]
+albedo_color = Color(1, 0.85, 0, 1)
+emission_enabled = true
+emission = Color(1, 0.85, 0, 1)
+emission_energy_multiplier = 1.5
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_sf"]
+radius = 0.5
+
+[node name="SunflowerPickup" type="Area3D"]
+script = ExtResource("1_sfpickup")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+mesh = SubResource("SphereMesh_sf")
+surface_material_override/0 = SubResource("StandardMaterial3D_sf")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("SphereShape3D_sf")
