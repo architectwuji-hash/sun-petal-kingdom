@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Sun Petal Kingdom"
 config/description="A Godot 4 adventure game set in Ocala, FL"
-run/main_scene="res://scenes/world/TestArena.tscn"
+run/main_scene="res://scenes/world/ForestStarting.tscn"
 config/features=PackedStringArray("4.2", "Forward Plus")
 
 [display]

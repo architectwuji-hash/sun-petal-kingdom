@@ -1,0 +1,85 @@
+[gd_scene load_steps=13 format=3 uid="uid://foreststartworld1"]
+
+[ext_resource type="PackedScene" uid="uid://hrf6sgf4ugqi" path="res://scenes/player/Player.tscn" id="1_player"]
+[ext_resource type="PackedScene" uid="uid://cgbwvjh3il5pc" path="res://scenes/ui/HUD.tscn" id="2_hud"]
+[ext_resource type="Script" path="res://scripts/world/forest_starting.gd" id="3_world"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_top_color = Color(0.1, 0.32, 0.75, 1)
+sky_horizon_color = Color(0.72, 0.86, 0.92, 1)
+ground_bottom_color = Color(0.18, 0.35, 0.1, 1)
+ground_horizon_color = Color(0.38, 0.55, 0.22, 1)
+
+[sub_resource type="Sky" id="Sky_env"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_world"]
+background_mode = 2
+sky = SubResource("Sky_env")
+ambient_light_source = 2
+ambient_light_color = Color(0.35, 0.55, 0.28, 1)
+ambient_light_energy = 0.5
+fog_enabled = true
+fog_density = 0.004
+fog_light_color = Color(0.6, 0.8, 0.55, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
+size = Vector3(200, 0.5, 200)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ground"]
+size = Vector3(200, 0.5, 200)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
+albedo_color = Color(0.22, 0.48, 0.14, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_flame"]
+radius = 0.35
+height = 0.7
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_flame"]
+albedo_color = Color(1.0, 0.45, 0.05, 1)
+emission_enabled = true
+emission = Color(1.0, 0.45, 0.05, 1)
+emission_energy_multiplier = 2.5
+
+[node name="ForestStarting" type="Node3D"]
+script = ExtResource("3_world")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_world")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 12, 0)
+light_color = Color(1.0, 0.95, 0.82, 1)
+light_energy = 1.4
+shadow_enabled = true
+
+[node name="Ground" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+shape = SubResource("BoxShape3D_ground")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
+mesh = SubResource("BoxMesh_ground")
+surface_material_override/0 = SubResource("StandardMaterial3D_ground")
+
+[node name="Campfire" type="Node3D" parent="."]
+
+[node name="GlowLight" type="OmniLight3D" parent="Campfire"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+light_color = Color(1.0, 0.5, 0.12, 1)
+light_energy = 3.5
+omni_range = 12.0
+
+[node name="FlameMesh" type="MeshInstance3D" parent="Campfire"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+mesh = SubResource("SphereMesh_flame")
+surface_material_override/0 = SubResource("StandardMaterial3D_flame")
+
+[node name="PlayerSpawn" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 9)
+
+[node name="Player" parent="PlayerSpawn" instance=ExtResource("1_player")]
+
+[node name="HUD" parent="." instance=ExtResource("2_hud")]
