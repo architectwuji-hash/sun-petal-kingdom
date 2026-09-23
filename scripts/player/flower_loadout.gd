@@ -6,7 +6,7 @@ signal slot_changed(slot_index: int, flower_name: String)
 const MAX_SLOTS: int = 4
 
 # Each slot holds a flower name string or "" if empty
-var slots: Array[String] = ["Sunflower", "", "", ""]
+var slots: Array[String] = ["Sunflower", "Rose", "", ""]
 var active_slot: int = 0
 
 
