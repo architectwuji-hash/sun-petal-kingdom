@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://forestzone2dspk01"]
 
 [ext_resource type="Script" path="res://scripts/world/forest_zone_2d.gd" id="1_forest_zone"]
-[ext_resource type="PackedScene" uid="uid://player2dspk01" path="res://scenes/player/Player2D.tscn" id="2_player2d"]
+[ext_resource type="PackedScene" path="res://scenes/player/Player2D.tscn" id="2_player2d"]
 
 [node name="ForestZone2D" type="Node2D"]
 script = ExtResource("1_forest_zone")
