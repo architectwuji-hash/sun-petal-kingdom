@@ -1,0 +1,435 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/character/base/char_a_p1_0bas_humn_v01.png" id="1_body"]
+[ext_resource type="Texture2D" path="res://assets/sprites/character/outfit/char_a_p1_1out_fstr_v01.png" id="2_outfit"]
+[ext_resource type="Texture2D" path="res://assets/sprites/character/hair/char_a_p1_4har_bob1_v01.png" id="3_hair"]
+[ext_resource type="Texture2D" path="res://assets/sprites/character/hat/char_a_p1_5hat_pfht_v01.png" id="4_hat"]
+[ext_resource type="Script" path="res://scripts/player/player_2d.gd" id="5_script"]
+
+[sub_resource type="AtlasTexture" id="AT_10"]
+atlas = ExtResource("1_body")
+region = Rect2(0, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_11"]
+atlas = ExtResource("1_body")
+region = Rect2(64, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_12"]
+atlas = ExtResource("1_body")
+region = Rect2(128, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_13"]
+atlas = ExtResource("1_body")
+region = Rect2(192, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_14"]
+atlas = ExtResource("1_body")
+region = Rect2(256, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_15"]
+atlas = ExtResource("1_body")
+region = Rect2(320, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_16"]
+atlas = ExtResource("1_body")
+region = Rect2(0, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_17"]
+atlas = ExtResource("1_body")
+region = Rect2(64, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_18"]
+atlas = ExtResource("1_body")
+region = Rect2(128, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_19"]
+atlas = ExtResource("1_body")
+region = Rect2(192, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_20"]
+atlas = ExtResource("1_body")
+region = Rect2(256, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_21"]
+atlas = ExtResource("1_body")
+region = Rect2(320, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_22"]
+atlas = ExtResource("1_body")
+region = Rect2(0, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_23"]
+atlas = ExtResource("1_body")
+region = Rect2(64, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_24"]
+atlas = ExtResource("1_body")
+region = Rect2(128, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_25"]
+atlas = ExtResource("1_body")
+region = Rect2(192, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_26"]
+atlas = ExtResource("1_body")
+region = Rect2(256, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_27"]
+atlas = ExtResource("1_body")
+region = Rect2(320, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_28"]
+atlas = ExtResource("1_body")
+region = Rect2(0, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_29"]
+atlas = ExtResource("1_body")
+region = Rect2(64, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_30"]
+atlas = ExtResource("1_body")
+region = Rect2(128, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_31"]
+atlas = ExtResource("1_body")
+region = Rect2(192, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_32"]
+atlas = ExtResource("1_body")
+region = Rect2(256, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_33"]
+atlas = ExtResource("1_body")
+region = Rect2(320, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_34"]
+atlas = ExtResource("2_outfit")
+region = Rect2(0, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_35"]
+atlas = ExtResource("2_outfit")
+region = Rect2(64, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_36"]
+atlas = ExtResource("2_outfit")
+region = Rect2(128, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_37"]
+atlas = ExtResource("2_outfit")
+region = Rect2(192, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_38"]
+atlas = ExtResource("2_outfit")
+region = Rect2(256, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_39"]
+atlas = ExtResource("2_outfit")
+region = Rect2(320, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_40"]
+atlas = ExtResource("2_outfit")
+region = Rect2(0, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_41"]
+atlas = ExtResource("2_outfit")
+region = Rect2(64, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_42"]
+atlas = ExtResource("2_outfit")
+region = Rect2(128, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_43"]
+atlas = ExtResource("2_outfit")
+region = Rect2(192, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_44"]
+atlas = ExtResource("2_outfit")
+region = Rect2(256, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_45"]
+atlas = ExtResource("2_outfit")
+region = Rect2(320, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_46"]
+atlas = ExtResource("2_outfit")
+region = Rect2(0, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_47"]
+atlas = ExtResource("2_outfit")
+region = Rect2(64, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_48"]
+atlas = ExtResource("2_outfit")
+region = Rect2(128, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_49"]
+atlas = ExtResource("2_outfit")
+region = Rect2(192, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_50"]
+atlas = ExtResource("2_outfit")
+region = Rect2(256, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_51"]
+atlas = ExtResource("2_outfit")
+region = Rect2(320, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_52"]
+atlas = ExtResource("2_outfit")
+region = Rect2(0, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_53"]
+atlas = ExtResource("2_outfit")
+region = Rect2(64, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_54"]
+atlas = ExtResource("2_outfit")
+region = Rect2(128, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_55"]
+atlas = ExtResource("2_outfit")
+region = Rect2(192, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_56"]
+atlas = ExtResource("2_outfit")
+region = Rect2(256, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_57"]
+atlas = ExtResource("2_outfit")
+region = Rect2(320, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_58"]
+atlas = ExtResource("3_hair")
+region = Rect2(0, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_59"]
+atlas = ExtResource("3_hair")
+region = Rect2(64, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_60"]
+atlas = ExtResource("3_hair")
+region = Rect2(128, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_61"]
+atlas = ExtResource("3_hair")
+region = Rect2(192, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_62"]
+atlas = ExtResource("3_hair")
+region = Rect2(256, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_63"]
+atlas = ExtResource("3_hair")
+region = Rect2(320, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_64"]
+atlas = ExtResource("3_hair")
+region = Rect2(0, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_65"]
+atlas = ExtResource("3_hair")
+region = Rect2(64, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_66"]
+atlas = ExtResource("3_hair")
+region = Rect2(128, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_67"]
+atlas = ExtResource("3_hair")
+region = Rect2(192, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_68"]
+atlas = ExtResource("3_hair")
+region = Rect2(256, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_69"]
+atlas = ExtResource("3_hair")
+region = Rect2(320, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_70"]
+atlas = ExtResource("3_hair")
+region = Rect2(0, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_71"]
+atlas = ExtResource("3_hair")
+region = Rect2(64, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_72"]
+atlas = ExtResource("3_hair")
+region = Rect2(128, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_73"]
+atlas = ExtResource("3_hair")
+region = Rect2(192, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_74"]
+atlas = ExtResource("3_hair")
+region = Rect2(256, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_75"]
+atlas = ExtResource("3_hair")
+region = Rect2(320, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_76"]
+atlas = ExtResource("3_hair")
+region = Rect2(0, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_77"]
+atlas = ExtResource("3_hair")
+region = Rect2(64, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_78"]
+atlas = ExtResource("3_hair")
+region = Rect2(128, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_79"]
+atlas = ExtResource("3_hair")
+region = Rect2(192, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_80"]
+atlas = ExtResource("3_hair")
+region = Rect2(256, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_81"]
+atlas = ExtResource("3_hair")
+region = Rect2(320, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_82"]
+atlas = ExtResource("4_hat")
+region = Rect2(0, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_83"]
+atlas = ExtResource("4_hat")
+region = Rect2(64, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_84"]
+atlas = ExtResource("4_hat")
+region = Rect2(128, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_85"]
+atlas = ExtResource("4_hat")
+region = Rect2(192, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_86"]
+atlas = ExtResource("4_hat")
+region = Rect2(256, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_87"]
+atlas = ExtResource("4_hat")
+region = Rect2(320, 256, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_88"]
+atlas = ExtResource("4_hat")
+region = Rect2(0, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_89"]
+atlas = ExtResource("4_hat")
+region = Rect2(64, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_90"]
+atlas = ExtResource("4_hat")
+region = Rect2(128, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_91"]
+atlas = ExtResource("4_hat")
+region = Rect2(192, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_92"]
+atlas = ExtResource("4_hat")
+region = Rect2(256, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_93"]
+atlas = ExtResource("4_hat")
+region = Rect2(320, 320, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_94"]
+atlas = ExtResource("4_hat")
+region = Rect2(0, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_95"]
+atlas = ExtResource("4_hat")
+region = Rect2(64, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_96"]
+atlas = ExtResource("4_hat")
+region = Rect2(128, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_97"]
+atlas = ExtResource("4_hat")
+region = Rect2(192, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_98"]
+atlas = ExtResource("4_hat")
+region = Rect2(256, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_99"]
+atlas = ExtResource("4_hat")
+region = Rect2(320, 384, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_100"]
+atlas = ExtResource("4_hat")
+region = Rect2(0, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_101"]
+atlas = ExtResource("4_hat")
+region = Rect2(64, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_102"]
+atlas = ExtResource("4_hat")
+region = Rect2(128, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_103"]
+atlas = ExtResource("4_hat")
+region = Rect2(192, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_104"]
+atlas = ExtResource("4_hat")
+region = Rect2(256, 448, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AT_105"]
+atlas = ExtResource("4_hat")
+region = Rect2(320, 448, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SF_0"]
+animations = [{"frames": [{"texture": SubResource("AT_10"), "duration": 1.0}], "loop": true, "name": &"idle_south", "speed": 1.0}, {"frames": [{"texture": SubResource("AT_10"), "duration": 1.0}, {"texture": SubResource("AT_11"), "duration": 1.0}, {"texture": SubResource("AT_12"), "duration": 1.0}, {"texture": SubResource("AT_13"), "duration": 1.0}, {"texture": SubResource("AT_14"), "duration": 1.0}, {"texture": SubResource("AT_15"), "duration": 1.0}], "loop": true, "name": &"walk_south", "speed": 7.0}, {"frames": [{"texture": SubResource("AT_16"), "duration": 1.0}], "loop": true, "name": &"idle_west", "speed": 1.0}, {"frames": [{"texture": SubResource("AT_16"), "duration": 1.0}, {"texture": SubResource("AT_17"), "duration": 1.0}, {"texture": SubResource("AT_18"), "duration": 1.0}, {"texture": SubResource("AT_19"), "duration": 1.0}, {"texture": SubResource("AT_20"), "duration": 1.0}, {"texture": SubResource("AT_21"), "duration": 1.0}], "loop": true, "name": &"walk_west", "speed": 7.0}, {"frames": [{"texture": SubResource("AT_22"), "duration": 1.0}], "loop": true, "name": &"idle_east", "speed": 1.0}, {"frames": [{"texture": SubResource("AT_22"), "duration": 1.0}, {"texture": SubResource("AT_23"), "duration": 1.0}, {"texture": SubResource("AT_24"), "duration": 1.0}, {"texture": SubResource("AT_25"), "duration": 1.0}, {"texture": SubResource("AT_26"), "duration": 1.0}, {"texture": SubResource("AT_27"), "duration": 1.0}], "loop": true, "name": &"walk_east", "speed": 7.0}, {"frames": [{"texture": SubResource("AT_28"), "duration": 1.0}], "loop": true, "name": &"idle_north", "speed": 1.0}, {"frames": [{"texture": SubResource("AT_28"), "duration": 1.0}, {"texture": SubResource("AT_29"), "duration": 1.0}, {"texture": SubResource("AT_30"), "duration": 1.0}, {"texture": SubResource("AT_31"), "duration": 1.0}, {"texture": SubResource("AT_32"), "duration": 1.0}, {"texture": SubResource("AT_33"), "duration": 1.0}], "loop": true, "name": &"walk_north", "speed": 7.0}]
+
+[sub_resource type="SpriteFrames" id="SF_1"]
+animations = [{"frames": [{"texture": SubResource("AT_34"), "duration": 1.0}], "loop": true, "name": &"idle_south", "speed": 1.0}, {"frames": [{"texture": SubResource("AT_34"), "duration": 1.0}, {"texture": SubResource("AT_35"), "duration": 1.0}, {"texture": SubResource("AT_36"), "duration": 1.0}, {"texture": SubResource("AT_37"), "duration": 1.0}, {"texture": SubResource("AT_38"), "duration": 1.0}, {"texture": SubResource("AT_39"), "duration": 1.0}], "loop": true, "name": &"walk_south", "speed": 7.0}, {"frames": [{"texture": SubResource("AT_40"), "duration": 1.0}], "loop": true, "name": &"idle_west", "speed": 1.0}, {"frames": [{"texture": SubResource("AT_40"), "duration": 1.0}, {"texture": SubResource("AT_41"), "duration": 1.0}, {"texture": SubResource("AT_42"), "duration": 1.0}, {"texture": SubResource("AT_43"), "duration": 1.0}, {"texture": SubResource("AT_44"), "duration": 1.0}, {"texture": SubResource("AT_45"), "duration": 1.0}], "loop": true, "name": &"walk_west", "speed": 7.0}, {"frames": [{"texture": SubResource("AT_46"), "duration": 1.0}], "loop": true, "name": &"idle_east", "speed": 1.0}, {"frames": [{"texture": SubResource("AT_46"), "duration": 1.0}, {"texture": SubResource("AT_47"), "duration": 1.0}, {"texture": SubResource("AT_48"), "duration": 1.0}, {"texture": SubResource("AT_49"), "duration": 1.0}, {"texture": SubResource("AT_50"), "duration": 1.0}, {"texture": SubResource("AT_51"), "duration": 1.0}], "loop": true, "name": &"walk_east", "speed": 7.0}, {"frames": [{"texture": SubResource("AT_52"), "duration": 1.0}], "loop": true, "name": &"idle_north", "speed": 1.0}, {"frames": [{"texture": SubResource("AT_52"), "duration": 1.0}, {"texture": SubResource("AT_53"), "duration": 1.0}, {"texture": SubResource("AT_54"), "duration": 1.0}, {"texture": SubResource("AT_55"), "duration": 1.0}, {"texture": SubResource("AT_56"), "duration": 1.0}, {"texture": SubResource("AT_57"), "duration": 1.0}], "loop": true, "name": &"walk_north", "speed": 7.0}]
+
+[sub_resource type="SpriteFrames" id="SF_2"]
+animations = [{"frames": [{"texture": SubResource("AT_58"), "duration": 1.0}], "loop": true, "name": &"idle_south", "speed": 1.0}, {"frames": [{"texture": SubResource("AT_58"), "duration": 1.0}, {"texture": SubResource("AT_59"), "duration": 1.0}, {"texture": SubResource("AT_60"), "duration": 1.0}, {"texture": SubResource("AT_61"), "duration": 1.0}, {"texture": SubResource("AT_62"), "duration": 1.0}, {"texture": SubResource("AT_63"), "duration": 1.0}], "loop": true, "name": &"walk_south", "speed": 7.0}, {"frames": [{"texture": SubResource("AT_64"), "duration": 1.0}], "loop": true, "name": &"idle_west", "speed": 1.0}, {"frames": [{"texture": SubResource("AT_64"), "duration": 1.0}, {"texture": SubResource("AT_65"), "duration": 1.0}, {"texture": SubResource("AT_66"), "duration": 1.0}, {"texture": SubResource("AT_67"), "duration": 1.0}, {"texture": SubResource("AT_68"), "duration": 1.0}, {"texture": SubResource("AT_69"), "duration": 1.0}], "loop": true, "name": &"walk_west", "speed": 7.0}, {"frames": [{"texture": SubResource("AT_70"), "duration": 1.0}], "loop": true, "name": &"idle_east", "speed": 1.0}, {"frames": [{"texture": SubResource("AT_70"), "duration": 1.0}, {"texture": SubResource("AT_71"), "duration": 1.0}, {"texture": SubResource("AT_72"), "duration": 1.0}, {"texture": SubResource("AT_73"), "duration": 1.0}, {"texture": SubResource("AT_74"), "duration": 1.0}, {"texture": SubResource("AT_75"), "duration": 1.0}], "loop": true, "name": &"walk_east", "speed": 7.0}, {"frames": [{"texture": SubResource("AT_76"), "duration": 1.0}], "loop": true, "name": &"idle_north", "speed": 1.0}, {"frames": [{"texture": SubResource("AT_76"), "duration": 1.0}, {"texture": SubResource("AT_77"), "duration": 1.0}, {"texture": SubResource("AT_78"), "duration": 1.0}, {"texture": SubResource("AT_79"), "duration": 1.0}, {"texture": SubResource("AT_80"), "duration": 1.0}, {"texture": SubResource("AT_81"), "duration": 1.0}], "loop": true, "name": &"walk_north", "speed": 7.0}]
+
+[sub_resource type="SpriteFrames" id="SF_3"]
+animations = [{"frames": [{"texture": SubResource("AT_82"), "duration": 1.0}], "loop": true, "name": &"idle_south", "speed": 1.0}, {"frames": [{"texture": SubResource("AT_82"), "duration": 1.0}, {"texture": SubResource("AT_83"), "duration": 1.0}, {"texture": SubResource("AT_84"), "duration": 1.0}, {"texture": SubResource("AT_85"), "duration": 1.0}, {"texture": SubResource("AT_86"), "duration": 1.0}, {"texture": SubResource("AT_87"), "duration": 1.0}], "loop": true, "name": &"walk_south", "speed": 7.0}, {"frames": [{"texture": SubResource("AT_88"), "duration": 1.0}], "loop": true, "name": &"idle_west", "speed": 1.0}, {"frames": [{"texture": SubResource("AT_88"), "duration": 1.0}, {"texture": SubResource("AT_89"), "duration": 1.0}, {"texture": SubResource("AT_90"), "duration": 1.0}, {"texture": SubResource("AT_91"), "duration": 1.0}, {"texture": SubResource("AT_92"), "duration": 1.0}, {"texture": SubResource("AT_93"), "duration": 1.0}], "loop": true, "name": &"walk_west", "speed": 7.0}, {"frames": [{"texture": SubResource("AT_94"), "duration": 1.0}], "loop": true, "name": &"idle_east", "speed": 1.0}, {"frames": [{"texture": SubResource("AT_94"), "duration": 1.0}, {"texture": SubResource("AT_95"), "duration": 1.0}, {"texture": SubResource("AT_96"), "duration": 1.0}, {"texture": SubResource("AT_97"), "duration": 1.0}, {"texture": SubResource("AT_98"), "duration": 1.0}, {"texture": SubResource("AT_99"), "duration": 1.0}], "loop": true, "name": &"walk_east", "speed": 7.0}, {"frames": [{"texture": SubResource("AT_100"), "duration": 1.0}], "loop": true, "name": &"idle_north", "speed": 1.0}, {"frames": [{"texture": SubResource("AT_100"), "duration": 1.0}, {"texture": SubResource("AT_101"), "duration": 1.0}, {"texture": SubResource("AT_102"), "duration": 1.0}, {"texture": SubResource("AT_103"), "duration": 1.0}, {"texture": SubResource("AT_104"), "duration": 1.0}, {"texture": SubResource("AT_105"), "duration": 1.0}], "loop": true, "name": &"walk_north", "speed": 7.0}]
+
+[sub_resource type="CapsuleShape2D" id="COL_0"]
+radius = 6.0
+height = 10.0
+
+[node name="Player2D" type="CharacterBody2D"]
+scale = Vector2(2, 2)
+script = ExtResource("5_script")
+
+[node name="Body" type="AnimatedSprite2D" parent="."]
+z_index = 0
+sprite_frames = SubResource("SF_0")
+animation = &"idle_south"
+
+[node name="Outfit" type="AnimatedSprite2D" parent="."]
+z_index = 1
+sprite_frames = SubResource("SF_1")
+animation = &"idle_south"
+
+[node name="Hair" type="AnimatedSprite2D" parent="."]
+z_index = 2
+sprite_frames = SubResource("SF_2")
+animation = &"idle_south"
+
+[node name="Hat" type="AnimatedSprite2D" parent="."]
+z_index = 3
+sprite_frames = SubResource("SF_3")
+animation = &"idle_south"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 16)
+shape = SubResource("COL_0")
