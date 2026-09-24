@@ -1,3 +1,4 @@
+@tool
 extends Node2D
 
 const MAP_W := 200
@@ -59,15 +60,21 @@ func _ready() -> void:
 	while tilemap.get_layers_count() < 2:
 		tilemap.add_layer(-1)
 	_paint_map()
+	if Engine.is_editor_hint():
+		return
 	_setup_minimap()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if Engine.is_editor_hint():
+		return
 	if event is InputEventKey and event.keycode == KEY_TAB and event.pressed and not event.echo:
 		_god_mode = !_god_mode
 		var cam: Camera2D = $Player2D/Camera2D
 		cam.zoom = GOD_ZOOM if _god_mode else PLAY_ZOOM
 
 func _process(_delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
 	if _minimap_dot != null and is_instance_valid($Player2D):
 		var p: Vector2 = $Player2D.position
 		_minimap_dot.position = _minimap_offset + Vector2(
