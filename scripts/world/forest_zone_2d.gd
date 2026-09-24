@@ -36,6 +36,7 @@ var _god_mode := false
 const MINIMAP_W := 240
 const MINIMAP_H := 180
 var _minimap_dot: ColorRect = null
+var _minimap_offset := Vector2.ZERO
 
 @onready var tilemap: TileMap = $TileMap
 
@@ -69,7 +70,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(_delta: float) -> void:
 	if _minimap_dot != null and is_instance_valid($Player2D):
 		var p: Vector2 = $Player2D.position
-		_minimap_dot.position = Vector2(
+		_minimap_dot.position = _minimap_offset + Vector2(
 			(p.x / MAP_PX_W) * MINIMAP_W - 3.0,
 			(p.y / MAP_PX_H) * MINIMAP_H - 3.0
 		)
@@ -94,6 +95,7 @@ func _setup_minimap() -> void:
 	container.size = Vector2(MINIMAP_W, MINIMAP_H)
 	container.position = bg.position + Vector2(2, 2)
 	ui.add_child(container)
+	_minimap_offset = container.position
 
 	# SubViewport sharing this scene's World2D
 	var vp := SubViewport.new()
