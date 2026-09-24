@@ -16,7 +16,7 @@ signal died
 const GRAVITY: float = 20.0
 
 @onready var camera_pivot: Node3D = $CameraPivot
-@onready var camera: Camera3D = $CameraPivot/Camera
+@onready var camera: Camera3D = $CameraPivot/SpringArm3D/Camera
 @onready var attack_controller: AttackController = $AttackController
 @onready var ocali_regen: OcaliRegen = $OcaliRegen
 @onready var flower_loadout: FlowerLoadout = $FlowerLoadout

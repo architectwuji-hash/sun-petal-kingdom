@@ -5,10 +5,14 @@
 [ext_resource type="Script" path="res://scripts/world/forest_starting.gd" id="3_world"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
-sky_top_color = Color(0.1, 0.32, 0.75, 1)
-sky_horizon_color = Color(0.72, 0.86, 0.92, 1)
-ground_bottom_color = Color(0.18, 0.35, 0.1, 1)
-ground_horizon_color = Color(0.38, 0.55, 0.22, 1)
+sky_top_color = Color(0.08, 0.22, 0.58, 1)
+sky_horizon_color = Color(0.62, 0.78, 0.88, 1)
+sky_curve = 0.15
+ground_bottom_color = Color(0.12, 0.28, 0.08, 1)
+ground_horizon_color = Color(0.30, 0.48, 0.18, 1)
+ground_curve = 0.02
+sun_angle_max = 30.0
+sun_curve = 0.15
 
 [sub_resource type="Sky" id="Sky_env"]
 sky_material = SubResource("ProceduralSkyMaterial_sky")
@@ -17,11 +21,34 @@ sky_material = SubResource("ProceduralSkyMaterial_sky")
 background_mode = 2
 sky = SubResource("Sky_env")
 ambient_light_source = 2
-ambient_light_color = Color(0.35, 0.55, 0.28, 1)
-ambient_light_energy = 0.5
+ambient_light_color = Color(0.32, 0.52, 0.26, 1)
+ambient_light_energy = 0.6
+tonemap_mode = 2
+tonemap_exposure = 1.1
+tonemap_white = 1.0
+glow_enabled = true
+glow_normalized = true
+glow_intensity = 0.7
+glow_bloom = 0.18
+glow_blend_mode = 2
+glow_levels/1 = 0.1
+glow_levels/2 = 0.3
+glow_levels/3 = 0.9
+glow_levels/4 = 0.5
+ssao_enabled = true
+ssao_radius = 1.0
+ssao_intensity = 1.8
+ssao_sharpness = 0.98
+ssao_light_affect = 0.1
 fog_enabled = true
-fog_density = 0.004
-fog_light_color = Color(0.6, 0.8, 0.55, 1)
+fog_density = 0.006
+fog_aerial_perspective = 0.5
+fog_light_color = Color(0.55, 0.75, 0.5, 1)
+fog_sky_affect = 0.4
+adjustment_enabled = true
+adjustment_brightness = 1.05
+adjustment_contrast = 1.12
+adjustment_saturation = 1.2
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
 size = Vector3(200, 0.5, 200)
@@ -40,7 +67,7 @@ height = 0.7
 albedo_color = Color(1.0, 0.45, 0.05, 1)
 emission_enabled = true
 emission = Color(1.0, 0.45, 0.05, 1)
-emission_energy_multiplier = 2.5
+emission_energy_multiplier = 4.0
 
 [node name="ForestStarting" type="Node3D"]
 script = ExtResource("3_world")
@@ -50,9 +77,12 @@ environment = SubResource("Environment_world")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 12, 0)
-light_color = Color(1.0, 0.95, 0.82, 1)
-light_energy = 1.4
+light_color = Color(1.0, 0.92, 0.75, 1)
+light_energy = 1.6
 shadow_enabled = true
+shadow_bias = 0.02
+directional_shadow_mode = 2
+directional_shadow_blend_splits = true
 
 [node name="Ground" type="StaticBody3D" parent="."]
 
@@ -68,9 +98,10 @@ surface_material_override/0 = SubResource("StandardMaterial3D_ground")
 
 [node name="GlowLight" type="OmniLight3D" parent="Campfire"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
-light_color = Color(1.0, 0.5, 0.12, 1)
-light_energy = 3.5
-omni_range = 12.0
+light_color = Color(1.0, 0.45, 0.1, 1)
+light_energy = 5.0
+omni_range = 15.0
+shadow_enabled = true
 
 [node name="FlameMesh" type="MeshInstance3D" parent="Campfire"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
