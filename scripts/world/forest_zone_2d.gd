@@ -85,9 +85,7 @@ func _setup_minimap() -> void:
 	var bg := ColorRect.new()
 	bg.color = Color(0.0, 0.0, 0.0, 0.75)
 	bg.size = Vector2(MINIMAP_W + 4, MINIMAP_H + 4)
-	# Position: top-right, 10px from edge (assumes 1280-wide window)
-	var screen_w: int = ProjectSettings.get_setting("display/window/size/viewport_width", 1280)
-	bg.position = Vector2(screen_w - MINIMAP_W - 14, 10)
+	bg.position = UIPositions.MINIMAP
 	ui.add_child(bg)
 
 	# SubViewportContainer
