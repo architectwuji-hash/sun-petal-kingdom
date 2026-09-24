@@ -1,7 +1,7 @@
 extends Node2D
 
-const MAP_W := 60
-const MAP_H := 40
+const MAP_W := 200
+const MAP_H := 150
 
 # --- Grass variants (light to medium) ---
 const G00 := Vector2i(1, 0)   # bright grass
