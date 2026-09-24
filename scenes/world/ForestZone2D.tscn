@@ -14,9 +14,9 @@ collision_mask = 1
 format = 2
 
 [node name="Player2D" parent="." instance=ExtResource("3_player2d")]
-position = Vector2(240, 160)
+position = Vector2(480, 320)
 
 [node name="Camera2D" type="Camera2D" parent="Player2D"]
 position_smoothing_enabled = true
 position_smoothing_speed = 5.0
-zoom = Vector2(3, 3)
+zoom = Vector2(2.55, 2.55)
