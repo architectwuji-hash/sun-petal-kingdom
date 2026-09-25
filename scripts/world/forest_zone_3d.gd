@@ -56,8 +56,8 @@ func _process(_delta: float) -> void:
 
 	var world_pos: Vector3 = _player.global_position
 	_player_dot.position = Vector2(
-		((world_pos.x + 100.0) / 200.0) * 160.0 - 4.0,
-		((world_pos.z + 100.0) / 200.0) * 160.0 - 4.0
+		((world_pos.x + 200.0) / 400.0) * 160.0 - 4.0,
+		((world_pos.z + 200.0) / 400.0) * 160.0 - 4.0
 	)
 
 
@@ -89,9 +89,9 @@ func _spawn_trees() -> void:
 	while placed < TREE_COUNT and attempts < TREE_COUNT * 10:
 		attempts += 1
 		var pos := Vector3(
-			rng.randf_range(-90.0, 90.0),
+			rng.randf_range(-150.0, 150.0),
 			0.0,
-			rng.randf_range(-90.0, 90.0)
+			rng.randf_range(-150.0, 150.0)
 		)
 		if Vector2(pos.x, pos.z).length() < SPAWN_CLEAR_RADIUS:
 			continue
@@ -110,9 +110,9 @@ func _spawn_decor() -> void:
 	while placed < DECOR_COUNT and attempts < DECOR_COUNT * 10:
 		attempts += 1
 		var pos := Vector3(
-			rng.randf_range(-90.0, 90.0),
+			rng.randf_range(-150.0, 150.0),
 			0.0,
-			rng.randf_range(-90.0, 90.0)
+			rng.randf_range(-150.0, 150.0)
 		)
 		if Vector2(pos.x, pos.z).length() < SPAWN_CLEAR_RADIUS:
 			continue

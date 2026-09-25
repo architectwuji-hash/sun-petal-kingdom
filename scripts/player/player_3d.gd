@@ -2,18 +2,20 @@ extends CharacterBody3D
 
 signal health_changed(new_val: int)
 
-const SPEED: float = 8.0
+const SPEED: float = 12.0
 const GRAVITY: float = 20.0
-const CAM_OFFSET: Vector3 = Vector3(0.0, 20.0, 12.0)
+const CAM_OFFSET: Vector3 = Vector3(0.0, 5.0, 8.0)
+const CAM_LERP: float = 0.12
 
-@onready var _camera: Camera3D = get_parent().get_node("Camera3D")
 @onready var _character_model: Node3D = $CharacterModel
 @onready var _anim: AnimationPlayer = $CharacterModel/AnimationPlayer
 
+var _camera: Camera3D
 var health: int = 100
 
 
 func _ready() -> void:
+	_camera = get_parent().get_node("Camera3D")
 	health_changed.emit(health)
 	if _anim.has_animation("idle"):
 		_anim.play("idle")
@@ -32,7 +34,10 @@ func _physics_process(delta: float) -> void:
 		velocity.y -= GRAVITY * delta
 
 	var input_dir: Vector2 = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
-	var direction := Vector3(input_dir.x, 0.0, input_dir.y)
+	var cam_basis: Basis = _camera.global_transform.basis
+	var forward: Vector3 = -Vector3(cam_basis.z.x, 0.0, cam_basis.z.z).normalized()
+	var right: Vector3 = Vector3(cam_basis.x.x, 0.0, cam_basis.x.z).normalized()
+	var direction: Vector3 = forward * -input_dir.y + right * input_dir.x
 	if direction.length_squared() > 0.0:
 		direction = direction.normalized()
 		velocity.x = direction.x * SPEED
@@ -43,8 +48,8 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
-	global_position.x = clamp(global_position.x, -95.0, 95.0)
-	global_position.z = clamp(global_position.z, -95.0, 95.0)
+	global_position.x = clamp(global_position.x, -195.0, 195.0)
+	global_position.z = clamp(global_position.z, -195.0, 195.0)
 
 	if velocity.length() > 0.1:
 		_character_model.rotation.y = lerp_angle(
@@ -68,5 +73,8 @@ func _update_locomotion_anim() -> void:
 
 
 func _process(_delta: float) -> void:
-	_camera.global_position = _camera.global_position.lerp(global_position + CAM_OFFSET, 0.1)
-	_camera.rotation_degrees = Vector3(-60.0, 0.0, 0.0)
+	if _camera == null:
+		return
+	var target_pos: Vector3 = global_position + CAM_OFFSET
+	_camera.global_position = _camera.global_position.lerp(target_pos, CAM_LERP)
+	_camera.look_at(global_position + Vector3(0.0, 1.0, 0.0), Vector3.UP)
