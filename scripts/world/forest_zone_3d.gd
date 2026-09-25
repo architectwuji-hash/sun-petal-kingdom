@@ -11,7 +11,9 @@ const PETAL_SEED: int = 91236
 const TreeScene: PackedScene = preload("res://scenes/world/props/KenneyTree.tscn")
 const TreeHighScene: PackedScene = preload("res://scenes/world/props/KenneyTreeHigh.tscn")
 const PetalScene: PackedScene = preload("res://scenes/items/SunPetal.tscn")
-const EnemyScene: PackedScene = preload("res://scenes/enemies/ForestSprite.tscn")
+const ENEMY_SCENE: PackedScene = preload("res://scenes/enemies/ForestSprite.tscn")
+const MAX_ENEMIES: int = 5
+const RESPAWN_DELAY: float = 20.0
 
 const DecorScenes: Array[PackedScene] = [
 	preload("res://scenes/world/props/KenneyRocksHigh.tscn"),
@@ -38,6 +40,8 @@ var petal_count: int = 0
 var _overview_mode: bool = false
 var _overview_cam: Camera3D = null
 var _play_cam: Camera3D = null
+var _active_enemies: Array[Node] = []
+var _respawn_timer: float = 0.0
 
 
 func is_npc_interact_suppressed() -> bool:
@@ -53,7 +57,7 @@ func _ready() -> void:
 	_spawn_trees()
 	_spawn_decor()
 	_spawn_petals()
-	_spawn_enemies()
+	_spawn_enemies(3)
 	_setup_minimap()
 	_setup_overview_cam()
 
@@ -79,7 +83,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		_play_cam.current = not _overview_mode
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if _respawn_timer > 0.0:
+		_respawn_timer -= delta
+		if _respawn_timer <= 0.0 and _active_enemies.size() < MAX_ENEMIES:
+			_spawn_one_enemy()
+
 	if _dialog_layer.visible and Input.is_action_just_pressed("ui_accept"):
 		_dialog_layer.visible = false
 		_suppress_npc_interact = true
@@ -213,16 +222,35 @@ func _spawn_decor() -> void:
 	# TODO: KenneyRocksHigh uses StaticBody3D only (no Area3D) — add hurt zones for rock damage.
 
 
-func _spawn_enemies() -> void:
-	var spawn_points: Array[Vector3] = [
-		Vector3(-30.0, 0.0, -40.0),
-		Vector3(25.0, 0.0, 35.0),
-		Vector3(-50.0, 0.0, 20.0),
-	]
-	for pos: Vector3 in spawn_points:
-		var enemy: CharacterBody3D = EnemyScene.instantiate()
-		enemy_root.add_child(enemy)
-		enemy.global_position = pos
+func _spawn_enemies(count: int) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 55555
+	for _i: int in count:
+		_spawn_one_enemy(rng)
+
+
+func _spawn_one_enemy(rng: RandomNumberGenerator = null) -> void:
+	var spawn_rng: RandomNumberGenerator = rng
+	if spawn_rng == null:
+		spawn_rng = RandomNumberGenerator.new()
+		spawn_rng.seed = randi()
+	var enemy: Node = ENEMY_SCENE.instantiate()
+	var x: float = spawn_rng.randf_range(-150.0, 150.0)
+	var z: float = spawn_rng.randf_range(-150.0, 150.0)
+	if absf(x) < 25.0 and absf(z) < 25.0:
+		if x != 0.0:
+			x += 30.0 * sign(x)
+		else:
+			x = 30.0
+	enemy.position = Vector3(x, 0.0, z)
+	enemy.tree_exiting.connect(_on_enemy_removed)
+	enemy_root.add_child(enemy)
+	_active_enemies.append(enemy)
+
+
+func _on_enemy_removed() -> void:
+	_active_enemies = _active_enemies.filter(func(e: Node) -> bool: return is_instance_valid(e))
+	_respawn_timer = RESPAWN_DELAY
 
 
 func _spawn_petals() -> void:
