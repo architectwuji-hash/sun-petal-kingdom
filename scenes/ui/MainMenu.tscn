@@ -1,0 +1,66 @@
+[gd_scene load_steps=2 format=3 uid="uid://mainmenu_spk01"]
+
+[ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_main_menu"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main_menu")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.04, 0.07, 0.04, 1)
+
+[node name="CenterBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -160.0
+offset_right = 200.0
+offset_bottom = 160.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 28
+alignment = 1
+
+[node name="Title" type="Label" parent="CenterBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 40
+text = "🌸 Sun Petal Kingdom 🌸"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="CenterBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.9, 0.75, 1)
+theme_override_font_sizes/font_size = 16
+text = "Collect the 10 sacred petals.
+Beware the forest sprites."
+horizontal_alignment = 1
+
+[node name="PlayBtn" type="Button" parent="CenterBox"]
+custom_minimum_size = Vector2(180, 50)
+layout_mode = 2
+text = "▶  Play"
+
+[node name="Controls" type="Label" parent="CenterBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.55, 0.55, 1)
+theme_override_font_sizes/font_size = 13
+text = "WASD — move    F — attack    Space — talk    Tab — map view"
+horizontal_alignment = 1
+
+[connection signal="pressed" from="CenterBox/PlayBtn" to="." method="_on_play_pressed"]
