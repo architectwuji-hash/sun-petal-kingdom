@@ -15,6 +15,7 @@ var health: int = 100
 
 
 func _ready() -> void:
+	add_to_group("player")
 	_camera = get_parent().get_node("Camera3D")
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	health_changed.emit(health)

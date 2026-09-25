@@ -11,6 +11,7 @@ const PETAL_SEED: int = 91236
 const TreeScene: PackedScene = preload("res://scenes/world/props/KenneyTree.tscn")
 const TreeHighScene: PackedScene = preload("res://scenes/world/props/KenneyTreeHigh.tscn")
 const PetalScene: PackedScene = preload("res://scenes/items/SunPetal.tscn")
+const EnemyScene: PackedScene = preload("res://scenes/enemies/ForestSprite.tscn")
 
 const DecorScenes: Array[PackedScene] = [
 	preload("res://scenes/world/props/KenneyRocksHigh.tscn"),
@@ -22,6 +23,7 @@ const DecorScenes: Array[PackedScene] = [
 @onready var tree_root: Node3D = $TreeRoot
 @onready var decor_root: Node3D = $DecorRoot
 @onready var petal_root: Node3D = $PetalRoot
+@onready var enemy_root: Node3D = $EnemyRoot
 @onready var _player_dot: ColorRect = $MinimapLayer/MinimapPanel/PlayerDot
 @onready var _player: CharacterBody3D = $Player3D
 @onready var _health_bar: ProgressBar = $HUD/VBoxContainer/HealthBar
@@ -47,6 +49,7 @@ func _ready() -> void:
 	_spawn_trees()
 	_spawn_decor()
 	_spawn_petals()
+	_spawn_enemies()
 
 
 func _process(_delta: float) -> void:
@@ -134,6 +137,18 @@ func _spawn_decor() -> void:
 		decor.rotation.y = rng.randf_range(0.0, TAU)
 		placed += 1
 	# TODO: KenneyRocksHigh uses StaticBody3D only (no Area3D) — add hurt zones for rock damage.
+
+
+func _spawn_enemies() -> void:
+	var spawn_points: Array[Vector3] = [
+		Vector3(-30.0, 0.0, -40.0),
+		Vector3(25.0, 0.0, 35.0),
+		Vector3(-50.0, 0.0, 20.0),
+	]
+	for pos: Vector3 in spawn_points:
+		var enemy: CharacterBody3D = EnemyScene.instantiate()
+		enemy_root.add_child(enemy)
+		enemy.global_position = pos
 
 
 func _spawn_petals() -> void:

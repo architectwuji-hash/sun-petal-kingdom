@@ -116,6 +116,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -4)
 
 [node name="PetalRoot" type="Node3D" parent="."]
 
+[node name="EnemyRoot" type="Node3D" parent="."]
+
 [node name="HUD" type="CanvasLayer" parent="."]
 layer = 8
 
