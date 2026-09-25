@@ -64,6 +64,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.keycode == KEY_F and event.pressed and not event.echo:
 		if _attack_timer <= 0.0 and not _attacking:
 			_do_attack()
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed and _attack_timer <= 0.0 and not _attacking:
+		_do_attack()
 	if event is InputEventKey and event.keycode == KEY_ESCAPE and event.pressed:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
@@ -75,7 +77,9 @@ func _physics_process(_delta: float) -> void:
 	if _attack_timer > 0.0:
 		_attack_timer -= _delta
 
-	var input_dir: Vector2 = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	var input_dir := Vector2.ZERO
+	input_dir.x = Input.get_axis("ui_left", "ui_right")
+	input_dir.y = Input.get_axis("ui_up", "ui_down")
 	var forward: Vector3 = -global_transform.basis.z
 	var right: Vector3 = global_transform.basis.x
 	var direction: Vector3 = forward * -input_dir.y + right * input_dir.x
