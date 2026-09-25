@@ -26,3 +26,5 @@ surface_material_override/0 = SubResource("StandardMaterial3D_petal")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
 shape = SubResource("SphereShape3D_pickup")
+
+[node name="PickupSound" type="AudioStreamPlayer3D" parent="."]

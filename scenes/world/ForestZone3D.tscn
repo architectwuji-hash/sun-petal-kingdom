@@ -138,6 +138,12 @@ max_value = 100.0
 value = 100.0
 show_percentage = false
 
+[node name="PetalLabel" type="Label" parent="HUD/VBoxContainer"]
+modulate = Color(1, 0.9, 0.2, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "🌸 0 / 10"
+
 [node name="Player3D" parent="." instance=ExtResource("2_player3d")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 

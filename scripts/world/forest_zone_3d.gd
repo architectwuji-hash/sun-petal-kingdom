@@ -25,8 +25,10 @@ const DecorScenes: Array[PackedScene] = [
 @onready var _player_dot: ColorRect = $MinimapLayer/MinimapPanel/PlayerDot
 @onready var _player: CharacterBody3D = $Player3D
 @onready var _health_bar: ProgressBar = $HUD/VBoxContainer/HealthBar
+@onready var _petal_label: Label = $HUD/VBoxContainer/PetalLabel
 @onready var _dialog_layer: CanvasLayer = $DialogLayer
 @onready var _dialog_text: Label = $DialogLayer/PanelContainer/VBoxContainer/DialogText
+@onready var _npc_name: Label = $DialogLayer/PanelContainer/VBoxContainer/NpcName
 @onready var _village_npc: Node3D = $Village/NPC3D
 
 var _suppress_npc_interact: bool = false
@@ -68,13 +70,22 @@ func _on_player_health_changed(val: int) -> void:
 func _on_npc_interact(_npc: Node3D) -> void:
 	if _suppress_npc_interact:
 		return
+	_npc_name.text = "Village Elder"
 	_dialog_layer.visible = true
 	_dialog_text.text = "Welcome to the forest, traveler. The path ahead is dangerous."
 
 
 func _on_petal_collected(_petal: Node3D) -> void:
 	petal_count += 1
-	print("Petals: ", petal_count)
+	_petal_label.text = "🌸 %d / %d" % [petal_count, PETAL_COUNT]
+	if petal_count >= PETAL_COUNT:
+		_on_all_petals_collected()
+
+
+func _on_all_petals_collected() -> void:
+	_npc_name.text = "Sun Petal Kingdom"
+	_dialog_text.text = "You have gathered all 10 sun petals. The forest is restored."
+	_dialog_layer.visible = true
 
 
 func _reset_npc_interact_suppress() -> void:
@@ -122,6 +133,7 @@ func _spawn_decor() -> void:
 		decor.global_position = pos
 		decor.rotation.y = rng.randf_range(0.0, TAU)
 		placed += 1
+	# TODO: KenneyRocksHigh uses StaticBody3D only (no Area3D) — add hurt zones for rock damage.
 
 
 func _spawn_petals() -> void:
