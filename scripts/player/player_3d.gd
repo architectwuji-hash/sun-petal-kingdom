@@ -43,7 +43,7 @@ func set_health(val: int) -> void:
 
 
 func take_hit() -> void:
-	_cam_shake = 1.0
+	_cam_shake = 0.35
 
 
 func _do_attack() -> void:
@@ -57,7 +57,7 @@ func _do_attack() -> void:
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
-		rotation.y -= event.relative.x * 0.0015
+		rotation.y -= event.relative.x * 0.001
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -96,9 +96,7 @@ func _physics_process(_delta: float) -> void:
 		var move_speed: float = SPRINT_SPEED if sprinting else SPEED
 		velocity.x = direction.x * move_speed
 		velocity.z = direction.z * move_speed
-		if direction.length() > 0.1:
-			var target_angle: float = atan2(-direction.x, -direction.z)
-			rotation.y = lerp_angle(rotation.y, target_angle, 0.15)
+
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, SPEED)
 		velocity.z = move_toward(velocity.z, 0.0, SPEED)
@@ -132,8 +130,8 @@ func _process(delta: float) -> void:
 	if _cam_shake > 0.0:
 		_cam_shake -= delta * 6.0
 		var shake: float = maxf(_cam_shake, 0.0)
-		_camera.h_offset = randf_range(-shake, shake) * 0.6
-		_camera.v_offset = randf_range(-shake, shake) * 0.4
+		_camera.h_offset = randf_range(-shake, shake) * 0.2
+		_camera.v_offset = randf_range(-shake, shake) * 0.15
 	else:
 		_camera.h_offset = 0.0
 		_camera.v_offset = 0.0
