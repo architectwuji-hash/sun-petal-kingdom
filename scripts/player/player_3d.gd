@@ -1,5 +1,7 @@
 extends CharacterBody3D
 
+signal health_changed(new_val: int)
+
 const SPEED: float = 8.0
 const GRAVITY: float = 20.0
 const CAM_OFFSET: Vector3 = Vector3(0.0, 20.0, 12.0)
@@ -8,10 +10,21 @@ const CAM_OFFSET: Vector3 = Vector3(0.0, 20.0, 12.0)
 @onready var _character_model: Node3D = $CharacterModel
 @onready var _anim: AnimationPlayer = $CharacterModel/AnimationPlayer
 
+var health: int = 100
+
 
 func _ready() -> void:
+	health_changed.emit(health)
 	if _anim.has_animation("idle"):
 		_anim.play("idle")
+
+
+func set_health(value: int) -> void:
+	var clamped: int = clampi(value, 0, 100)
+	if health == clamped:
+		return
+	health = clamped
+	health_changed.emit(health)
 
 
 func _physics_process(delta: float) -> void:

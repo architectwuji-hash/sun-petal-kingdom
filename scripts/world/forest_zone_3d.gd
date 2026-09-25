@@ -2,12 +2,15 @@ extends Node3D
 
 const TREE_COUNT: int = 60
 const DECOR_COUNT: int = 20
+const PETAL_COUNT: int = 10
 const SPAWN_CLEAR_RADIUS: float = 20.0
 const TREE_SEED: int = 91234
 const DECOR_SEED: int = 91235
+const PETAL_SEED: int = 91236
 
 const TreeScene: PackedScene = preload("res://scenes/world/props/KenneyTree.tscn")
 const TreeHighScene: PackedScene = preload("res://scenes/world/props/KenneyTreeHigh.tscn")
+const PetalScene: PackedScene = preload("res://scenes/items/SunPetal.tscn")
 
 const DecorScenes: Array[PackedScene] = [
 	preload("res://scenes/world/props/KenneyRocksHigh.tscn"),
@@ -18,13 +21,16 @@ const DecorScenes: Array[PackedScene] = [
 
 @onready var tree_root: Node3D = $TreeRoot
 @onready var decor_root: Node3D = $DecorRoot
+@onready var petal_root: Node3D = $PetalRoot
 @onready var _player_dot: ColorRect = $MinimapLayer/MinimapPanel/PlayerDot
 @onready var _player: CharacterBody3D = $Player3D
+@onready var _health_bar: ProgressBar = $HUD/VBoxContainer/HealthBar
 @onready var _dialog_layer: CanvasLayer = $DialogLayer
 @onready var _dialog_text: Label = $DialogLayer/PanelContainer/VBoxContainer/DialogText
 @onready var _village_npc: Node3D = $Village/NPC3D
 
 var _suppress_npc_interact: bool = false
+var petal_count: int = 0
 
 
 func is_npc_interact_suppressed() -> bool:
@@ -34,8 +40,11 @@ func is_npc_interact_suppressed() -> bool:
 func _ready() -> void:
 	_dialog_layer.visible = false
 	_village_npc.interact_requested.connect(_on_npc_interact)
+	_player.health_changed.connect(_on_player_health_changed)
+	_health_bar.value = _player.health
 	_spawn_trees()
 	_spawn_decor()
+	_spawn_petals()
 
 
 func _process(_delta: float) -> void:
@@ -52,11 +61,20 @@ func _process(_delta: float) -> void:
 	)
 
 
+func _on_player_health_changed(val: int) -> void:
+	_health_bar.value = val
+
+
 func _on_npc_interact(_npc: Node3D) -> void:
 	if _suppress_npc_interact:
 		return
 	_dialog_layer.visible = true
 	_dialog_text.text = "Welcome to the forest, traveler. The path ahead is dangerous."
+
+
+func _on_petal_collected(_petal: Node3D) -> void:
+	petal_count += 1
+	print("Petals: ", petal_count)
 
 
 func _reset_npc_interact_suppress() -> void:
@@ -103,4 +121,25 @@ func _spawn_decor() -> void:
 		decor_root.add_child(decor)
 		decor.global_position = pos
 		decor.rotation.y = rng.randf_range(0.0, TAU)
+		placed += 1
+
+
+func _spawn_petals() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = PETAL_SEED
+	var placed: int = 0
+	var attempts: int = 0
+	while placed < PETAL_COUNT and attempts < PETAL_COUNT * 10:
+		attempts += 1
+		var pos := Vector3(
+			rng.randf_range(-80.0, 80.0),
+			0.6,
+			rng.randf_range(-80.0, 80.0)
+		)
+		if Vector2(pos.x, pos.z).length() < SPAWN_CLEAR_RADIUS:
+			continue
+		var petal: Node3D = PetalScene.instantiate()
+		petal.collected.connect(_on_petal_collected)
+		petal_root.add_child(petal)
+		petal.global_position = pos
 		placed += 1

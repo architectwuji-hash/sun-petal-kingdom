@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3 uid="uid://sunpetalitem01"]
+
+[ext_resource type="Script" path="res://scripts/items/sun_petal.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_petal"]
+albedo_color = Color(1, 0.85, 0.1, 1)
+emission_enabled = true
+emission = Color(1, 0.9, 0.2, 1)
+emission_energy_multiplier = 1.5
+
+[sub_resource type="SphereMesh" id="SphereMesh_petal"]
+radius = 0.2
+height = 0.4
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_pickup"]
+radius = 0.6
+
+[node name="SunPetal" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_petal")
+surface_material_override/0 = SubResource("StandardMaterial3D_petal")
+
+[node name="Area3D" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+shape = SubResource("SphereShape3D_pickup")
