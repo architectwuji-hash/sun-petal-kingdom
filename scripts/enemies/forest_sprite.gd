@@ -6,6 +6,7 @@ const HIT_DIST: float = 1.2
 const SIGHT: float = 30.0
 const GRAVITY: float = 9.8
 const HIT_COOLDOWN: float = 1.0
+const HOSTILE_COLOR: Color = Color(0.8, 0.1, 0.1)
 
 var hp: int = 100
 var _player: CharacterBody3D = null
@@ -20,8 +21,37 @@ func _ready() -> void:
 
 func take_damage(amount: int) -> void:
 	hp -= amount
+	_flash()
 	if hp <= 0:
 		queue_free()
+
+
+func _flash() -> void:
+	var meshes: Array[MeshInstance3D] = []
+	for child: Node in get_children():
+		_collect_meshes(child, meshes)
+	for mi: MeshInstance3D in meshes:
+		if mi.mesh == null:
+			continue
+		for surface_idx: int in mi.mesh.get_surface_count():
+			var mat: Material = mi.get_surface_override_material(surface_idx)
+			if mat is StandardMaterial3D:
+				(mat as StandardMaterial3D).albedo_color = Color.WHITE
+	await get_tree().create_timer(0.1).timeout
+	for mi: MeshInstance3D in meshes:
+		if mi.mesh == null:
+			continue
+		for surface_idx: int in mi.mesh.get_surface_count():
+			var mat: Material = mi.get_surface_override_material(surface_idx)
+			if mat is StandardMaterial3D:
+				(mat as StandardMaterial3D).albedo_color = HOSTILE_COLOR
+
+
+func _collect_meshes(node: Node, out: Array) -> void:
+	if node is MeshInstance3D:
+		out.append(node)
+	for child: Node in node.get_children():
+		_collect_meshes(child, out)
 
 
 func _on_hurtbox_area_entered(area: Area3D) -> void:
@@ -61,7 +91,7 @@ func _physics_process(delta: float) -> void:
 
 func _tint_character_red() -> void:
 	var hostile_mat := StandardMaterial3D.new()
-	hostile_mat.albedo_color = Color(0.8, 0.1, 0.1)
+	hostile_mat.albedo_color = HOSTILE_COLOR
 	_apply_mat_to_meshes($CharacterModel, hostile_mat)
 
 
