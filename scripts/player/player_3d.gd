@@ -2,9 +2,10 @@ extends CharacterBody3D
 
 const SPEED: float = 8.0
 const GRAVITY: float = 20.0
-const CAMERA_OFFSET: Vector3 = Vector3(0.0, 20.0, 12.0)
+const CAM_OFFSET: Vector3 = Vector3(0.0, 20.0, 12.0)
 
 @onready var _camera: Camera3D = get_parent().get_node("Camera3D")
+@onready var _character_model: Node3D = $CharacterModel
 
 
 func _physics_process(delta: float) -> void:
@@ -22,4 +23,18 @@ func _physics_process(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0.0, SPEED)
 
 	move_and_slide()
-	_camera.global_position = global_position + CAMERA_OFFSET
+
+	global_position.x = clamp(global_position.x, -95.0, 95.0)
+	global_position.z = clamp(global_position.z, -95.0, 95.0)
+
+	if velocity.length() > 0.1:
+		_character_model.rotation.y = lerp_angle(
+			_character_model.rotation.y,
+			atan2(-velocity.x, -velocity.z),
+			0.2
+		)
+
+
+func _process(_delta: float) -> void:
+	_camera.global_position = _camera.global_position.lerp(global_position + CAM_OFFSET, 0.1)
+	_camera.rotation_degrees = Vector3(-60.0, 0.0, 0.0)
