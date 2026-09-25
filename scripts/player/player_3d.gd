@@ -7,8 +7,7 @@ const SPEED: float = 12.0
 const SPRINT_SPEED: float = 21.0
 const GRAVITY: float = 20.0
 const CAM_LERP: float = 0.12
-const CAM_HEIGHT: float = 5.0
-const CAM_DISTANCE: float = 8.0
+const CAM_OFFSET: Vector3 = Vector3(0.0, 8.0, 12.0)
 const ATTACK_COOLDOWN: float = 0.6
 
 @onready var _anim: AnimationPlayer = $CharacterModel/AnimationPlayer
@@ -115,9 +114,9 @@ func _process(delta: float) -> void:
 	if _camera == null:
 		return
 	var behind: Vector3 = -global_transform.basis.z
-	var cam_target: Vector3 = global_position + Vector3(0.0, CAM_HEIGHT, 0.0) + behind * -CAM_DISTANCE
+	var cam_target: Vector3 = global_position + Vector3(0.0, CAM_OFFSET.y, 0.0) + behind * -CAM_OFFSET.z
 	_camera.global_position = _camera.global_position.lerp(cam_target, CAM_LERP)
-	_camera.look_at(global_position + Vector3(0.0, 1.2, 0.0), Vector3.UP)
+	_camera.look_at(global_position + Vector3(0.0, 2.5, 0.0), Vector3.UP)
 	if _cam_shake > 0.0:
 		_cam_shake -= delta * 6.0
 		var shake: float = maxf(_cam_shake, 0.0)

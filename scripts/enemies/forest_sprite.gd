@@ -2,8 +2,8 @@ extends CharacterBody3D
 
 const SPEED: float = 4.0
 const DAMAGE: int = 10
-const HIT_DIST: float = 1.2
-const SIGHT: float = 30.0
+const HIT_DIST: float = 3.0
+const SIGHT: float = 40.0
 const GRAVITY: float = 9.8
 const HIT_COOLDOWN: float = 1.0
 const HOSTILE_COLOR: Color = Color(0.8, 0.1, 0.1)
