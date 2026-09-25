@@ -11,6 +11,7 @@ const HOSTILE_COLOR: Color = Color(0.8, 0.1, 0.1)
 var hp: int = 100
 var _player: CharacterBody3D = null
 var _hit_cooldown: float = 0.0
+var _dying: bool = false
 
 
 func _ready() -> void:
@@ -20,10 +21,29 @@ func _ready() -> void:
 
 
 func take_damage(amount: int) -> void:
+	if _dying:
+		return
 	hp -= amount
 	_flash()
 	if hp <= 0:
-		queue_free()
+		_die()
+
+
+func _die() -> void:
+	_dying = true
+	set_physics_process(false)
+	for child: Node in get_children():
+		if child is CollisionShape3D:
+			(child as CollisionShape3D).disabled = true
+		elif child is Area3D:
+			(child as Area3D).monitoring = false
+			(child as Area3D).monitorable = false
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(self, "scale", Vector3(1.4, 1.4, 1.4), 0.12)
+	tween.tween_property(self, "scale", Vector3.ZERO, 0.18).set_delay(0.12)
+	await get_tree().create_timer(0.32).timeout
+	queue_free()
 
 
 func _flash() -> void:
@@ -60,6 +80,8 @@ func _on_hurtbox_area_entered(area: Area3D) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if _dying:
+		return
 	if _hit_cooldown > 0.0:
 		_hit_cooldown -= delta
 

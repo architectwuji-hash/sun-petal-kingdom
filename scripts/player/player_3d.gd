@@ -18,6 +18,8 @@ var _camera: Camera3D
 var health: int = 100
 var _attacking: bool = false
 var _attack_timer: float = 0.0
+var _cam_shake: float = 0.0
+var _cam_base_offset: Vector3 = Vector3.ZERO
 
 
 func _ready() -> void:
@@ -30,14 +32,20 @@ func _ready() -> void:
 		_anim.play("idle")
 
 
-func set_health(value: int) -> void:
-	var clamped: int = clampi(value, 0, 100)
-	if health == clamped:
+func set_health(val: int) -> void:
+	var prev: int = health
+	health = clampi(val, 0, 100)
+	if health == prev:
 		return
-	health = clamped
 	health_changed.emit(health)
+	if health < prev:
+		take_hit()
 	if health <= 0:
 		player_died.emit()
+
+
+func take_hit() -> void:
+	_cam_shake = 1.0
 
 
 func _do_attack() -> void:
@@ -103,10 +111,18 @@ func _update_locomotion_anim() -> void:
 	_anim.speed_scale = 1.8 if sprinting else 1.0
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if _camera == null:
 		return
 	var behind: Vector3 = -global_transform.basis.z
 	var cam_target: Vector3 = global_position + Vector3(0.0, CAM_HEIGHT, 0.0) + behind * -CAM_DISTANCE
 	_camera.global_position = _camera.global_position.lerp(cam_target, CAM_LERP)
 	_camera.look_at(global_position + Vector3(0.0, 1.2, 0.0), Vector3.UP)
+	if _cam_shake > 0.0:
+		_cam_shake -= delta * 6.0
+		var shake: float = maxf(_cam_shake, 0.0)
+		_camera.h_offset = randf_range(-shake, shake) * 0.6
+		_camera.v_offset = randf_range(-shake, shake) * 0.4
+	else:
+		_camera.h_offset = 0.0
+		_camera.v_offset = 0.0
