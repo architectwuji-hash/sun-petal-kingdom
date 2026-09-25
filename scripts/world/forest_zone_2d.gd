@@ -54,6 +54,20 @@ const D_BUSH   := Vector2i(26, 11) # round green bush / shrub
 const D_FLOWER := Vector2i(25, 11) # white daisy flower / sacred plant
 const D_RUINS  := Vector2i(7, 0)   # ruin stones — fallback to stone tile
 
+# ── DECORATION SPRITE CONFIGURATION ─────────────────────────────────────────
+# Decorations (trees, bushes, flowers) are Sprite2D nodes, NOT TileMap cells.
+# This lets them scale independently from the 16×16 terrain grid.
+const KENNEY_TEX_PATH  := "res://assets/sprites/tileset/kenney_roguelike.png"
+const KENNEY_TILE_STEP := 17   # 16px tile + 1px separation
+const TREE_SCALE    := 2.5     # round / pine trees (40×40 px at 1× zoom)
+const TREE_C_SCALE  := 2.0     # smaller tree variant (32×32 px)
+const BUSH_SCALE    := 2.0     # round bush / shrub
+const FLOWER_SCALE  := 1.5     # daisy flower
+const RUINS_SCALE   := 1.5     # ruin stone
+
+var _deco_root  : Node2D  = null
+var _kenney_tex : Texture2D = null
+
 # ── ZONE MAP ────────────────────────────────────────────────────────────────
 # Designed in the Sun Petal Kingdom Zone Editor.
 # West (A) → East (P),  North (1) → South (12).
@@ -172,6 +186,14 @@ func _process(_delta: float) -> void:
 # ── MAP GENERATION ──────────────────────────────────────────────────────────
 
 func _paint_map() -> void:
+	# Clear old decoration sprites
+	if _deco_root != null and is_instance_valid(_deco_root):
+		_deco_root.queue_free()
+	_deco_root = Node2D.new()
+	_deco_root.name = "DecoRoot"
+	add_child(_deco_root)
+	_kenney_tex = load(KENNEY_TEX_PATH)
+
 	tilemap.clear()
 	for col_idx: int in ZONE_COLS:
 		for row_idx: int in ZONE_ROWS:
@@ -187,7 +209,6 @@ func _paint_zone(origin: Vector2i, terrain: String, seed_val: int) -> void:
 	for dx: int in ZONE_W:
 		for dy: int in ZONE_H:
 			var pos := origin + Vector2i(dx, dy)
-			tilemap.erase_cell(1, pos)  # clear decoration layer first
 
 			match terrain:
 
@@ -200,30 +221,30 @@ func _paint_zone(origin: Vector2i, terrain: String, seed_val: int) -> void:
 					var density := 0.72 + band * 0.18
 					var r := rng.randf()
 					if r < density:
-						tilemap.set_cell(1, pos, SRC_ID, D_TREE_A if rng.randf() < 0.55 else D_TREE_B)
+						_place_deco(pos, D_TREE_A if rng.randf() < 0.55 else D_TREE_B, TREE_SCALE)
 					elif r < density + 0.06:
-						tilemap.set_cell(1, pos, SRC_ID, D_BUSH)
+						_place_deco(pos, D_BUSH, BUSH_SCALE)
 
 				"light_forest":
 					tilemap.set_cell(0, pos, SRC_ID, T_GRASS)
 					var r := rng.randf()
 					if r < 0.22:
-						tilemap.set_cell(1, pos, SRC_ID, D_TREE_C)
+						_place_deco(pos, D_TREE_C, TREE_C_SCALE)
 					elif r < 0.30:
-						tilemap.set_cell(1, pos, SRC_ID, D_BUSH)
+						_place_deco(pos, D_BUSH, BUSH_SCALE)
 
 				"meadow":
 					tilemap.set_cell(0, pos, SRC_ID, T_GRASS)
 					if rng.randf() < 0.07:
-						tilemap.set_cell(1, pos, SRC_ID, D_FLOWER)
+						_place_deco(pos, D_FLOWER, FLOWER_SCALE)
 
 				"sacred":
 					tilemap.set_cell(0, pos, SRC_ID, T_GRASS)
 					var r := rng.randf()
 					if r < 0.28:
-						tilemap.set_cell(1, pos, SRC_ID, D_FLOWER)
+						_place_deco(pos, D_FLOWER, FLOWER_SCALE)
 					elif r < 0.38:
-						tilemap.set_cell(1, pos, SRC_ID, D_TREE_C)
+						_place_deco(pos, D_TREE_C, TREE_C_SCALE)
 
 				"river":
 					tilemap.set_cell(0, pos, SRC_ID, T_WATER)
@@ -231,7 +252,7 @@ func _paint_zone(origin: Vector2i, terrain: String, seed_val: int) -> void:
 				"swamp":
 					tilemap.set_cell(0, pos, SRC_ID, T_MUD)
 					if rng.randf() < 0.18:
-						tilemap.set_cell(1, pos, SRC_ID, D_BUSH)
+						_place_deco(pos, D_BUSH, BUSH_SCALE)
 
 				"beach":
 					tilemap.set_cell(0, pos, SRC_ID, T_SAND)
@@ -246,12 +267,12 @@ func _paint_zone(origin: Vector2i, terrain: String, seed_val: int) -> void:
 					tilemap.set_cell(0, pos, SRC_ID, T_DIRT)
 					# Village tiles — dirt base; buildings placed as scenes separately
 					if rng.randf() < 0.06:
-						tilemap.set_cell(1, pos, SRC_ID, D_FLOWER)
+						_place_deco(pos, D_FLOWER, FLOWER_SCALE)
 
 				"ruins":
 					tilemap.set_cell(0, pos, SRC_ID, T_STONE)
 					if rng.randf() < 0.38:
-						tilemap.set_cell(1, pos, SRC_ID, D_RUINS)
+						_place_deco(pos, D_RUINS, RUINS_SCALE)
 
 				"cave":
 					tilemap.set_cell(0, pos, SRC_ID, T_DARK)
@@ -259,10 +280,25 @@ func _paint_zone(origin: Vector2i, terrain: String, seed_val: int) -> void:
 				"landmark":
 					tilemap.set_cell(0, pos, SRC_ID, T_GRASS)
 					if rng.randf() < 0.12:
-						tilemap.set_cell(1, pos, SRC_ID, D_FLOWER)
+						_place_deco(pos, D_FLOWER, FLOWER_SCALE)
 
 				_:  # fallback — treat as grass
 					tilemap.set_cell(0, pos, SRC_ID, T_GRASS)
+
+# ── DECORATION SPRITES ──────────────────────────────────────────────────────
+
+func _place_deco(tile_pos: Vector2i, atlas_coord: Vector2i, scale_factor: float) -> void:
+	var spr := Sprite2D.new()
+	spr.texture = _kenney_tex
+	spr.region_enabled = true
+	spr.region_rect = Rect2(
+		atlas_coord.x * KENNEY_TILE_STEP,
+		atlas_coord.y * KENNEY_TILE_STEP,
+		16, 16
+	)
+	spr.scale = Vector2(scale_factor, scale_factor)
+	spr.position = tilemap.map_to_local(tile_pos)
+	_deco_root.add_child(spr)
 
 # ── MINIMAP ─────────────────────────────────────────────────────────────────
 
