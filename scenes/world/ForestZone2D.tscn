@@ -1,27 +1,24 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=4 format=3 uid="uid://dahu1yefmp51"]
 
 [ext_resource type="Script" path="res://scripts/world/forest_zone_2d.gd" id="1_forest_zone"]
-[ext_resource type="TileSet" path="res://resources/tilesets/forest_summer.tres" id="2_tileset"]
+[ext_resource type="TileSet" uid="uid://d1hgkbqgn7auj" path="res://resources/tilesets/forest_summer.tres" id="2_tileset"]
 [ext_resource type="PackedScene" path="res://scenes/player/Player2D.tscn" id="3_player2d"]
-[ext_resource type="PackedScene" path="res://scenes/objects/Campfire.tscn" id="4_campfire"]
 
 [node name="ForestZone2D" type="Node2D"]
 script = ExtResource("1_forest_zone")
 
 [node name="TileMap" type="TileMap" parent="."]
 tile_set = ExtResource("2_tileset")
-collision_layer = 1
-collision_mask = 1
 format = 2
+layer_1/tile_data = PackedInt32Array()
 
 [node name="Player2D" parent="." instance=ExtResource("3_player2d")]
-position = Vector2(96, 96)
+position = Vector2(1440, 1056)
 
 [node name="Camera2D" type="Camera2D" parent="Player2D"]
-position_smoothing_enabled = true
-position_smoothing_speed = 5.0
 zoom = Vector2(1.5, 1.5)
 limit_left = 0
 limit_top = 0
 limit_right = 3072
 limit_bottom = 2304
+position_smoothing_enabled = true

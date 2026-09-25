@@ -59,70 +59,83 @@ const D_RUINS  := Vector2i(10, 5)  # ruin stones — fallback to cliff tile
 const COL_LETTERS: Array = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P"]
 
 const ZONE_MAP: Dictionary = {
-	# ── Column A ──
-	"A1":"village",      "A2":"meadow",       "A3":"path",         "A4":"path",
-	"A5":"path",         "A6":"dense_forest", "A7":"dense_forest", "A8":"dense_forest",
-	"A9":"dense_forest", "A10":"river",       "A11":"river",       "A12":"swamp",
-	# ── Column B ──
-	"B1":"meadow",       "B2":"meadow",       "B3":"meadow",       "B4":"light_forest",
-	"B5":"path",         "B6":"dense_forest", "B7":"sacred",       "B8":"dense_forest",
-	"B9":"dense_forest", "B10":"river",       "B11":"river",       "B12":"river",
-	# ── Column C ──
-	"C1":"path",         "C2":"path",         "C3":"path",         "C4":"path",
-	"C5":"path",         "C6":"dense_forest", "C7":"dense_forest", "C8":"dense_forest",
-	"C9":"dense_forest", "C10":"river",       "C11":"river",       "C12":"river",
-	# ── Column D ──
-	"D1":"path",         "D2":"dense_forest", "D3":"dense_forest", "D4":"dense_forest",
-	"D5":"dense_forest", "D6":"dense_forest", "D7":"dense_forest", "D8":"dense_forest",
-	"D9":"dense_forest", "D10":"dense_forest","D11":"dense_forest","D12":"cave",
-	# ── Column E ──
-	"E1":"path",         "E2":"dense_forest", "E3":"dense_forest", "E4":"path",
-	"E5":"path",         "E6":"path",         "E7":"path",         "E8":"path",
-	"E9":"path",         "E10":"path",        "E11":"path",        "E12":"dense_forest",
-	# ── Column F ──
-	"F1":"path",         "F2":"dense_forest", "F3":"dense_forest", "F4":"path",
-	"F5":"river",        "F6":"river",        "F7":"dense_forest", "F8":"cave",
-	"F9":"dense_forest", "F10":"meadow",      "F11":"path",        "F12":"dense_forest",
-	# ── Column G ──
-	"G1":"path",         "G2":"dense_forest", "G3":"dense_forest", "G4":"path",
-	"G5":"river",        "G6":"river",        "G7":"dense_forest", "G8":"dense_forest",
-	"G9":"dense_forest", "G10":"meadow",      "G11":"path",        "G12":"dense_forest",
-	# ── Column H ──
-	"H1":"path",         "H2":"dense_forest", "H3":"dense_forest", "H4":"path",
-	"H5":"beach",        "H6":"beach",        "H7":"path",         "H8":"path",
-	"H9":"path",         "H10":"path",        "H11":"path",        "H12":"dense_forest",
-	# ── Column I ──
-	"I1":"path",         "I2":"river",        "I3":"river",        "I4":"path",
-	"I5":"cliffs",       "I6":"cliffs",       "I7":"path",         "I8":"cliffs",
-	"I9":"cliffs",       "I10":"cliffs",      "I11":"cliffs",      "I12":"cliffs",
-	# ── Column J ──
-	"J1":"path",         "J2":"path",         "J3":"river",        "J4":"path",
-	"J5":"path",         "J6":"cliffs",       "J7":"path",         "J8":"cliffs",
-	"J9":"path",         "J10":"path",        "J11":"path",        "J12":"path",
-	# ── Column K ──
-	"K1":"ruins",        "K2":"path",         "K3":"river",        "K4":"light_forest",
-	"K5":"path",         "K6":"cliffs",       "K7":"path",         "K8":"cliffs",
-	"K9":"path",         "K10":"river",       "K11":"river",       "K12":"path",
-	# ── Column L ──
-	"L1":"ruins",        "L2":"path",         "L3":"river",        "L4":"meadow",
-	"L5":"path",         "L6":"cliffs",       "L7":"path",         "L8":"path",
-	"L9":"path",         "L10":"river",       "L11":"river",       "L12":"path",
-	# ── Column M ──
-	"M1":"ruins",        "M2":"path",         "M3":"river",        "M4":"light_forest",
-	"M5":"path",         "M6":"cliffs",       "M7":"cliffs",       "M8":"cliffs",
-	"M9":"dense_forest", "M10":"dense_forest","M11":"dense_forest","M12":"path",
-	# ── Column N ──
-	"N1":"path",         "N2":"path",         "N3":"river",        "N4":"meadow",
-	"N5":"path",         "N6":"path",         "N7":"path",         "N8":"path",
-	"N9":"dense_forest", "N10":"dense_forest","N11":"light_forest","N12":"path",
-	# ── Column O ──
-	"O1":"path",         "O2":"river",        "O3":"river",        "O4":"light_forest",
-	"O5":"meadow",       "O6":"light_forest", "O7":"meadow",       "O8":"path",
-	"O9":"dense_forest", "O10":"light_forest","O11":"meadow",      "O12":"meadow",
-	# ── Column P ──
-	"P1":"path",         "P2":"path",         "P3":"path",         "P4":"path",
-	"P5":"path",         "P6":"path",         "P7":"path",         "P8":"path",
-	"P9":"dense_forest", "P10":"light_forest","P11":"meadow",      "P12":"village",
+	# Concentric island layout:
+	#   Lake (A-B, N-P cols + row 12) → Beach ring → Dense Forest ring
+	#   → Light Forest buffer → Meadow clearing → Village (H6)
+
+	# ── Column A (lake) ──
+	"A1":"river",  "A2":"river",  "A3":"river",  "A4":"river",
+	"A5":"river",  "A6":"river",  "A7":"river",  "A8":"river",
+	"A9":"river",  "A10":"river", "A11":"river", "A12":"river",
+	# ── Column B (lake) ──
+	"B1":"river",  "B2":"river",  "B3":"river",  "B4":"river",
+	"B5":"river",  "B6":"river",  "B7":"river",  "B8":"river",
+	"B9":"river",  "B10":"river", "B11":"river", "B12":"river",
+	# ── Column C (beach shore) ──
+	"C1":"beach",  "C2":"beach",  "C3":"beach",  "C4":"beach",
+	"C5":"beach",  "C6":"beach",  "C7":"beach",  "C8":"beach",
+	"C9":"beach",  "C10":"beach", "C11":"beach", "C12":"river",
+	# ── Column D (beach top/bot, dense forest body) ──
+	"D1":"beach",        "D2":"dense_forest",  "D3":"dense_forest",
+	"D4":"dense_forest", "D5":"dense_forest",  "D6":"dense_forest",
+	"D7":"dense_forest", "D8":"dense_forest",  "D9":"dense_forest",
+	"D10":"dense_forest","D11":"beach",        "D12":"river",
+	# ── Column E (beach top/bot, dense forest body) ──
+	"E1":"beach",        "E2":"dense_forest",  "E3":"dense_forest",
+	"E4":"dense_forest", "E5":"dense_forest",  "E6":"dense_forest",
+	"E7":"dense_forest", "E8":"dense_forest",  "E9":"dense_forest",
+	"E10":"dense_forest","E11":"beach",        "E12":"river",
+	# ── Column F (beach top/bot, dense outer, light inner) ──
+	"F1":"beach",        "F2":"dense_forest",  "F3":"dense_forest",
+	"F4":"light_forest", "F5":"light_forest",  "F6":"light_forest",
+	"F7":"light_forest", "F8":"light_forest",  "F9":"dense_forest",
+	"F10":"dense_forest","F11":"beach",        "F12":"river",
+	# ── Column G (beach top/bot, dense outer, light/meadow inner) ──
+	"G1":"beach",        "G2":"dense_forest",  "G3":"dense_forest",
+	"G4":"light_forest", "G5":"meadow",        "G6":"meadow",
+	"G7":"meadow",       "G8":"light_forest",  "G9":"dense_forest",
+	"G10":"dense_forest","G11":"beach",        "G12":"river",
+	# ── Column H (beach top/bot, dense outer, light, meadow, VILLAGE center) ──
+	"H1":"beach",        "H2":"dense_forest",  "H3":"dense_forest",
+	"H4":"light_forest", "H5":"meadow",        "H6":"village",
+	"H7":"meadow",       "H8":"light_forest",  "H9":"dense_forest",
+	"H10":"dense_forest","H11":"beach",        "H12":"river",
+	# ── Column I (beach top/bot, dense outer, light/meadow inner) ──
+	"I1":"beach",        "I2":"dense_forest",  "I3":"dense_forest",
+	"I4":"light_forest", "I5":"meadow",        "I6":"meadow",
+	"I7":"meadow",       "I8":"light_forest",  "I9":"dense_forest",
+	"I10":"dense_forest","I11":"beach",        "I12":"river",
+	# ── Column J (beach top/bot, dense outer, light inner) ──
+	"J1":"beach",        "J2":"dense_forest",  "J3":"dense_forest",
+	"J4":"light_forest", "J5":"light_forest",  "J6":"light_forest",
+	"J7":"light_forest", "J8":"light_forest",  "J9":"dense_forest",
+	"J10":"dense_forest","J11":"beach",        "J12":"river",
+	# ── Column K (beach top/bot, dense forest body) ──
+	"K1":"beach",        "K2":"dense_forest",  "K3":"dense_forest",
+	"K4":"dense_forest", "K5":"dense_forest",  "K6":"dense_forest",
+	"K7":"dense_forest", "K8":"dense_forest",  "K9":"dense_forest",
+	"K10":"dense_forest","K11":"beach",        "K12":"river",
+	# ── Column L (beach top/bot, dense forest body) ──
+	"L1":"beach",        "L2":"dense_forest",  "L3":"dense_forest",
+	"L4":"dense_forest", "L5":"dense_forest",  "L6":"dense_forest",
+	"L7":"dense_forest", "L8":"dense_forest",  "L9":"dense_forest",
+	"L10":"dense_forest","L11":"beach",        "L12":"river",
+	# ── Column M (beach shore) ──
+	"M1":"beach",  "M2":"beach",  "M3":"beach",  "M4":"beach",
+	"M5":"beach",  "M6":"beach",  "M7":"beach",  "M8":"beach",
+	"M9":"beach",  "M10":"beach", "M11":"beach", "M12":"river",
+	# ── Column N (lake) ──
+	"N1":"river",  "N2":"river",  "N3":"river",  "N4":"river",
+	"N5":"river",  "N6":"river",  "N7":"river",  "N8":"river",
+	"N9":"river",  "N10":"river", "N11":"river", "N12":"river",
+	# ── Column O (lake) ──
+	"O1":"river",  "O2":"river",  "O3":"river",  "O4":"river",
+	"O5":"river",  "O6":"river",  "O7":"river",  "O8":"river",
+	"O9":"river",  "O10":"river", "O11":"river", "O12":"river",
+	# ── Column P (lake) ──
+	"P1":"river",  "P2":"river",  "P3":"river",  "P4":"river",
+	"P5":"river",  "P6":"river",  "P7":"river",  "P8":"river",
+	"P9":"river",  "P10":"river", "P11":"river", "P12":"river",
 }
 
 # ── LIFECYCLE ───────────────────────────────────────────────────────────────
@@ -178,10 +191,15 @@ func _paint_zone(origin: Vector2i, terrain: String, seed_val: int) -> void:
 
 				"dense_forest":
 					tilemap.set_cell(0, pos, SRC_ID, T_GRASS)
+					# Cluster trees using two overlapping noise bands
+					var cx := float(dx) / ZONE_W
+					var cy := float(dy) / ZONE_H
+					var band := sin(cx * 3.14159 * rng.randf_range(1.5, 3.5)) * cos(cy * 3.14159 * rng.randf_range(1.5, 3.5))
+					var density := 0.72 + band * 0.18
 					var r := rng.randf()
-					if r < 0.62:
+					if r < density:
 						tilemap.set_cell(1, pos, SRC_ID, D_TREE_A if rng.randf() < 0.55 else D_TREE_B)
-					elif r < 0.68:
+					elif r < density + 0.06:
 						tilemap.set_cell(1, pos, SRC_ID, D_BUSH)
 
 				"light_forest":
