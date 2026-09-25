@@ -78,62 +78,29 @@ shape = SubResource("BoxShape3D_ground")
 [node name="Village" type="Node3D" parent="."]
 
 [node name="HouseA" type="Node3D" parent="Village"]
-transform = Transform3D(-1.0606602, 0, 1.0606602, 0, 1.5, 0, -1.0606602, 0, -1.0606602, -20, 0, -20)
+transform = Transform3D(-2.828427, 0, 2.828427, 0, 4, 0, -2.828427, 0, -2.828427, -20, 0, -20)
 
 [node name="Model" parent="Village/HouseA" instance=ExtResource("4_house_a")]
 
 [node name="HouseB" type="Node3D" parent="Village"]
-transform = Transform3D(-1.0606602, 0, -1.0606602, 0, 1.5, 0, 1.0606602, 0, -1.0606602, 20, 0, -20)
+transform = Transform3D(-2.828427, 0, -2.828427, 0, 4, 0, 2.828427, 0, -2.828427, 20, 0, -20)
 
 [node name="Model" parent="Village/HouseB" instance=ExtResource("5_house_b")]
 
 [node name="HouseC" type="Node3D" parent="Village"]
-transform = Transform3D(0, 0, 1.5, 0, 1.5, 0, -1.5, 0, 0, -25, 0, 2)
+transform = Transform3D(0, 0, 4, 0, 4, 0, -4, 0, 0, -25, 0, 2)
 
 [node name="Model" parent="Village/HouseC" instance=ExtResource("6_windmill")]
 
 [node name="HouseD" type="Node3D" parent="Village"]
-transform = Transform3D(0, 0, -1.5, 0, 1.5, 0, 1.5, 0, 0, 24, 0, 8)
+transform = Transform3D(0, 0, -4, 0, 4, 0, 4, 0, 0, 24, 0, 8)
 
 [node name="Model" parent="Village/HouseD" instance=ExtResource("4_house_a")]
 
 [node name="HouseE" type="Node3D" parent="Village"]
-transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 24)
+transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, 0, 0, 24)
 
 [node name="Model" parent="Village/HouseE" instance=ExtResource("10_stall_green")]
-
-[node name="Campfire" type="Node3D" parent="Village"]
-
-[node name="Stones" type="Node3D" parent="Village/Campfire"]
-
-[node name="Stone1" parent="Village/Campfire/Stones" instance=ExtResource("9_stones")]
-transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0.8, 0, 0)
-
-[node name="Stone2" parent="Village/Campfire/Stones" instance=ExtResource("9_stones")]
-transform = Transform3D(0.3, 0, 0.5196152, 0, 0.6, 0, -0.5196152, 0, 0.3, -0.8, 0, 0)
-
-[node name="Stone3" parent="Village/Campfire/Stones" instance=ExtResource("9_stones")]
-transform = Transform3D(-0.3, 0, 0.5196152, 0, 0.6, 0, -0.5196152, 0, -0.3, 0, 0, 0.8)
-
-[node name="Stone4" parent="Village/Campfire/Stones" instance=ExtResource("9_stones")]
-transform = Transform3D(-0.6, 0, 0, 0, 0.6, 0, 0, 0, -0.6, 0, 0, -0.8)
-
-[node name="Logs" type="MeshInstance3D" parent="Village/Campfire"]
-transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0.1, 0)
-mesh = SubResource("CylinderMesh_logs")
-surface_material_override/0 = SubResource("StandardMaterial3D_logs")
-
-[node name="Logs2" type="MeshInstance3D" parent="Village/Campfire"]
-transform = Transform3D(0, -0.5, 0.8660254, 1, 0, 0, 0, 0.8660254, 0.5, 0, 0.1, 0)
-mesh = SubResource("CylinderMesh_logs")
-surface_material_override/0 = SubResource("StandardMaterial3D_logs")
-
-[node name="OmniLight3D" type="OmniLight3D" parent="Village/Campfire"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
-light_color = Color(1, 0.415686, 0, 1)
-light_energy = 4.0
-shadow_enabled = true
-omni_range = 20.0
 
 [node name="NPC3D" parent="Village" instance=ExtResource("8_npc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 0)
