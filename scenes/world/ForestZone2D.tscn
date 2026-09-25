@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/world/forest_zone_2d.gd" id="1_forest_zone"]
 [ext_resource type="TileSet" uid="uid://d1hgkbqgn7auj" path="res://resources/tilesets/forest_summer.tres" id="2_tileset"]
-[ext_resource type="PackedScene" path="res://scenes/player/Player2D.tscn" id="3_player2d"]
+[ext_resource type="PackedScene" uid="uid://dy2dmmbl33xqq" path="res://scenes/player/Player2D.tscn" id="3_player2d"]
 
 [node name="ForestZone2D" type="Node2D"]
 script = ExtResource("1_forest_zone")

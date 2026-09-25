@@ -17,7 +17,6 @@ config/features=PackedStringArray("4.2", "GL Compatibility")
 config/renderer/rendering_method="gl_compatibility"
 config/renderer/rendering_method.mobile="gl_compatibility"
 
-
 [autoload]
 
 UIPositions="*res://scripts/ui/ui_positions.gd"
