@@ -6,6 +6,12 @@ const CAM_OFFSET: Vector3 = Vector3(0.0, 20.0, 12.0)
 
 @onready var _camera: Camera3D = get_parent().get_node("Camera3D")
 @onready var _character_model: Node3D = $CharacterModel
+@onready var _anim: AnimationPlayer = $CharacterModel/AnimationPlayer
+
+
+func _ready() -> void:
+	if _anim.has_animation("idle"):
+		_anim.play("idle")
 
 
 func _physics_process(delta: float) -> void:
@@ -33,6 +39,19 @@ func _physics_process(delta: float) -> void:
 			atan2(-velocity.x, -velocity.z),
 			0.2
 		)
+
+	_update_locomotion_anim()
+
+
+func _update_locomotion_anim() -> void:
+	if _anim == null:
+		return
+	if velocity.length() > 0.5 and _anim.has_animation("walk"):
+		if _anim.current_animation != "walk":
+			_anim.play("walk")
+	elif _anim.has_animation("idle"):
+		if _anim.current_animation != "idle":
+			_anim.play("idle")
 
 
 func _process(_delta: float) -> void:
