@@ -35,6 +35,9 @@ const DecorScenes: Array[PackedScene] = [
 
 var _suppress_npc_interact: bool = false
 var petal_count: int = 0
+var _overview_mode: bool = false
+var _overview_cam: Camera3D = null
+var _play_cam: Camera3D = null
 
 
 func is_npc_interact_suppressed() -> bool:
@@ -51,6 +54,29 @@ func _ready() -> void:
 	_spawn_decor()
 	_spawn_petals()
 	_spawn_enemies()
+	_setup_minimap()
+	_setup_overview_cam()
+
+
+func _setup_minimap() -> void:
+	pass
+
+
+func _setup_overview_cam() -> void:
+	_play_cam = get_node("Camera3D") as Camera3D
+	_overview_cam = Camera3D.new()
+	_overview_cam.name = "OverviewCam"
+	_overview_cam.position = Vector3(0.0, 180.0, 0.0)
+	_overview_cam.rotation_degrees = Vector3(-90.0, 0.0, 0.0)
+	_overview_cam.current = false
+	add_child(_overview_cam)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.keycode == KEY_TAB and event.pressed and not event.echo:
+		_overview_mode = not _overview_mode
+		_overview_cam.current = _overview_mode
+		_play_cam.current = not _overview_mode
 
 
 func _process(_delta: float) -> void:
