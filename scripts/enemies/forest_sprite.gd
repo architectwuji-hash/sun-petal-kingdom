@@ -7,13 +7,26 @@ const SIGHT: float = 30.0
 const GRAVITY: float = 9.8
 const HIT_COOLDOWN: float = 1.0
 
+var hp: int = 100
 var _player: CharacterBody3D = null
 var _hit_cooldown: float = 0.0
 
 
 func _ready() -> void:
 	_player = get_tree().get_first_node_in_group("player") as CharacterBody3D
+	$HurtBox.area_entered.connect(_on_hurtbox_area_entered)
 	_tint_character_red()
+
+
+func take_damage(amount: int) -> void:
+	hp -= amount
+	if hp <= 0:
+		queue_free()
+
+
+func _on_hurtbox_area_entered(area: Area3D) -> void:
+	if area.name == "AttackHitbox":
+		take_damage(25)
 
 
 func _physics_process(delta: float) -> void:
