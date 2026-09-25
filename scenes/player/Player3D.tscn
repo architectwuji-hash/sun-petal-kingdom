@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3 uid="uid://player3dspk01"]
+
+[ext_resource type="Script" path="res://scripts/player/player_3d.gd" id="1_player3d"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/kenney/character-male-a.glb" id="2_character"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+radius = 0.4
+height = 1.6
+
+[node name="Player3D" type="CharacterBody3D"]
+script = ExtResource("1_player3d")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("CapsuleShape3D_body")
+
+[node name="CharacterModel" parent="." instance=ExtResource("2_character")]

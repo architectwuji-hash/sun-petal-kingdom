@@ -81,6 +81,8 @@ func _physics_process(delta: float) -> void:
 		velocity.y = jump_velocity
 	var speed: float = sprint_speed if Input.is_action_pressed("sprint") else move_speed
 	var input_dir: Vector2 = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	if input_dir == Vector2.ZERO:
+		input_dir = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 	var direction: Vector3 = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	if direction:
 		velocity.x = direction.x * speed

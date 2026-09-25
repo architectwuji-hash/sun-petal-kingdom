@@ -1,11 +1,15 @@
-[gd_scene load_steps=8 format=3 uid="uid://bqx8player01spk"]
+[gd_scene load_steps=9 format=3 uid="uid://bqx8player01spk"]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/player/attack_controller.gd" id="2_attack"]
 [ext_resource type="Script" path="res://scripts/player/ocali_regen.gd" id="3_ocali_regen"]
 [ext_resource type="Script" path="res://scripts/player/flower_loadout.gd" id="4_loadout"]
 [ext_resource type="Script" path="res://scripts/player/power_handler.gd" id="5_power"]
-[ext_resource type="PackedScene" path="res://assets/models/characters/outfits/Male_Ranger.gltf" id="6_character"]
+[ext_resource type="Texture2D" path="res://assets/sprites/tileset/kenney_roguelike.png" id="6_kenney"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kenney_char"]
+atlas = ExtResource("6_kenney")
+region = Rect2(0, 272, 16, 16)
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_collision"]
 height = 1.8
@@ -21,8 +25,10 @@ script = ExtResource("1_player")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("CapsuleShape3D_collision")
 
-[node name="CharacterMesh" parent="." instance=ExtResource("6_character")]
-transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, -0.5, 0)
+[node name="CharacterSprite" type="Sprite3D" parent="."]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0.9, 0)
+texture = SubResource("AtlasTexture_kenney_char")
+billboard = 1
 
 [node name="CameraPivot" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
