@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3 uid="uid://npc3dspk01"]
+
+[ext_resource type="Script" path="res://scripts/npc/npc_3d.gd" id="1_npc"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/kenney/character-male-a.glb" id="2_character"]
+
+[node name="NPC3D" type="Node3D"]
+script = ExtResource("1_npc")
+
+[node name="CharacterModel" parent="." instance=ExtResource("2_character")]
