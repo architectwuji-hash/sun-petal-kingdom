@@ -31,6 +31,7 @@ const DecorScenes: Array[PackedScene] = [
 @onready var _player: CharacterBody3D = $Player3D
 @onready var _health_bar: ProgressBar = $HUD/VBoxContainer/HealthBar
 @onready var _petal_label: Label = $HUD/VBoxContainer/PetalLabel
+@onready var _kill_label: Label = $HUD/VBoxContainer/KillLabel
 @onready var _dialog_layer: CanvasLayer = $DialogLayer
 @onready var _dialog_text: Label = $DialogLayer/PanelContainer/VBoxContainer/DialogText
 @onready var _npc_name: Label = $DialogLayer/PanelContainer/VBoxContainer/NpcName
@@ -43,6 +44,7 @@ var _overview_cam: Camera3D = null
 var _play_cam: Camera3D = null
 var _active_enemies: Array[Node] = []
 var _respawn_timer: float = 0.0
+var _kill_count: int = 0
 
 
 func is_npc_interact_suppressed() -> bool:
@@ -252,6 +254,9 @@ func _spawn_one_enemy(rng: RandomNumberGenerator = null) -> void:
 
 func _on_enemy_removed() -> void:
 	_active_enemies = _active_enemies.filter(func(e: Node) -> bool: return is_instance_valid(e))
+	_kill_count += 1
+	if _kill_label != null:
+		_kill_label.text = "☠ %d kills" % _kill_count
 	_respawn_timer = RESPAWN_DELAY
 
 

@@ -126,7 +126,7 @@ layer = 8
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 196.0
-offset_bottom = 70.0
+offset_bottom = 96.0
 
 [node name="Label" type="Label" parent="HUD/VBoxContainer"]
 layout_mode = 2
@@ -146,6 +146,12 @@ modulate = Color(1, 0.9, 0.2, 1)
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = "🌸 0 / 10"
+
+[node name="KillLabel" type="Label" parent="HUD/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.5, 0.5, 1)
+theme_override_font_sizes/font_size = 13
+text = "☠ 0 kills"
 
 [node name="Player3D" parent="." instance=ExtResource("2_player3d")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
