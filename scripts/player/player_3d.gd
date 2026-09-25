@@ -9,7 +9,7 @@ const GRAVITY: float = 20.0
 const JUMP_FORCE: float = 10.0
 const CAM_LERP: float = 0.12
 const CAM_OFFSET: Vector3 = Vector3(0.0, 8.0, 12.0)
-const ATTACK_COOLDOWN: float = 0.6
+const ATTACK_COOLDOWN: float = 0.25
 
 @onready var _anim: AnimationPlayer = $CharacterModel/AnimationPlayer
 @onready var _attack_hitbox: Area3D = $AttackHitbox
@@ -53,12 +53,12 @@ func _do_attack() -> void:
 	_attack_timer = ATTACK_COOLDOWN
 	# Play melee swing animation
 	if _anim.has_animation("attack-melee-right"):
-		_anim.speed_scale = 1.6
+		_anim.speed_scale = 2.5
 		_anim.play("attack-melee-right")
 	_attack_hitbox.monitoring = true
-	await get_tree().create_timer(0.3).timeout
+	await get_tree().create_timer(0.15).timeout
 	_attack_hitbox.monitoring = false
-	await get_tree().create_timer(0.3).timeout
+	await get_tree().create_timer(0.15).timeout
 	_attacking = false
 	_anim.speed_scale = 1.0
 
