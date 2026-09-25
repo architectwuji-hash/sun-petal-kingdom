@@ -1,8 +1,11 @@
-[gd_scene load_steps=9 format=3 uid="uid://forestzone3dspk01"]
+[gd_scene load_steps=15 format=3 uid="uid://forestzone3dspk01"]
 
 [ext_resource type="Script" path="res://scripts/world/forest_zone_3d.gd" id="1_forest3d"]
 [ext_resource type="PackedScene" uid="uid://player3dspk01" path="res://scenes/player/Player3D.tscn" id="2_player3d"]
 [ext_resource type="Texture2D" path="res://assets/textures/ground/grass.png" id="3_grass_tex"]
+[ext_resource type="PackedScene" path="res://assets/models/buildings/kenney_town/stall-red.glb" id="4_stall_red"]
+[ext_resource type="PackedScene" path="res://assets/models/buildings/kenney_town/stall-green.glb" id="5_stall_green"]
+[ext_resource type="PackedScene" path="res://assets/models/buildings/kenney_town/windmill.glb" id="6_windmill"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.4, 0.7, 1, 1)
@@ -27,6 +30,12 @@ size = Vector2(200, 200)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
 size = Vector3(200, 0.2, 200)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_stall"]
+size = Vector3(2.2, 2.0, 1.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_windmill"]
+size = Vector3(2.5, 2.2, 2.5)
 
 [node name="ForestZone3D" type="Node3D"]
 script = ExtResource("1_forest3d")
@@ -54,7 +63,38 @@ mesh = SubResource("PlaneMesh_ground")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
 shape = SubResource("BoxShape3D_ground")
 
+[node name="Village" type="Node3D" parent="."]
+
+[node name="Building1" type="StaticBody3D" parent="Village"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -6)
+
+[node name="Model" parent="Village/Building1" instance=ExtResource("4_stall_red")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Village/Building1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+shape = SubResource("BoxShape3D_stall")
+
+[node name="Building2" type="StaticBody3D" parent="Village"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -6)
+
+[node name="Model" parent="Village/Building2" instance=ExtResource("5_stall_green")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Village/Building2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+shape = SubResource("BoxShape3D_stall")
+
+[node name="Building3" type="StaticBody3D" parent="Village"]
+transform = Transform3D(0.35, 0, 0, 0, 0.35, 0, 0, 0, 0.35, 0, 0, -12)
+
+[node name="Model" parent="Village/Building3" instance=ExtResource("6_windmill")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Village/Building3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1, 0)
+shape = SubResource("BoxShape3D_windmill")
+
 [node name="TreeRoot" type="Node3D" parent="."]
+
+[node name="DecorRoot" type="Node3D" parent="."]
 
 [node name="Player3D" parent="." instance=ExtResource("2_player3d")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
