@@ -12,6 +12,7 @@ const TreeScene: PackedScene = preload("res://scenes/world/props/KenneyTree.tscn
 const TreeHighScene: PackedScene = preload("res://scenes/world/props/KenneyTreeHigh.tscn")
 const PetalScene: PackedScene = preload("res://scenes/items/SunPetal.tscn")
 const ENEMY_SCENE: PackedScene = preload("res://scenes/enemies/ForestSprite.tscn")
+const HEAL_SCENE: PackedScene = preload("res://scenes/items/HealOrb.tscn")
 const MAX_ENEMIES: int = 5
 const RESPAWN_DELAY: float = 20.0
 
@@ -57,6 +58,7 @@ func _ready() -> void:
 	_spawn_trees()
 	_spawn_decor()
 	_spawn_petals()
+	_spawn_heal_orbs(6)
 	_spawn_enemies(3)
 	_setup_minimap()
 	_setup_overview_cam()
@@ -251,6 +253,25 @@ func _spawn_one_enemy(rng: RandomNumberGenerator = null) -> void:
 func _on_enemy_removed() -> void:
 	_active_enemies = _active_enemies.filter(func(e: Node) -> bool: return is_instance_valid(e))
 	_respawn_timer = RESPAWN_DELAY
+
+
+func _spawn_heal_orbs(count: int) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 77777
+	for _i: int in count:
+		var orb: Node3D = HEAL_SCENE.instantiate()
+		var x: float = rng.randf_range(-140.0, 140.0)
+		var z: float = rng.randf_range(-140.0, 140.0)
+		if absf(x) < 20.0 and absf(z) < 20.0:
+			x += 25.0
+		orb.position = Vector3(x, 0.4, z)
+		orb.healed.connect(_on_orb_healed)
+		add_child(orb)
+
+
+func _on_orb_healed(_orb: Node3D) -> void:
+	if is_instance_valid(_player) and _player.has_method("set_health"):
+		_player.set_health(_player.health + 25)
 
 
 func _spawn_petals() -> void:

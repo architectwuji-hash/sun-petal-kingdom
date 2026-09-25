@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3 uid="uid://healorbitem01"]
+
+[ext_resource type="Script" path="res://scripts/items/heal_orb.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_orb"]
+albedo_color = Color(0.1, 0.9, 0.3, 1)
+emission_enabled = true
+emission = Color(0, 1, 0.2, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_orb"]
+radius = 0.22
+height = 0.44
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_pickup"]
+radius = 0.7
+
+[node name="HealOrb" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="OrbMesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_orb")
+surface_material_override/0 = SubResource("StandardMaterial3D_orb")
+
+[node name="PickupArea" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PickupArea"]
+shape = SubResource("SphereShape3D_pickup")
