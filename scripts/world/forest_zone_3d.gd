@@ -45,6 +45,7 @@ func _ready() -> void:
 	_dialog_layer.visible = false
 	_village_npc.interact_requested.connect(_on_npc_interact)
 	_player.health_changed.connect(_on_player_health_changed)
+	_player.player_died.connect(_on_player_died)
 	_health_bar.value = _player.health
 	_spawn_trees()
 	_spawn_decor()
@@ -68,6 +69,53 @@ func _process(_delta: float) -> void:
 
 func _on_player_health_changed(val: int) -> void:
 	_health_bar.value = val
+
+
+func _on_player_died() -> void:
+	_show_game_over()
+
+
+func _show_game_over() -> void:
+	get_tree().paused = true
+	var overlay := CanvasLayer.new()
+	overlay.layer = 20
+	overlay.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(overlay)
+	var panel := ColorRect.new()
+	panel.color = Color(0.0, 0.0, 0.0, 0.75)
+	panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.add_child(panel)
+	var vbox := VBoxContainer.new()
+	vbox.set_anchors_preset(Control.PRESET_CENTER)
+	vbox.offset_left = -160
+	vbox.offset_right = 160
+	vbox.offset_top = -80
+	vbox.offset_bottom = 80
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 20)
+	overlay.add_child(vbox)
+	var title := Label.new()
+	title.text = "YOU DIED"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 48)
+	title.add_theme_color_override("font_color", Color(0.9, 0.1, 0.1))
+	vbox.add_child(title)
+	var sub := Label.new()
+	sub.text = "The forest sprites got you."
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub.add_theme_color_override("font_color", Color(0.85, 0.85, 0.85))
+	vbox.add_child(sub)
+	var btn := Button.new()
+	btn.text = "Try Again"
+	btn.custom_minimum_size = Vector2(160, 44)
+	btn.pressed.connect(_restart_game)
+	vbox.add_child(btn)
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
+
+func _restart_game() -> void:
+	get_tree().paused = false
+	get_tree().reload_current_scene()
 
 
 func _on_npc_interact(_npc: Node3D) -> void:

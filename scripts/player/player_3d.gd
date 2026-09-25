@@ -1,6 +1,7 @@
 extends CharacterBody3D
 
 signal health_changed(new_val: int)
+signal player_died
 
 const SPEED: float = 12.0
 const GRAVITY: float = 20.0
@@ -34,6 +35,8 @@ func set_health(value: int) -> void:
 		return
 	health = clamped
 	health_changed.emit(health)
+	if health <= 0:
+		player_died.emit()
 
 
 func _do_attack() -> void:
