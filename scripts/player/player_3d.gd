@@ -19,6 +19,7 @@ var health: int = 100
 var _attacking: bool = false
 var _attack_timer: float = 0.0
 var _cam_shake: float = 0.0
+var _attack_pending: bool = false
 
 
 func _ready() -> void:
@@ -50,23 +51,28 @@ func take_hit() -> void:
 func _do_attack() -> void:
 	_attacking = true
 	_attack_timer = ATTACK_COOLDOWN
+	# Play melee swing animation
+	if _anim.has_animation("attack-melee-right"):
+		_anim.speed_scale = 1.6
+		_anim.play("attack-melee-right")
 	_attack_hitbox.monitoring = true
-	await get_tree().create_timer(0.15).timeout
+	await get_tree().create_timer(0.2).timeout
 	_attack_hitbox.monitoring = false
+	await get_tree().create_timer(0.2).timeout
 	_attacking = false
+	_anim.speed_scale = 1.0
 
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		rotation.y -= event.relative.x * 0.001
+	if event is InputEventKey and event.keycode == KEY_F and event.pressed and not event.echo:
+		_attack_pending = true
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		_attack_pending = true
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.keycode == KEY_F and event.pressed and not event.echo:
-		if _attack_timer <= 0.0 and not _attacking:
-			_do_attack()
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed and _attack_timer <= 0.0 and not _attacking:
-		_do_attack()
 	if event is InputEventKey and event.keycode == KEY_ESCAPE and event.pressed:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
@@ -80,6 +86,10 @@ func _physics_process(_delta: float) -> void:
 
 	if _attack_timer > 0.0:
 		_attack_timer -= _delta
+	if _attack_pending:
+		_attack_pending = false
+		if _attack_timer <= 0.0 and not _attacking:
+			_do_attack()
 
 	var input_dir := Vector2.ZERO
 	if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP):
