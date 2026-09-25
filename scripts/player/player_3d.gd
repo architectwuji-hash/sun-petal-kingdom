@@ -3,8 +3,8 @@ extends CharacterBody3D
 signal health_changed(new_val: int)
 signal player_died
 
-const SPEED: float = 12.0
-const SPRINT_SPEED: float = 21.0
+const SPEED: float = 5.0
+const SPRINT_SPEED: float = 9.0
 const GRAVITY: float = 20.0
 const CAM_LERP: float = 0.12
 const CAM_OFFSET: Vector3 = Vector3(0.0, 8.0, 12.0)
@@ -57,12 +57,15 @@ func _do_attack() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion:
-		rotation.y -= event.relative.x * 0.003
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F:
+	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+		rotation.y -= event.relative.x * 0.0015
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.keycode == KEY_F and event.pressed and not event.echo:
 		if _attack_timer <= 0.0 and not _attacking:
 			_do_attack()
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+	if event is InputEventKey and event.keycode == KEY_ESCAPE and event.pressed:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 
