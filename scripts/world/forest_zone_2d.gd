@@ -29,28 +29,30 @@ var _minimap_offset := Vector2.ZERO
 @onready var tilemap: TileMap = $TileMap
 
 # ── TILE ATLAS CONFIGURATION ────────────────────────────────────────────────
-# Adjust these Vector2i values to match YOUR tileset atlas coordinates.
+# Kenney Roguelike/RPG Pack — roguelikeSheet_transparent.png
+# Sheet: 57 cols × 31 rows, 16×16 px tiles, 1px separation between tiles.
+# Coordinates verified via pixel analysis (col, row) with 17px stride.
 # Layer 0 = ground tiles,  Layer 1 = decoration / overlay tiles.
 # SRC_ID is the TileSetAtlasSource index (usually 0).
 
 const SRC_ID := 0
 
-# Ground layer (layer 0)  — verified from seasonal_sample_summer.png pixel analysis
-const T_GRASS := Vector2i(0, 1)    # green grass
-const T_DIRT  := Vector2i(1, 1)    # brown dirt / packed earth / path
-const T_WATER := Vector2i(7, 12)   # bright blue water (has collision)
-const T_SAND  := Vector2i(9, 4)    # light tan beach sand
-const T_STONE := Vector2i(10, 5)   # reddish cliff wall (has collision)
-const T_DARK  := Vector2i(2, 11)   # dark cave stone floor
-const T_MUD   := Vector2i(7, 12)   # swamp mud — fallback to water tile
+# Ground layer (layer 0)
+const T_GRASS := Vector2i(5, 0)    # solid bright green grass terrain
+const T_DIRT  := Vector2i(5, 5)    # solid brown dirt / packed earth / path
+const T_WATER := Vector2i(0, 0)    # teal water (has collision)
+const T_SAND  := Vector2i(14, 16)  # beige / sand terrain
+const T_STONE := Vector2i(7, 0)    # grey stone wall / cliff (has collision)
+const T_DARK  := Vector2i(20, 12)  # dark grey stone floor (cave / dungeon)
+const T_MUD   := Vector2i(5, 5)    # swamp mud — fallback to dirt tile
 
-# Decoration layer (layer 1)  — verified from tileset pixel analysis
-const D_TREE_A := Vector2i(13, 1)  # dark green tree  (primary)
-const D_TREE_B := Vector2i(15, 1)  # dark green tree  (variant)
-const D_TREE_C := Vector2i(12, 0)  # medium green tree (light forest)
-const D_BUSH   := Vector2i(0, 8)   # bush / shrub
-const D_FLOWER := Vector2i(1, 8)   # bright flower / sacred plant
-const D_RUINS  := Vector2i(10, 5)  # ruin stones — fallback to cliff tile
+# Decoration layer (layer 1)
+const D_TREE_A := Vector2i(13, 9)  # round green tree (primary)
+const D_TREE_B := Vector2i(16, 9)  # pine / conifer tree (variant)
+const D_TREE_C := Vector2i(15, 9)  # smaller round dark tree (light forest)
+const D_BUSH   := Vector2i(26, 11) # round green bush / shrub
+const D_FLOWER := Vector2i(25, 11) # white daisy flower / sacred plant
+const D_RUINS  := Vector2i(7, 0)   # ruin stones — fallback to stone tile
 
 # ── ZONE MAP ────────────────────────────────────────────────────────────────
 # Designed in the Sun Petal Kingdom Zone Editor.

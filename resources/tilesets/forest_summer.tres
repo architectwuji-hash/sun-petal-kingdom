@@ -1,48 +1,44 @@
-[gd_resource type="TileSet" load_steps=3 format=3]
+[gd_resource type="TileSet" load_steps=3 format=3 uid="uid://d1hgkbqgn7auj"]
 
-[ext_resource type="Texture2D" path="res://assets/sprites/tileset/seasonal_sample_summer.png" id="1_tex"]
+[ext_resource type="Texture2D" uid="uid://b3kenroglk2024" path="res://assets/sprites/tileset/kenney_roguelike.png" id="1_tex"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_0"]
 texture = ExtResource("1_tex")
 texture_region_size = Vector2i(16, 16)
-0:1/0 = {}
-0:2/0 = {}
-1:0/0 = {}
-1:1/0 = {}
-1:2/0 = {}
-2:0/0 = {}
-2:1/0 = {}
-2:2/0 = {}
-3:0/0 = {}
-3:1/0 = {}
-4:0/0 = {}
-4:1/0 = {}
-4:2/0 = {}
-12:0/0 = {}
-13:1/0 = {
-"physics_layer_0/polygon_0/points": PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8),
-"physics_layer_0/polygon_0/one_way": false,
-"physics_layer_0/polygon_0/one_way_margin": 1.0
-}
+separation = Vector2i(1, 1)
 
-0:8/0 = {}
-1:8/0 = {}
-2:11/0 = {}
-7:12/0 = {
-"physics_layer_0/polygon_0/points": PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8),
-"physics_layer_0/polygon_0/one_way": false,
-"physics_layer_0/polygon_0/one_way_margin": 1.0
-}
-9:4/0 = {}
-10:5/0 = {
-"physics_layer_0/polygon_0/points": PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8),
-"physics_layer_0/polygon_0/one_way": false,
-"physics_layer_0/polygon_0/one_way_margin": 1.0
-}
-15:1/0 = {}
+5:0/0 = {}
+
+5:5/0 = {}
+
+14:16/0 = {}
+
+20:12/0 = {}
+
+36:2/0 = {}
+
+0:0/0 = 0
+0:0/0/physics_layer_0/linear_velocity = Vector2(0, 0)
+0:0/0/physics_layer_0/angular_velocity = 0.0
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
+0:0/0/physics_layer_0/polygon_0/one_way = false
+
+7:0/0 = 0
+7:0/0/physics_layer_0/linear_velocity = Vector2(0, 0)
+7:0/0/physics_layer_0/angular_velocity = 0.0
+7:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
+7:0/0/physics_layer_0/polygon_0/one_way = false
+
+13:9/0 = {}
+
+16:9/0 = {}
+
+15:9/0 = {}
+
+26:11/0 = {}
+
+25:11/0 = {}
 
 [resource]
-tile_size = Vector2i(16, 16)
 physics_layer_0/collision_layer = 1
-physics_layer_0/collision_mask = 1
 sources/0 = SubResource("TileSetAtlasSource_0")
