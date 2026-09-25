@@ -6,6 +6,7 @@ signal player_died
 const SPEED: float = 5.0
 const SPRINT_SPEED: float = 9.0
 const GRAVITY: float = 20.0
+const JUMP_FORCE: float = 10.0
 const CAM_LERP: float = 0.12
 const CAM_OFFSET: Vector3 = Vector3(0.0, 8.0, 12.0)
 const ATTACK_COOLDOWN: float = 0.6
@@ -71,7 +72,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	if not is_on_floor():
+	if is_on_floor():
+		if Input.is_key_pressed(KEY_SPACE):
+			velocity.y = JUMP_FORCE
+	else:
 		velocity.y -= GRAVITY * _delta
 
 	if _attack_timer > 0.0:

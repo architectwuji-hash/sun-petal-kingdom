@@ -104,7 +104,7 @@ func _process(delta: float) -> void:
 		if _respawn_timer <= 0.0 and _active_enemies.size() < MAX_ENEMIES:
 			_spawn_one_enemy()
 
-	if _dialog_layer.visible and Input.is_action_just_pressed("ui_accept"):
+	if _dialog_layer.visible and Input.is_key_pressed(KEY_E):
 		_dialog_layer.visible = false
 		_suppress_npc_interact = true
 		call_deferred("_reset_npc_interact_suppress")

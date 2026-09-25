@@ -19,7 +19,7 @@ func _process(delta: float) -> void:
 
 	if not player_nearby:
 		return
-	if not Input.is_action_just_pressed("ui_accept"):
+	if not Input.is_key_pressed(KEY_E):
 		return
 	var forest_zone: Node = get_tree().current_scene
 	if forest_zone.has_method("is_npc_interact_suppressed") and forest_zone.is_npc_interact_suppressed():
