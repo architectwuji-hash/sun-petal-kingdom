@@ -15,8 +15,6 @@ const ENEMY_SCENE: PackedScene = preload("res://scenes/enemies/ForestSprite.tscn
 const HEAL_SCENE: PackedScene = preload("res://scenes/items/HealOrb.tscn")
 const MAX_ENEMIES: int = 5
 const RESPAWN_DELAY: float = 20.0
-const BGM_PATH: String = "res://assets/audio/pixel_drift.mp3"
-
 const DecorScenes: Array[PackedScene] = [
 	preload("res://scenes/world/props/KenneyRocksHigh.tscn"),
 	preload("res://scenes/world/props/KenneyRocksLow.tscn"),
@@ -53,6 +51,18 @@ func is_npc_interact_suppressed() -> bool:
 
 
 func _ready() -> void:
+	if get_tree().root.get_node_or_null("BGMusic") == null:
+		var music := AudioStreamPlayer.new()
+		music.name = "BGMusic"
+		var bgm_stream: AudioStream = load("res://assets/audio/pixel_drift.mp3") as AudioStream
+		music.stream = bgm_stream
+		if bgm_stream is AudioStreamMP3:
+			(bgm_stream as AudioStreamMP3).loop = true
+		music.volume_db = -10.0
+		music.autoplay = true
+		get_tree().root.add_child(music)
+		music.play()
+
 	_dialog_layer.visible = false
 	_village_npc.interact_requested.connect(_on_npc_interact)
 	_player.health_changed.connect(_on_player_health_changed)
@@ -65,22 +75,6 @@ func _ready() -> void:
 	_spawn_enemies(3)
 	_setup_minimap()
 	_setup_overview_cam()
-	_setup_bgm()
-
-
-func _setup_bgm() -> void:
-	var existing: Node = get_tree().root.get_node_or_null("BGMusic")
-	if existing != null:
-		return
-	var music := AudioStreamPlayer.new()
-	music.name = "BGMusic"
-	music.stream = load(BGM_PATH) as AudioStream
-	music.volume_db = -8.0
-	music.process_mode = Node.PROCESS_MODE_ALWAYS
-	if music.stream is AudioStreamMP3:
-		(music.stream as AudioStreamMP3).loop = true
-	get_tree().root.add_child(music)
-	music.play()
 
 
 func _setup_minimap() -> void:

@@ -65,10 +65,8 @@ text = "WASD — move    Shift — sprint    F — attack    Space — talk    T
 horizontal_alignment = 1
 
 [node name="BGMusic" type="AudioStreamPlayer" parent="."]
-process_mode = 3
 stream = ExtResource("2_bgm")
-volume_db = -8.0
+volume_db = -10.0
 autoplay = true
-bus = &"Master"
 
 [connection signal="pressed" from="CenterBox/PlayBtn" to="." method="_on_play_pressed"]
