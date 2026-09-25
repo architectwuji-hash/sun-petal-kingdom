@@ -15,6 +15,7 @@ const ENEMY_SCENE: PackedScene = preload("res://scenes/enemies/ForestSprite.tscn
 const HEAL_SCENE: PackedScene = preload("res://scenes/items/HealOrb.tscn")
 const MAX_ENEMIES: int = 5
 const RESPAWN_DELAY: float = 20.0
+const BGM_PATH: String = "res://assets/audio/pixel_drift.mp3"
 
 const DecorScenes: Array[PackedScene] = [
 	preload("res://scenes/world/props/KenneyRocksHigh.tscn"),
@@ -64,6 +65,22 @@ func _ready() -> void:
 	_spawn_enemies(3)
 	_setup_minimap()
 	_setup_overview_cam()
+	_setup_bgm()
+
+
+func _setup_bgm() -> void:
+	var existing: Node = get_tree().root.get_node_or_null("BGMusic")
+	if existing != null:
+		return
+	var music := AudioStreamPlayer.new()
+	music.name = "BGMusic"
+	music.stream = load(BGM_PATH) as AudioStream
+	music.volume_db = -8.0
+	music.process_mode = Node.PROCESS_MODE_ALWAYS
+	if music.stream is AudioStreamMP3:
+		(music.stream as AudioStreamMP3).loop = true
+	get_tree().root.add_child(music)
+	music.play()
 
 
 func _setup_minimap() -> void:
