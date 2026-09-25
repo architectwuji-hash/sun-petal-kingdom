@@ -130,9 +130,9 @@ const ZONE_MAP: Dictionary = {
 func _ready() -> void:
 	while tilemap.get_layers_count() < 2:
 		tilemap.add_layer(-1)
-	_paint_map()
 	if Engine.is_editor_hint():
-		return
+		return   # don't auto-paint in editor — paint manually via TileMap tool
+	_paint_map()
 	_setup_minimap()
 
 func _unhandled_input(event: InputEvent) -> void:
