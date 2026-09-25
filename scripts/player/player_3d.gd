@@ -18,7 +18,6 @@ var health: int = 100
 var _attacking: bool = false
 var _attack_timer: float = 0.0
 var _cam_shake: float = 0.0
-var _cam_base_offset: Vector3 = Vector3.ZERO
 
 
 func _ready() -> void:
