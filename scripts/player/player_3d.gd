@@ -92,7 +92,7 @@ func _physics_process(_delta: float) -> void:
 	direction.y = 0.0
 	if direction.length_squared() > 0.01:
 		direction = direction.normalized()
-		var sprinting: bool = Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_SHIFT_LEFT) or Input.is_key_pressed(KEY_SHIFT_RIGHT)
+		var sprinting: bool = Input.is_key_pressed(KEY_SHIFT)
 		var move_speed: float = SPRINT_SPEED if sprinting else SPEED
 		velocity.x = direction.x * move_speed
 		velocity.z = direction.z * move_speed
@@ -115,7 +115,7 @@ func _update_locomotion_anim() -> void:
 	if _anim == null:
 		return
 	var moving: bool = velocity.length() > 0.5
-	var sprinting: bool = (Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_SHIFT_LEFT) or Input.is_key_pressed(KEY_SHIFT_RIGHT)) and moving
+	var sprinting: bool = (Input.is_key_pressed(KEY_SHIFT)) and moving
 	var target: String = "walk" if moving else "idle"
 	if _anim.has_animation(target) and _anim.current_animation != target:
 		_anim.play(target)
