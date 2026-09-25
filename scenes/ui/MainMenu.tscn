@@ -60,7 +60,7 @@ text = "▶  Play"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.55, 0.55, 1)
 theme_override_font_sizes/font_size = 13
-text = "WASD — move    F — attack    Space — talk    Tab — map view"
+text = "WASD — move    Shift — sprint    F — attack    Space — talk    Tab — map view"
 horizontal_alignment = 1
 
 [connection signal="pressed" from="CenterBox/PlayBtn" to="." method="_on_play_pressed"]

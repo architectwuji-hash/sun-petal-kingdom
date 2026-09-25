@@ -4,6 +4,7 @@ signal health_changed(new_val: int)
 signal player_died
 
 const SPEED: float = 12.0
+const SPRINT_SPEED: float = 21.0
 const GRAVITY: float = 20.0
 const CAM_LERP: float = 0.12
 const CAM_HEIGHT: float = 5.0
@@ -72,8 +73,10 @@ func _physics_process(_delta: float) -> void:
 	direction.y = 0.0
 	if direction.length_squared() > 0.01:
 		direction = direction.normalized()
-		velocity.x = direction.x * SPEED
-		velocity.z = direction.z * SPEED
+		var sprinting: bool = Input.is_key_pressed(KEY_SHIFT)
+		var move_speed: float = SPRINT_SPEED if sprinting else SPEED
+		velocity.x = direction.x * move_speed
+		velocity.z = direction.z * move_speed
 		if direction.length() > 0.1:
 			var target_angle: float = atan2(-direction.x, -direction.z)
 			rotation.y = lerp_angle(rotation.y, target_angle, 0.15)
@@ -92,12 +95,12 @@ func _physics_process(_delta: float) -> void:
 func _update_locomotion_anim() -> void:
 	if _anim == null:
 		return
-	if velocity.length() > 0.5 and _anim.has_animation("walk"):
-		if _anim.current_animation != "walk":
-			_anim.play("walk")
-	elif _anim.has_animation("idle"):
-		if _anim.current_animation != "idle":
-			_anim.play("idle")
+	var moving: bool = velocity.length() > 0.5
+	var sprinting: bool = Input.is_key_pressed(KEY_SHIFT) and moving
+	var target: String = "walk" if moving else "idle"
+	if _anim.has_animation(target) and _anim.current_animation != target:
+		_anim.play(target)
+	_anim.speed_scale = 1.8 if sprinting else 1.0
 
 
 func _process(_delta: float) -> void:
