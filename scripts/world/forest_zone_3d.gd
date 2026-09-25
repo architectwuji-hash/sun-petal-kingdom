@@ -20,19 +20,47 @@ const DecorScenes: Array[PackedScene] = [
 @onready var decor_root: Node3D = $DecorRoot
 @onready var _player_dot: ColorRect = $MinimapLayer/MinimapPanel/PlayerDot
 @onready var _player: CharacterBody3D = $Player3D
+@onready var _dialog_layer: CanvasLayer = $DialogLayer
+@onready var _dialog_text: Label = $DialogLayer/PanelContainer/VBoxContainer/DialogText
+@onready var _village_npc: Node3D = $Village/NPC3D
+
+var _suppress_npc_interact: bool = false
+
+
+func is_npc_interact_suppressed() -> bool:
+	return _suppress_npc_interact
 
 
 func _ready() -> void:
+	_dialog_layer.visible = false
+	_village_npc.interact_requested.connect(_on_npc_interact)
 	_spawn_trees()
 	_spawn_decor()
 
 
 func _process(_delta: float) -> void:
+	if _dialog_layer.visible and Input.is_action_just_pressed("ui_accept"):
+		_dialog_layer.visible = false
+		_suppress_npc_interact = true
+		call_deferred("_reset_npc_interact_suppress")
+		return
+
 	var world_pos: Vector3 = _player.global_position
 	_player_dot.position = Vector2(
 		((world_pos.x + 100.0) / 200.0) * 160.0 - 4.0,
 		((world_pos.z + 100.0) / 200.0) * 160.0 - 4.0
 	)
+
+
+func _on_npc_interact(_npc: Node3D) -> void:
+	if _suppress_npc_interact:
+		return
+	_dialog_layer.visible = true
+	_dialog_text.text = "Welcome to the forest, traveler. The path ahead is dangerous."
+
+
+func _reset_npc_interact_suppress() -> void:
+	_suppress_npc_interact = false
 
 
 func _spawn_trees() -> void:
