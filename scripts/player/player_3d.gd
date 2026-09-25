@@ -61,7 +61,6 @@ func _input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	print("input event: ", event)
 	if event is InputEventKey and event.keycode == KEY_F and event.pressed and not event.echo:
 		if _attack_timer <= 0.0 and not _attacking:
 			_do_attack()
@@ -72,7 +71,6 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	print("physics tick | vel: ", velocity, " | input: ", Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down"))
 	if not is_on_floor():
 		velocity.y -= GRAVITY * _delta
 

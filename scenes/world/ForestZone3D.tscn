@@ -1,12 +1,11 @@
-[gd_scene load_steps=20 format=3 uid="uid://forestzone3dspk01"]
+[gd_scene load_steps=18 format=3 uid="uid://forestzone3dspk01"]
 
 [ext_resource type="Script" path="res://scripts/world/forest_zone_3d.gd" id="1_forest3d"]
 [ext_resource type="PackedScene" uid="uid://player3dspk01" path="res://scenes/player/Player3D.tscn" id="2_player3d"]
 [ext_resource type="Texture2D" path="res://assets/textures/ground/grass.png" id="3_grass_tex"]
-[ext_resource type="PackedScene" path="res://assets/models/buildings/kenney_town/stall-red.glb" id="4_stall_red"]
-[ext_resource type="PackedScene" path="res://assets/models/buildings/kenney_town/stall-green.glb" id="5_stall_green"]
-[ext_resource type="PackedScene" path="res://assets/models/buildings/kenney_town/windmill.glb" id="6_windmill"]
-[ext_resource type="Script" path="res://scripts/world/windmill_spin.gd" id="7_windmill_spin"]
+[ext_resource type="PackedScene" path="res://assets/models/buildings/kenney_houses/building-sample-house-a.glb" id="4_house_a"]
+[ext_resource type="PackedScene" path="res://assets/models/buildings/kenney_houses/building-sample-house-b.glb" id="5_house_b"]
+[ext_resource type="PackedScene" path="res://assets/models/buildings/kenney_houses/building-sample-house-c.glb" id="6_house_c"]
 [ext_resource type="PackedScene" uid="uid://npc3dspk01" path="res://scenes/npc/NPC3D.tscn" id="8_npc"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
@@ -36,11 +35,13 @@ size = Vector2(400, 400)
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
 size = Vector3(400, 0.2, 400)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_stall"]
-size = Vector3(2.2, 2.0, 1.8)
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_logs"]
+albedo_color = Color(0.3, 0.2, 0.1, 1)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_windmill"]
-size = Vector3(2.5, 2.2, 2.5)
+[sub_resource type="CylinderMesh" id="CylinderMesh_logs"]
+top_radius = 0.6
+bottom_radius = 0.6
+height = 0.4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_health_fill"]
 bg_color = Color(0.85, 0.15, 0.15, 1)
@@ -54,12 +55,6 @@ rotation_degrees = Vector3(-60, 30, 0)
 light_energy = 1.2
 shadow_enabled = true
 shadow_blur = 2.0
-
-[node name="VillageLantern" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, -6)
-light_color = Color(1, 0.85, 0.5, 1)
-light_energy = 3.0
-omni_range = 20.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_world")
@@ -80,36 +75,47 @@ shape = SubResource("BoxShape3D_ground")
 
 [node name="Village" type="Node3D" parent="."]
 
-[node name="Building1" type="StaticBody3D" parent="Village"]
-transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, -8, 0, -6)
+[node name="HouseA" type="Node3D" parent="Village"]
+transform = Transform3D(-1.414214, 0, 1.414214, 0, 2, 0, -1.414214, 0, -1.414214, -20, 0, -20)
 
-[node name="Model" parent="Village/Building1" instance=ExtResource("4_stall_red")]
+[node name="Model" parent="Village/HouseA" instance=ExtResource("4_house_a")]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Village/Building1"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
-shape = SubResource("BoxShape3D_stall")
+[node name="HouseB" type="Node3D" parent="Village"]
+transform = Transform3D(-1.414214, 0, -1.414214, 0, 2, 0, 1.414214, 0, -1.414214, 20, 0, -20)
 
-[node name="Building2" type="StaticBody3D" parent="Village"]
-transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 8, 0, -6)
+[node name="Model" parent="Village/HouseB" instance=ExtResource("5_house_b")]
 
-[node name="Model" parent="Village/Building2" instance=ExtResource("5_stall_green")]
+[node name="HouseC" type="Node3D" parent="Village"]
+transform = Transform3D(0, 0, 2, 0, 2, 0, -2, 0, 0, -25, 0, 2)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Village/Building2"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
-shape = SubResource("BoxShape3D_stall")
+[node name="Model" parent="Village/HouseC" instance=ExtResource("6_house_c")]
 
-[node name="Windmill" type="StaticBody3D" parent="Village"]
-transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, -12)
+[node name="HouseD" type="Node3D" parent="Village"]
+transform = Transform3D(0, 0, -2, 0, 2, 0, 2, 0, 0, 24, 0, 8)
 
-[node name="Model" parent="Village/Windmill" instance=ExtResource("6_windmill")]
-script = ExtResource("7_windmill_spin")
+[node name="Model" parent="Village/HouseD" instance=ExtResource("4_house_a")]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Village/Windmill"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1, 0)
-shape = SubResource("BoxShape3D_windmill")
+[node name="HouseE" type="Node3D" parent="Village"]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 24)
+
+[node name="Model" parent="Village/HouseE" instance=ExtResource("5_house_b")]
+
+[node name="Campfire" type="Node3D" parent="Village"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Village/Campfire"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("CylinderMesh_logs")
+surface_material_override/0 = SubResource("StandardMaterial3D_logs")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="Village/Campfire"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+light_color = Color(1, 0.45, 0.1, 1)
+light_energy = 3.5
+shadow_enabled = true
+omni_range = 18.0
 
 [node name="NPC3D" parent="Village" instance=ExtResource("8_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 0)
 
 [node name="TreeRoot" type="Node3D" parent="."]
 
