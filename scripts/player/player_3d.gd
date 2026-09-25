@@ -56,9 +56,9 @@ func _do_attack() -> void:
 		_anim.speed_scale = 1.6
 		_anim.play("attack-melee-right")
 	_attack_hitbox.monitoring = true
-	await get_tree().create_timer(0.2).timeout
+	await get_tree().create_timer(0.3).timeout
 	_attack_hitbox.monitoring = false
-	await get_tree().create_timer(0.2).timeout
+	await get_tree().create_timer(0.3).timeout
 	_attacking = false
 	_anim.speed_scale = 1.0
 
@@ -124,6 +124,8 @@ func _physics_process(_delta: float) -> void:
 
 
 func _update_locomotion_anim() -> void:
+	if _attacking:
+		return
 	if _anim == null:
 		return
 	var moving: bool = velocity.length() > 0.5
