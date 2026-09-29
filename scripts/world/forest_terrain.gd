@@ -36,7 +36,7 @@ const COL_FOREST := Color(0.17, 0.30, 0.12)
 const COL_DIRT := Color(0.46, 0.34, 0.21)
 const COL_ROCK := Color(0.33, 0.35, 0.29)
 
-@export var map_size: int = 100:
+@export var map_size: int = 300:
 	set(v):
 		map_size = maxi(30, v)
 		_queue_regen()
@@ -283,10 +283,12 @@ func _scatter() -> void:
 	for k in TREES:
 		for _w in TREES[k]:
 			tree_pool.append(k)
-	var placed: Array[Vector2] = []
+	var placed_count := 0
 	var want := int(400 * area_scale * tree_density)
 	var tries := 0
-	while placed.size() < want and tries < want * 25:
+	# Spatial grid (cell > sqrt(6.5) ≈ 2.55) keeps placement O(n) at any map size.
+	var tree_grid: Dictionary = {}
+	while placed_count < want and tries < want * 25:
 		tries += 1
 		var x := rng.randf_range(-half, half)
 		var z := rng.randf_range(-half, half)
@@ -295,14 +297,24 @@ func _scatter() -> void:
 		if rng.randf() > forest_amount(x, z) * 0.9 + 0.1:
 			continue
 		var p := Vector2(x, z)
+		var gx := floori(p.x / 3.0)
+		var gz := floori(p.y / 3.0)
 		var ok := true
-		for q in placed:
-			if p.distance_squared_to(q) < 6.5:
-				ok = false
-				break
+		for ddx in [-1, 0, 1]:
+			if not ok: break
+			for ddz in [-1, 0, 1]:
+				var nb := Vector2i(gx + ddx, gz + ddz)
+				for q in tree_grid.get(nb, []):
+					if p.distance_squared_to(q) < 6.5:
+						ok = false
+						break
 		if not ok:
 			continue
-		placed.append(p)
+		placed_count += 1
+		var gcell := Vector2i(gx, gz)
+		if not tree_grid.has(gcell):
+			tree_grid[gcell] = []
+		tree_grid[gcell].append(p)
 		var s := rng.randf_range(0.8, 1.25)
 		var tree_model: String = tree_pool[rng.randi() % tree_pool.size()]
 		_add(buckets, tree_model, x, z, s, rng)
