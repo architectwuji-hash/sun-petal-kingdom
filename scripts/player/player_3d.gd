@@ -1,153 +1,812 @@
 extends CharacterBody3D
 
-signal health_changed(new_val: int)
+signal health_changed(current: int, maximum: int)
 signal player_died
+## Emitted when the player makes noise enemies can hear.
+## origin = world position of the sound, volume 0.0–1.0 scales hearing radius.
+signal made_noise(origin: Vector3, volume: float)
+## Fence section scene used by build mode.
+const FENCE_SCENE := preload("res://scenes/objects/Fence3D.tscn")
 
-const SPEED: float = 5.0
-const SPRINT_SPEED: float = 9.0
-const GRAVITY: float = 20.0
-const JUMP_FORCE: float = 10.0
-const CAM_LERP: float = 0.12
-const CAM_OFFSET: Vector3 = Vector3(0.0, 8.0, 12.0)
-const ATTACK_COOLDOWN: float = 0.0
+# ── tunables ──────────────────────────────────────────────────────────────────
+const MOVE_SPEED:   float = 6.0
+const SPRINT_SPEED: float = 10.0
+const JUMP_FORCE:   float = 9.0
+const GRAVITY:      float = 20.0
+const INTERACT_RANGE: float = 5.0
+# ──────────────────────────────────────────────────────────────────────────────
 
-@onready var _anim: AnimationPlayer = $CharacterModel/AnimationPlayer
-@onready var _attack_hitbox: Area3D = $AttackHitbox
+var max_health: int  = 100
+var health: int      = 100
+var _is_dead: bool   = false
+var _jump_pending: bool = false
+var _cam_shake: float   = 0.0
+var _camera_pivot: Node3D = null
+var _spring_arm: SpringArm3D = null
+var _camera: Camera3D = null
+var _cam_pitch: float = -0.25
+var _attack_cooldown: float = 0.0
+var _attack_hitbox: Area3D = null
+var _char_model: Node3D = null
+var _anim: AnimationPlayer = null
+var _attack_anim_time: float = 0.0
+var _dev_inspect_mode: bool = false
+var _sprint_noise_timer: float = 0.0
+const _SPRINT_NOISE_INTERVAL := 1.2   ## seconds between sprint pings
+const SWORD_SCENE := preload("res://assets/models/weapons/quaternius_sword_golden.gltf")
+const SWORD_GLOW_SHADER := preload("res://assets/shaders/enchanted_fresnel.gdshader")
+# Bronze/plain versions of this same pack's swords didn't read as "mythical" -
+# Sword_Golden is the closest same-artist, same-style option to something
+# legendary, so it gets dressed up further at runtime with an emissive glow
+# and a soft pulsing light rather than swapping in a mismatched asset pack.
+const SWORD_ANIM_LIBRARY_SCENE := preload("res://assets/animations/quaternius/UAL1_Standard.glb")
+const SWORD_ANIM_LIBRARY_SCENE_2 := preload("res://assets/animations/quaternius/UAL2_Standard.glb")
+# Universal Animation Library 2's actual 3-hit sword combo (same rig, same
+# retargeting trick as the first library) - A -> B -> C, each of the first
+# two followed by its own recovery clip if the player doesn't chain into the
+# next hit in time. Sword_Regular_C has no _Rec clip - it flows back to idle.
+const SWORD_COMBO_ANIMS: Array[String] = ["Sword_Regular_A", "Sword_Regular_B", "Sword_Regular_C"]
+const SWORD_COMBO_RECOVERIES: Array[String] = ["Sword_Regular_A_Rec", "Sword_Regular_B_Rec", ""]
+const AXE_SCENE := preload("res://assets/models/weapons/quaternius_axe.glb")
+const AXE_SWING_ANIM := "Sword_Attack"
+const AXE_SWING_SPEED: float = 1.3
+const AXE_DAMAGE: int = 25
+const AXE_COOLDOWN: float = 1.1
+# Fraction of the swing clip where the axe head actually connects - damage
+# is dealt at that moment instead of the instant the button is pressed.
+const AXE_HIT_FRACTION: float = 0.45
+const SWORD_DAMAGE: int = 15
+const COMBO_WINDOW: float = 1.0
+var _combo_index: int = 0
+var _combo_reset_timer: float = 0.0
+var _pending_recovery: String = ""
+var _pending_recovery_swing: int = -1
+var _swing_token: int = 0
+const SLASH_VFX_SCENE := preload("res://assets/vfx/fiery_slash/slash.tscn")
+# The pack's own slash.res was saved by Godot 4.4 (unreadable in 4.2), so the
+# same arc mesh is taken from the pack's original Slash_model.glb instead.
+const SLASH_MESH_SCENE := preload("res://assets/vfx/fiery_slash/Slash_model.glb")
+var _slash_mesh: Mesh = null
+var _sword: Node3D = null
+var _skeleton: Skeleton3D = null
+var _sword_equipped: bool = false
+var _axe: Node3D = null
+var _axe_equipped: bool = false
+var _current_weapon: String = "sword"  # "sword" | "axe"
 
-var _camera: Camera3D
-var health: int = 100
-var _attacking: bool = false
-var _attack_timer: float = 0.0
-var _cam_shake: float = 0.0
-var _attack_pending: bool = false
+# Quaternius "Modular Character Outfits - Fantasy" - Ranger set, chosen for
+# the forest scenes. Ships as separate skinned-mesh parts that share the
+# Universal Base Character rig's exact bone names (verified: 65/65 joints
+# match, same names like "pelvis", "clavicle_l", etc.), so each part's mesh
+# can be lifted out of its own tiny imported scene and re-parented onto our
+# OWN Skeleton3D, same trick already used for the animation library.
+const OUTFIT_BODY_SCENE       := preload("res://assets/models/characters/quaternius/outfits/Male_Ranger_Body.gltf")
+const OUTFIT_ARMS_SCENE       := preload("res://assets/models/characters/quaternius/outfits/Male_Ranger_Arms.gltf")
+const OUTFIT_LEGS_SCENE       := preload("res://assets/models/characters/quaternius/outfits/Male_Ranger_Legs.gltf")
+const OUTFIT_FEET_SCENE       := preload("res://assets/models/characters/quaternius/outfits/Male_Ranger_Feet_Boots.gltf")
+const OUTFIT_HOOD_SCENE       := preload("res://assets/models/characters/quaternius/outfits/Male_Ranger_Head_Hood.gltf")
+const OUTFIT_PAULDRON_SCENE   := preload("res://assets/models/characters/quaternius/outfits/Male_Ranger_Acc_Pauldron.gltf")
 
+var inventory: Dictionary = {
+	"meat":       0,
+	"cowhide":    0,
+	"souls":      0,
+	"monkey_fur": 0,
+	"wood":       0,
+}
+
+# ── build mode ──────────────────────────────────────────────────────────────
+const FENCE_WOOD_COST   := 3          ## wood needed to place one fence section
+const FENCE_PLACE_DIST  := 3.5        ## metres in front of player
+var _build_mode:  bool    = false
+var _ghost_fence: Node3D  = null      ## semi-transparent preview
+var _place_ray:   RayCast3D = null    ## ground-snapping ray
 
 func _ready() -> void:
 	add_to_group("player")
-	_camera = get_parent().get_node("Camera3D")
-	_attack_hitbox.monitoring = false
+	up_direction = Vector3(0, 1, 0)
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-	health_changed.emit(health)
-	if _anim.has_animation("idle"):
-		_anim.play("idle")
-
-
-func set_health(val: int) -> void:
-	var prev: int = health
-	health = clampi(val, 0, 100)
-	if health == prev:
-		return
-	health_changed.emit(health)
-	if health < prev:
-		take_hit()
-	if health <= 0:
-		player_died.emit()
-
-
-func take_hit() -> void:
-	_cam_shake = 0.35
-
-
-func _do_attack() -> void:
-	_attacking = true
-	_attack_timer = ATTACK_COOLDOWN
-	# Play melee swing animation
-	if _anim.has_animation("attack-melee-right"):
-		_anim.speed_scale = 3.5
-		_anim.play("attack-melee-right")
-	_attack_hitbox.monitoring = true
-	await get_tree().create_timer(0.08).timeout
-	_attack_hitbox.monitoring = false
-	await get_tree().create_timer(0.08).timeout
-	_attacking = false
-	_anim.speed_scale = 1.0
-
+	# Build follow camera
+	_camera_pivot = Node3D.new()
+	_camera_pivot.name = "CameraPivot"
+	add_child(_camera_pivot)
+	_spring_arm = SpringArm3D.new()
+	_spring_arm.name = "SpringArm3D"
+	_spring_arm.spring_length = 8.0
+	_spring_arm.position = Vector3(0, 1.6, 0)
+	_camera_pivot.add_child(_spring_arm)
+	_camera = Camera3D.new()
+	_camera.name = "Camera"
+	_spring_arm.add_child(_camera)
+	_camera.make_current()
+	_camera_pivot.rotation.x = _cam_pitch
+	_attack_hitbox = get_node_or_null("AttackHitbox")
+	_char_model = get_node_or_null("CharacterModel")
+	if _char_model:
+		_anim = _find_anim_player(_char_model)
+		_skeleton = _find_skeleton(_char_model)
+		if _anim == null:
+			# The base character ships with zero animations of its own, so
+			# Godot's glTF import won't have created an AnimationPlayer for
+			# it at all - make one ourselves, as a direct child of the
+			# character root (the same place the animation library's own
+			# AnimationPlayer sits relative to its Armature/Skeleton3D), so
+			# the borrowed animations' bone paths resolve correctly.
+			_anim = AnimationPlayer.new()
+			_anim.name = "AnimationPlayer"
+			_char_model.add_child(_anim)
+	if _anim:
+		_merge_animation_library()
+		for loop_name in ["Idle", "Walk", "Sprint", "Sword_Idle"]:
+			if _anim.has_animation(loop_name):
+				_anim.get_animation(loop_name).loop_mode = Animation.LOOP_LINEAR
+		if _anim.has_animation("TreeChopping_Loop"):
+			_anim.get_animation("TreeChopping_Loop").loop_mode = Animation.LOOP_NONE
+		_anim.play("Idle")
+		_anim.animation_finished.connect(_on_anim_finished)
+	# New rig (Quaternius Universal Base Character) has a real elbow and
+	# wrist bone, unlike the old Kenney rig, so the sword can actually be
+	# held naturally - attach it via BoneAttachment3D on hand_r.
+	_attach_sword()
+	_attach_axe()  # loaded hidden; sword is default
+	# Ranger outfit for the forest scenes - see _attach_outfit() for why the
+	# base body mesh gets hidden once the outfit pieces are on.
+	_attach_outfit()
+	# Exclude player body from spring arm so mesh doesn't vanish when looking down
+	_spring_arm.add_excluded_object(get_rid())
+	_spring_arm.collision_mask = 0   # don't shorten for any geometry
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
-		rotation.y -= event.relative.x * 0.001
-	if event is InputEventKey and event.keycode == KEY_F and event.pressed and not event.echo:
-		_attack_pending = true
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		_attack_pending = true
+		if _dev_inspect_mode:
+			# Orbit the CAMERA around the stationary character - character does not turn
+			if _camera_pivot:
+				_camera_pivot.rotate_y(-event.relative.x * 0.003)
+		else:
+			rotate_y(-event.relative.x * 0.003)
+			_cam_pitch = clampf(_cam_pitch - event.relative.y * 0.003, -0.55, 0.4)
+			if _camera_pivot:
+				_camera_pivot.rotation.x = _cam_pitch
+	if event is InputEventKey and event.pressed and not event.echo:
+		match event.physical_keycode:
+			KEY_SPACE: _jump_pending = true
+			KEY_E:     _try_interact()
+			KEY_F:     _do_attack()
+			KEY_Q:     _switch_weapon()
+			KEY_P:     _toggle_dev_inspect()
+			KEY_B:     _toggle_build_mode()
+			KEY_ESCAPE:
+				if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+					Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+				else:
+					Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if _build_mode:
+			_place_fence()
+		else:
+			_do_attack()
+	if event.is_action_pressed("ui_accept"):
+		_jump_pending = true
 
+func _physics_process(delta: float) -> void:
+	if _is_dead:
+		return
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.keycode == KEY_ESCAPE and event.pressed:
-		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	_attack_cooldown = max(_attack_cooldown - delta, 0.0)
+	_combo_reset_timer = max(_combo_reset_timer - delta, 0.0)
 
+	if _dev_inspect_mode:
+		velocity = Vector3.ZERO
+		move_and_slide()
+		_update_locomotion_anim(delta)
+		return
 
-func _physics_process(_delta: float) -> void:
 	if is_on_floor():
-		if Input.is_key_pressed(KEY_SPACE):
+		velocity.y = max(velocity.y, 0.0)
+		if _jump_pending:
 			velocity.y = JUMP_FORCE
 	else:
-		velocity.y -= GRAVITY * _delta
+		velocity.y -= GRAVITY * delta
+	_jump_pending = false
 
-	if _attack_timer > 0.0:
-		_attack_timer -= _delta
-	if _attack_pending:
-		_attack_pending = false
-		if _attack_timer <= 0.0 and not _attacking:
-			_do_attack()
-
-	var input_dir := Vector2.ZERO
-	if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP):
-		input_dir.y = -1.0
-	elif Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN):
-		input_dir.y = 1.0
-	if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT):
-		input_dir.x = -1.0
-	elif Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT):
-		input_dir.x = 1.0
-	var forward: Vector3 = -global_transform.basis.z
-	var right: Vector3 = global_transform.basis.x
-	var direction: Vector3 = forward * -input_dir.y + right * input_dir.x
-	direction.y = 0.0
-	if direction.length_squared() > 0.01:
-		direction = direction.normalized()
-		var sprinting: bool = Input.is_key_pressed(KEY_SHIFT)
-		var move_speed: float = SPRINT_SPEED if sprinting else SPEED
-		velocity.x = direction.x * move_speed
-		velocity.z = direction.z * move_speed
-
+	var is_sprinting := Input.is_action_pressed("sprint")
+	var speed := SPRINT_SPEED if is_sprinting else MOVE_SPEED
+	var input  := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	if input == Vector2.ZERO:
+		input = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	var dir := (transform.basis * Vector3(input.x, 0, input.y)).normalized()
+	if dir:
+		velocity.x = dir.x * speed
+		velocity.z = dir.z * speed
 	else:
-		velocity.x = move_toward(velocity.x, 0.0, SPEED)
-		velocity.z = move_toward(velocity.z, 0.0, SPEED)
+		velocity.x = move_toward(velocity.x, 0, speed)
+		velocity.z = move_toward(velocity.z, 0, speed)
 
 	move_and_slide()
 
-	global_position.x = clamp(global_position.x, -195.0, 195.0)
-	global_position.z = clamp(global_position.z, -195.0, 195.0)
+	# Sprint noise — makes enemies aware the player is moving fast nearby
+	if is_sprinting and (velocity.x != 0.0 or velocity.z != 0.0):
+		_sprint_noise_timer -= delta
+		if _sprint_noise_timer <= 0.0:
+			_sprint_noise_timer = _SPRINT_NOISE_INTERVAL
+			made_noise.emit(global_position, 0.5)
 
-	_update_locomotion_anim()
+	_update_locomotion_anim(delta)
+	_update_build_mode(delta)
 
-
-func _update_locomotion_anim() -> void:
-	if _attacking:
+func _attach_sword() -> void:
+	if not _skeleton:
+		print("Sword attach failed: no Skeleton3D found on character model")
 		return
+	var bone_idx := _skeleton.find_bone("hand_r")
+	if bone_idx == -1:
+		print("Sword attach failed: hand_r bone not found")
+		return
+	var attach := BoneAttachment3D.new()
+	attach.name = "SwordAttachment"
+	attach.bone_name = "hand_r"
+	_skeleton.add_child(attach)
+	_sword = SWORD_SCENE.instantiate()
+	attach.add_child(_sword)
+	# hand_r's own local +Y axis already points the same way the fingers
+	# extend (checked directly against the finger bones' rest translations
+	# in the glTF), and the Kenney sword mesh's blade also points along its
+	# own local +Y with the grip near the origin - so a real wrist bone
+	# means we don't have to fake anything with rotation this time, the
+	# sword just sits in the hand pointing the way the fingers already
+	# point. BoneAttachment3D follows hand_r's animated pose every frame,
+	# so it rides the Sword_Idle / Sword_Attack animations automatically.
+	_sword.position = Vector3(0.0, 0.05, 0.0)
+	_sword.rotation_degrees = Vector3.ZERO
+	# Sword_Golden's raw mesh is authored ~6 units tip-to-grip (checked directly
+	# against its .obj vertex bounds) - way bigger than a real-world blade
+	# relative to this character. CharacterModel itself is already scaled up
+	# 1.3x, so to land on a sensible ~1-unit blade length in the FINAL scene
+	# (proportionate to the character's own ~2.35-unit scaled height) this
+	# needs roughly 1.0 / (1.3 * 6.0) =~ 0.13 local scale. Untested in-editor -
+	# nudge this value if it still reads too big/small once you see it.
+	_sword.scale = Vector3(0.13, 0.13, 0.13)
+	_sword_equipped = true
+	_add_sword_glow()
+
+func _attach_axe() -> void:
+	if not _skeleton:
+		return
+	var bone_idx := _skeleton.find_bone("hand_r")
+	if bone_idx == -1:
+		return
+	var attach := BoneAttachment3D.new()
+	attach.name = "AxeAttachment"
+	attach.bone_name = "hand_r"
+	_skeleton.add_child(attach)
+	_axe = AXE_SCENE.instantiate()
+	attach.add_child(_axe)
+	# Measured from the pack's own Axe.obj: the haft runs along local +Y
+	# (y -1.72 .. 3.54) with the head at the top (y 1.15 .. 3.39) and the
+	# edge pointing +X - the SAME axes as Sword_Golden, so it needs no
+	# rotation, just the sword's scale. The grip point is ~1.0 unit up from
+	# the butt of the haft, so the axe is raised by that much (scaled) to
+	# put the hand on the lower handle instead of the middle.
+	var axe_scale := 0.13
+	_axe.rotation_degrees = Vector3.ZERO
+	_axe.scale = Vector3(axe_scale, axe_scale, axe_scale)
+	_axe.position = Vector3(0.0, 0.05 + 1.0 * axe_scale, 0.0)
+	_axe.visible = false  # sword is default; shown only when player switches
+
+func _switch_weapon() -> void:
+	if _current_weapon == "sword":
+		if _sword:
+			_sword.visible = false
+		if _axe:
+			_axe.visible = true
+		_sword_equipped = false
+		_axe_equipped = true
+		_current_weapon = "axe"
+		_swing_token += 1
+		print("[DEV] Switched to axe")
+	else:
+		if _axe:
+			_axe.visible = false
+		if _sword:
+			_sword.visible = true
+		_sword_equipped = true
+		_axe_equipped = false
+		_current_weapon = "sword"
+		print("[DEV] Switched to sword")
+
+func _attach_outfit() -> void:
+	if not _skeleton:
+		print("Outfit attach failed: no Skeleton3D found on character model")
+		return
+	for scene in [OUTFIT_BODY_SCENE, OUTFIT_ARMS_SCENE, OUTFIT_LEGS_SCENE, OUTFIT_FEET_SCENE, OUTFIT_HOOD_SCENE, OUTFIT_PAULDRON_SCENE]:
+		_graft_outfit_piece(scene)
+	# Per the outfit pack's own Readme: "these outfits work together with the
+	# Universal Base Character kit - when using the clothing, only the head
+	# of the model is required, using the full body will result in clipping."
+	# Our base character's body is one single mesh named "SuperHero_Male" -
+	# hide it now that the Ranger pieces cover the torso/arms/legs/feet, but
+	# keep the Eyebrows/Eyes meshes so the face still reads under the hood.
+	var base_body := _find_mesh_by_name(_char_model, "SuperHero_Male")
+	if base_body:
+		base_body.visible = false
+
+func _graft_outfit_piece(scene: PackedScene) -> void:
+	# Each outfit part glTF imports as its own tiny scene with its own
+	# Armature/Skeleton3D copy plus one skinned MeshInstance3D. We only want
+	# the mesh - its Skin resource maps vertices to bones purely by NAME, and
+	# our own skeleton has the exact same bone names, so the mesh can be
+	# re-parented straight onto our skeleton and pointed at it with no other
+	# changes needed.
+	var temp := scene.instantiate()
+	var meshes: Array[MeshInstance3D] = []
+	_collect_mesh_instances(temp, meshes)
+	for mesh in meshes:
+		mesh.get_parent().remove_child(mesh)
+		_skeleton.add_child(mesh)
+		mesh.skeleton = mesh.get_path_to(_skeleton)
+		mesh.transform = Transform3D.IDENTITY
+	temp.queue_free()
+
+func _collect_mesh_instances(node: Node, out: Array[MeshInstance3D]) -> void:
+	if node is MeshInstance3D:
+		out.append(node)
+	for c in node.get_children():
+		_collect_mesh_instances(c, out)
+
+func _find_mesh_by_name(node: Node, mesh_name: String) -> MeshInstance3D:
+	if node is MeshInstance3D and node.name == mesh_name:
+		return node
+	for c in node.get_children():
+		var found := _find_mesh_by_name(c, mesh_name)
+		if found:
+			return found
+	return null
+
+func _add_sword_glow() -> void:
+	# The previous version (emissive material + a point light in the scene)
+	# read as "a light near a sword", not an enchanted blade - a light
+	# illuminates its surroundings, it doesn't make the sword's own surface
+	# look magical. This uses the free CC0 "Glowing Fresnel" shader from
+	# godotshaders.com instead (see assets/shaders/enchanted_fresnel.gdshader
+	# for the adaptation notes): an animated, noise-driven rim glow baked
+	# into the material itself, independent of scene lighting - applied only
+	# to the blade's actual gold surfaces, not the wood/steel grip.
+	if not _sword:
+		return
+	var noise_tex := NoiseTexture2D.new()
+	var fn := FastNoiseLite.new()
+	fn.frequency = 0.15
+	noise_tex.noise = fn
+	noise_tex.width = 128
+	noise_tex.height = 128
+	noise_tex.seamless = true
+	var meshes: Array[MeshInstance3D] = []
+	_collect_mesh_instances(_sword, meshes)
+	for mesh in meshes:
+		if not mesh.mesh:
+			continue
+		for i in mesh.mesh.get_surface_count():
+			var src_mat := mesh.get_active_material(i)
+			var base_color := Color(0.63, 0.51, 0.17)
+			if src_mat is StandardMaterial3D:
+				base_color = src_mat.albedo_color
+			if not _looks_golden(base_color):
+				continue
+			var shader_mat := ShaderMaterial.new()
+			shader_mat.shader = SWORD_GLOW_SHADER
+			shader_mat.set_shader_parameter("base_color", Vector3(base_color.r, base_color.g, base_color.b))
+			shader_mat.set_shader_parameter("glow_color", Vector3(1.0, 0.9, 0.5))
+			shader_mat.set_shader_parameter("speed", 0.4)
+			shader_mat.set_shader_parameter("glow_intensity", 1.5)
+			shader_mat.set_shader_parameter("glow_amount", 2.0)
+			shader_mat.set_shader_parameter("pos_mult", 0.0)
+			shader_mat.set_shader_parameter("noise", noise_tex)
+			mesh.set_surface_override_material(i, shader_mat)
+
+func _looks_golden(c: Color) -> bool:
+	# Cheap heuristic to target only the blade's Gold/LightGold surfaces (not
+	# the DarkSteel/DarkWood/LightWood grip parts): gold/yellow tones have
+	# red and green clearly higher than blue.
+	return c.r > 0.3 and c.g > 0.2 and (c.r - c.b) > 0.15
+
+func _find_skeleton(node: Node) -> Skeleton3D:
+	if node is Skeleton3D:
+		return node
+	for c in node.get_children():
+		var found := _find_skeleton(c)
+		if found:
+			return found
+	return null
+
+func _merge_animation_library() -> void:
+	# The base character ships with no animations of its own - pull them in
+	# from Quaternius's separate Universal Animation Library glb at runtime
+	# instead of hand-authoring anything, since both share the same rig.
+	# Each animation's tracks carry NodePaths baked in relative to ITS OWN
+	# AnimationPlayer's position in the animation-library scene, which
+	# won't match where our AnimationPlayer sits in our own character's
+	# tree - so every copied animation's tracks get rewritten to point at
+	# our own skeleton (same bone names, since both packs share one rig)
+	# instead of assuming the two files imported with identical hierarchy.
+	if not _skeleton:
+		return
+	# Track NodePaths are resolved relative to the AnimationPlayer's
+	# root_node (its parent, by default - NodePath("..")), NOT relative to
+	# the AnimationPlayer itself. Using the wrong reference point here was
+	# the previous bug: every bone track pointed one level off from the
+	# real skeleton and silently did nothing.
+	var anim_root := _anim.get_node(_anim.root_node)
+	var skel_rel_path := anim_root.get_path_to(_skeleton)
+	# Always merge into OUR default "" library regardless of what name the
+	# source file's library has. has_animation()/play() only accept a bare
+	# name like "Idle_Loop" for the default "" library - a name merged into
+	# any other library would need to be called as "library_name/Idle_Loop",
+	# which is exactly the kind of silent mismatch that leaves every clip
+	# un-playable and the skeleton stuck in its raw bind pose (arms out).
+	if not _anim.has_animation_library(""):
+		_anim.add_animation_library("", AnimationLibrary.new())
+	var dst_lib := _anim.get_animation_library("")
+	# Both animation libraries share the exact same rig, so they merge with
+	# the same technique - a name that exists in both (there aren't any
+	# overlaps between library 1 and 2's clips) is kept from whichever
+	# merged first via the has_animation() skip below.
+	var lib_scenes: Array[PackedScene] = [SWORD_ANIM_LIBRARY_SCENE, SWORD_ANIM_LIBRARY_SCENE_2]
+	for lib_scene_res in lib_scenes:
+		var lib_scene: Node = lib_scene_res.instantiate()
+		var lib_anim := _find_anim_player(lib_scene)
+		if lib_anim:
+			for lib_name in lib_anim.get_animation_library_list():
+				var src_lib := lib_anim.get_animation_library(lib_name)
+				for anim_name in src_lib.get_animation_list():
+					if dst_lib.has_animation(anim_name):
+						continue
+					var anim: Animation = src_lib.get_animation(anim_name).duplicate(true)
+					for i in anim.get_track_count():
+						var bone_subpath := anim.track_get_path(i).get_concatenated_subnames()
+						anim.track_set_path(i, NodePath(str(skel_rel_path) + ":" + bone_subpath))
+					dst_lib.add_animation(anim_name, anim)
+		lib_scene.queue_free()
+	print("[DEV] Animations merged: ", dst_lib.get_animation_list())
+	print("[DEV] anim_root=", anim_root.name, " skeleton=", _skeleton.name, " skel_rel_path=", skel_rel_path)
+	if dst_lib.has_animation("Idle"):
+		var idle_anim := dst_lib.get_animation("Idle")
+		print("[DEV] Idle track_count=", idle_anim.get_track_count(), " sample_path=", idle_anim.track_get_path(0) if idle_anim.get_track_count() > 0 else "none")
+
+func _toggle_dev_inspect() -> void:
+	# DEV TOOL ONLY - not part of the shipped game.
+	# Freezes movement and zooms the camera in so you can spin the character
+	# left/right (mouse X) to inspect equipment like the sword from all angles.
+	_dev_inspect_mode = not _dev_inspect_mode
+	if _dev_inspect_mode:
+		velocity = Vector3.ZERO
+		if _spring_arm:
+			# Pull back and re-center on the torso/hand area (not the head)
+			# so the whole body AND the equipped sword are actually in frame.
+			_spring_arm.spring_length = 5.5
+			_spring_arm.position = Vector3(0, 1.0, 0)
+		if _camera_pivot:
+			_camera_pivot.rotation.y = 0.0
+		print("[DEV] Inspect mode ON - movement frozen, mouse orbits camera around character")
+	else:
+		if _spring_arm:
+			_spring_arm.spring_length = 8.0
+			_spring_arm.position = Vector3(0, 1.6, 0)
+		if _camera_pivot:
+			_camera_pivot.rotation.y = 0.0
+		print("[DEV] Inspect mode OFF")
+
+func _find_anim_player(node: Node) -> AnimationPlayer:
+	if node is AnimationPlayer:
+		return node
+	for c in node.get_children():
+		var found := _find_anim_player(c)
+		if found:
+			return found
+	return null
+
+func _update_locomotion_anim(delta: float) -> void:
 	if _anim == null:
 		return
-	var moving: bool = velocity.length() > 0.5
-	var sprinting: bool = (Input.is_key_pressed(KEY_SHIFT)) and moving
-	var target: String = "walk" if moving else "idle"
-	if _anim.has_animation(target) and _anim.current_animation != target:
-		_anim.play(target)
-	_anim.speed_scale = 1.8 if sprinting else 1.0
+	var flat_speed := Vector2(velocity.x, velocity.z).length()
+	if _attack_anim_time > 0.0:
+		_attack_anim_time -= delta
+		# Recovery clips (e.g. Sword_Regular_A_Rec) are just "lowering the sword"
+		# - if the player starts moving, cut straight to walking instead.
+		if not (String(_anim.current_animation).ends_with("_Rec") and flat_speed > 0.3):
+			return
+		_attack_anim_time = 0.0
+	# The animation library only has a sword-specific pose for standing
+	# still (Sword_Idle) - no sword-specific walk/sprint - so we use it
+	# only at rest and fall back to the normal locomotion loops otherwise.
+	var want := "Sword_Idle" if (_sword_equipped or _axe_equipped) else "Idle"
+	if flat_speed > MOVE_SPEED + 0.5:
+		want = "Sprint"
+	elif flat_speed > 0.3:
+		want = "Walk"
+	if _anim.current_animation != want and _anim.has_animation(want):
+		_anim.play(want, 0.15)
 
-
-func _process(delta: float) -> void:
-	if _camera == null:
+func take_damage(amount: int) -> void:
+	if _is_dead:
 		return
-	var behind: Vector3 = -global_transform.basis.z
-	var cam_target: Vector3 = global_position + Vector3(0.0, CAM_OFFSET.y, 0.0) + behind * -CAM_OFFSET.z
-	_camera.global_position = _camera.global_position.lerp(cam_target, CAM_LERP)
-	_camera.look_at(global_position + Vector3(0.0, 2.5, 0.0), Vector3.UP)
-	if _cam_shake > 0.0:
-		_cam_shake -= delta * 6.0
-		var shake: float = maxf(_cam_shake, 0.0)
-		_camera.h_offset = randf_range(-shake, shake) * 0.2
-		_camera.v_offset = randf_range(-shake, shake) * 0.15
+	health = clampi(health - amount, 0, max_health)
+	health_changed.emit(health, max_health)
+	if health <= 0:
+		_die()
+
+func set_health(value: int) -> void:
+	health = clampi(value, 0, max_health)
+	health_changed.emit(health, max_health)
+
+func _die() -> void:
+	_is_dead = true
+	player_died.emit()
+	await get_tree().create_timer(3.0).timeout
+	_respawn()
+
+func _respawn() -> void:
+	health    = max_health
+	_is_dead  = false
+	global_position = Vector3(-80, 0, 74)
+	velocity  = Vector3.ZERO
+	health_changed.emit(health, max_health)
+
+func drown() -> void:
+	_cam_shake = 0.6
+	take_damage(50)
+	global_position = Vector3(-80, 0, 74)
+	velocity = Vector3.ZERO
+	print("You drowned! Respawned.")
+
+func add_item(item: String) -> void:
+	if inventory.has(item):
+		inventory[item] += 1
 	else:
-		_camera.h_offset = 0.0
-		_camera.v_offset = 0.0
+		inventory[item] = 1
+	var display := item.replace("_", " ").capitalize()
+	_show_float_text("+1 " + display, global_position + Vector3(0, 2.0, 0))
+	print("Picked up: ", item, " (", inventory[item], ")")
+
+func remove_item(item: String, count: int = 1) -> bool:
+	var have := inventory.get(item, 0)
+	if have < count:
+		return false
+	inventory[item] = have - count
+	return true
+
+func get_item_count(item: String) -> int:
+	return inventory.get(item, 0)
+
+# ── build mode ─────────────────────────────────────────────────────────────
+func _toggle_build_mode() -> void:
+	_build_mode = not _build_mode
+	if _build_mode:
+		# Lazily create the downward ray for ground-snapping
+		if _place_ray == null:
+			_place_ray = RayCast3D.new()
+			_place_ray.name = "PlaceRay"
+			_place_ray.target_position = Vector3(0, -10, 0)
+			_place_ray.enabled = true
+			add_child(_place_ray)
+		# Spawn ghost preview
+		_ghost_fence = FENCE_SCENE.instantiate()
+		_ghost_fence.name = "GhostFence"
+		# Make every mesh in the ghost translucent
+		for m in _ghost_fence.find_children("*", "MeshInstance3D", true, false):
+			var mat := m.get_active_material(0)
+			if mat:
+				var ghost_mat := mat.duplicate() as BaseMaterial3D
+				if ghost_mat:
+					ghost_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+					ghost_mat.albedo_color.a = 0.45
+					m.set_surface_override_material(0, ghost_mat)
+		# Disable collision on ghost so it does not block movement
+		for col in _ghost_fence.find_children("*", "CollisionShape3D", true, false):
+			col.disabled = true
+		get_tree().root.add_child(_ghost_fence)
+		_show_float_text("Build Mode ON  (B=exit, LClick=place, " + str(FENCE_WOOD_COST) + " Wood each)", global_position + Vector3(0, 3, 0))
+	else:
+		if _ghost_fence:
+			_ghost_fence.queue_free()
+			_ghost_fence = null
+		_show_float_text("Build Mode OFF", global_position + Vector3(0, 2.5, 0))
+
+func _update_build_mode(_delta: float) -> void:
+	if not _build_mode or _ghost_fence == null:
+		return
+	# Position the ghost in front of the player at ground level
+	var fwd := -global_transform.basis.z
+	fwd.y = 0.0
+	if fwd.length_squared() > 0.001:
+		fwd = fwd.normalized()
+	var target_xz := global_position + fwd * FENCE_PLACE_DIST
+	# Ground-snap via raycast
+	var ground_y := global_position.y
+	if _place_ray and _place_ray.is_colliding():
+		ground_y = _place_ray.get_collision_point().y
+	_ghost_fence.global_position = Vector3(target_xz.x, ground_y, target_xz.z)
+	_ghost_fence.rotation.y = rotation.y
+
+func _place_fence() -> void:
+	if not _build_mode or _ghost_fence == null:
+		return
+	if get_item_count("wood") < FENCE_WOOD_COST:
+		_show_float_text("Need " + str(FENCE_WOOD_COST) + " Wood  (have " + str(get_item_count("wood")) + ")", global_position + Vector3(0, 2.5, 0))
+		return
+	remove_item("wood", FENCE_WOOD_COST)
+	var fence := FENCE_SCENE.instantiate()
+	fence.global_position = _ghost_fence.global_position
+	fence.rotation.y     = _ghost_fence.rotation.y
+	get_tree().root.add_child(fence)
+	_show_float_text("-" + str(FENCE_WOOD_COST) + " Wood  |  Fence placed!", fence.global_position + Vector3(0, 2.5, 0))
+
+func _show_float_text(text: String, world_pos: Vector3) -> void:
+	var lbl := Label3D.new()
+	lbl.text = text
+	lbl.pixel_size = 0.012
+	lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	lbl.no_depth_test = true
+	lbl.modulate = Color(1.0, 0.95, 0.3)
+	lbl.font_size = 28
+	get_tree().root.add_child(lbl)
+	lbl.global_position = world_pos
+	var tw := lbl.create_tween()
+	tw.tween_property(lbl, "global_position", world_pos + Vector3(0, 2.0, 0), 1.2)
+	tw.parallel().tween_property(lbl, "modulate:a", 0.0, 1.2)
+	tw.tween_callback(lbl.queue_free)
+
+func _do_attack() -> void:
+	if _attack_cooldown > 0.0:
+		return
+	_attack_cooldown = AXE_COOLDOWN if _axe_equipped else 0.6
+	_play_swing_anim()
+	if _axe_equipped:
+		var swing_len := 0.5
+		if _anim and _anim.has_animation(AXE_SWING_ANIM):
+			swing_len = _anim.get_animation(AXE_SWING_ANIM).length / AXE_SWING_SPEED
+		var token := _swing_token + 1
+		_swing_token = token
+		await get_tree().create_timer(swing_len * AXE_HIT_FRACTION).timeout
+		# Cancelled if the player switched weapons / died mid-swing
+		if _is_dead or not _axe_equipped or token != _swing_token:
+			return
+		_apply_melee_hit(AXE_DAMAGE)
+		_chop_trees()
+		# Axe thud — loud noise that attracts nearby enemies
+		made_noise.emit(global_position, 1.0)
+	else:
+		_apply_melee_hit(SWORD_DAMAGE)
+
+func _chop_trees() -> void:
+	# Only the axe fells trees. Any scene whose terrain supports harvesting
+	# (ForestTerrain in FantasyForest) registers itself in this group.
+	var chop_point := global_position - global_transform.basis.z * 1.3
+	for terrain in get_tree().get_nodes_in_group("harvestable_trees"):
+		if terrain.has_method("chop_at") and terrain.chop_at(chop_point, 1.8, self):
+			_cam_shake = max(_cam_shake, 0.15)
+			return
+
+func _apply_melee_hit(damage: int) -> void:
+	# Sphere cast in front of player — immediate, no hitbox polling needed
+	var space := get_world_3d().direct_space_state
+	var params := PhysicsShapeQueryParameters3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = 2.2
+	params.shape = sphere
+	var attack_origin := global_position + Vector3(0, 1.0, 0) + (-global_transform.basis.z * 1.5)
+	params.transform = Transform3D(Basis(), attack_origin)
+	params.collision_mask = 1   # HurtBox default layer (layer 1)
+	params.collide_with_areas = true
+	params.collide_with_bodies = false
+	var hits := space.intersect_shape(params, 8)
+	for hit in hits:
+		var col = hit.collider
+		var target = col.get_parent() if col is Area3D else col
+		if target.has_method("take_damage") and not target.is_in_group("player"):
+			target.take_damage(damage)
+
+func _play_swing_anim() -> void:
+	if _sword_equipped:
+		_play_sword_combo_hit()
+	elif _axe_equipped:
+		_play_axe_chop()
+	else:
+		var anim_name := "Punch_Cross"
+		if _anim and _anim.has_animation(anim_name):
+			_anim.stop()
+			_anim.play(anim_name, 0.05, 1.6)
+			_attack_anim_time = _anim.get_animation(anim_name).length / 1.6
+
+
+func _play_axe_chop() -> void:
+	# Sword_Attack from Universal Animation Library 1 - one big committed
+	# swing, which suits a heavy axe better than the quick sword combo.
+	var anim_name := AXE_SWING_ANIM
+	if _anim and _anim.has_animation(anim_name):
+		_anim.stop()
+		_anim.play(anim_name, 0.05, AXE_SWING_SPEED)
+		_attack_anim_time = _anim.get_animation(anim_name).length / AXE_SWING_SPEED
+	_pending_recovery = ""
+	_combo_reset_timer = 0.0  # no combo chain for axe
+
+func _play_sword_combo_hit() -> void:
+	# 3-hit combo from Universal Animation Library 2 (Sword_Regular_A/B/C) -
+	# clicking attack again within COMBO_WINDOW after a hit lands advances to
+	# the next hit; waiting longer than that resets back to the first hit.
+	# Each of the first two hits is followed by its own recovery animation
+	# (Sword_Regular_A_Rec/B_Rec) UNLESS the player chains into the next hit
+	# first - handled via _on_anim_finished() below, gated by _swing_token so
+	# a stale recovery from an old hit can never fire after a newer one.
+	if _combo_reset_timer <= 0.0:
+		_combo_index = 0
+	var hit_anim := SWORD_COMBO_ANIMS[_combo_index]
+	var rec_anim := SWORD_COMBO_RECOVERIES[_combo_index]
+	if _anim and _anim.has_animation(hit_anim):
+		_anim.stop()
+		_anim.play(hit_anim, 0.05, 1.6)
+		var hit_length: float = _anim.get_animation(hit_anim).length / 1.6
+		# Slightly longer than the clip so it finishes (and its recovery clip can
+		# start) before the idle/walk logic takes over.
+		_attack_anim_time = hit_length + 0.1
+		_combo_reset_timer = hit_length + COMBO_WINDOW
+		_swing_token += 1
+		if rec_anim != "" and _anim.has_animation(rec_anim):
+			_pending_recovery = rec_anim
+			_pending_recovery_swing = _swing_token
+		else:
+			_pending_recovery = ""
+	_spawn_slash_vfx()
+	_combo_index = (_combo_index + 1) % SWORD_COMBO_ANIMS.size()
+
+func _on_anim_finished(_anim_name: StringName) -> void:
+	# _swing_token only still matches if no NEWER swing has started since
+	# this recovery was scheduled - if the player chained into the next
+	# combo hit instead, the token was already bumped and this is skipped.
+	if _pending_recovery != "" and _pending_recovery_swing == _swing_token:
+		var rec := _pending_recovery
+		_pending_recovery = ""
+		_anim.play(rec, 0.1)
+		_attack_anim_time = _anim.get_animation(rec).length
+
+func _spawn_slash_vfx() -> void:
+	# "Fiery Slash Shader for Godot 4" by DevQuest (itch.io, free/pay-what-
+	# you-want) - a ready-made arc mesh + shader, not something built from
+	# scratch here. Its own "speed" shader parameter is really an elapsed-
+	# time value the original demo tweens from 0 up to "duration" to reveal
+	# then fade the slash - done here too, timed to the swing itself instead
+	# of the slower default so it reads as a quick attack, not a slow burn.
+	var vfx := SLASH_VFX_SCENE.instantiate()
+	add_child(vfx)
+	# Local to the player, so it automatically faces wherever the player is
+	# facing - parked roughly where the blade sweeps during Sword_Attack.
+	vfx.position = Vector3(0.0, 1.2, -1.6)
+	var mesh := vfx.get_node("MeshInstance3D") as MeshInstance3D
+	if _slash_mesh == null:
+		var src: Node = SLASH_MESH_SCENE.instantiate()
+		var found: Array[MeshInstance3D] = []
+		_collect_mesh_instances(src, found)
+		if found.size() > 0:
+			_slash_mesh = found[0].mesh
+		src.queue_free()
+	mesh.mesh = _slash_mesh
+	# material_override (not a per-surface override) because the mesh is only
+	# assigned at runtime - a surface override set in the .tscn gets dropped
+	# when the scene loads with no mesh yet.
+	var mat := mesh.material_override as ShaderMaterial
+	var duration: float = mat.get_shader_parameter("duration")
+	mat.set_shader_parameter("speed", 0.0)
+	var tw := create_tween()
+	tw.tween_property(mat, "shader_parameter/speed", duration, 0.3)
+	tw.tween_callback(vfx.queue_free)
+
+func _try_interact() -> void:
+	var best: Node3D = null
+	var best_dist := INTERACT_RANGE * INTERACT_RANGE
+	for node in get_tree().get_nodes_in_group("interactable"):
+		if node is Node3D:
+			var d := global_position.distance_squared_to(node.global_position)
+			if d < best_dist:
+				best_dist = d
+				best = node
+	if best and best.has_method("interact"):
+		best.interact(self)

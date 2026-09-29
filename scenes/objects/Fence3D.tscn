@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://fence3d_main01"]
+
+[ext_resource type="Script" path="res://scripts/objects/fence_section.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://hkk5lk813pla" path="res://assets/models/buildings/kenney_castle/wall-narrow-wood-fence.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_col"]
+size = Vector3(1.0, 2.0, 0.2)
+
+[node name="Fence3D" type="StaticBody3D"]
+script = ExtResource("1_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 1.0, 0)
+shape = SubResource("BoxShape3D_col")
+
+[node name="FenceModel" parent="." instance=ExtResource("2_model")]

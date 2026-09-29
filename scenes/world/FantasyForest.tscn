@@ -1,0 +1,194 @@
+[gd_scene load_steps=12 format=3 uid="uid://1tt2ji4se8ep"]
+
+[ext_resource type="Script" path="res://scripts/world/forest_zone_3d.gd" id="1_forest3d"]
+[ext_resource type="PackedScene" path="res://scenes/objects/House3D.tscn" id="7_vywx7"]
+[ext_resource type="PackedScene" uid="uid://dy2dmmcl33xqq" path="res://scenes/player/Player3D.tscn" id="11_player3d"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/Puglin.tscn" id="99_6vv3i"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/Imp.tscn" id="100_1l6wf"]
+[ext_resource type="Script" path="res://scripts/world/forest_terrain.gd" id="ft_terrain"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_top_color = Color(0.32, 0.55, 0.9, 1)
+sky_horizon_color = Color(0.85, 0.82, 0.7, 1)
+ground_horizon_color = Color(0.85, 0.82, 0.7, 1)
+
+[sub_resource type="Sky" id="Sky_world"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_world"]
+background_mode = 2
+sky = SubResource("Sky_world")
+ambient_light_source = 3
+ambient_light_energy = 0.45
+tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.75, 0.8, 0.7, 1)
+fog_density = 0.006
+
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_ground"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_health_fill"]
+bg_color = Color(0.85, 0.15, 0.15, 1)
+
+[node name="FantasyForest" type="Node3D"]
+script = ExtResource("1_forest3d")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_world")
+
+[node name="Terrain" type="Node3D" parent="."]
+script = ExtResource("ft_terrain")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.819152, 0.42625, -0.383798, 0, 0.669131, 0.743145, 0.573576, -0.608749, 0.54812, 0, 30, 0)
+light_color = Color(1, 0.93, 0.8, 1)
+shadow_enabled = true
+directional_shadow_max_distance = 80.0
+
+[node name="Ground" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -20, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+transform = Transform3D(25, 0, 0, 0, 25, 0, 0, 0, 25, 0, 0, 0)
+shape = SubResource("WorldBoundaryShape3D_ground")
+metadata/_edit_group_ = true
+metadata/_edit_lock_ = true
+
+[node name="Player3D" parent="." instance=ExtResource("11_player3d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.35, 6)
+metadata/_edit_lock_ = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -564, 4, 12)
+current = true
+
+[node name="HUD" type="CanvasLayer" parent="."]
+layer = 8
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HUD"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 196.0
+offset_bottom = 96.0
+
+[node name="Label" type="Label" parent="HUD/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "HP"
+
+[node name="HealthBar" type="ProgressBar" parent="HUD/VBoxContainer"]
+custom_minimum_size = Vector2(180, 18)
+layout_mode = 2
+theme_override_styles/fill = SubResource("StyleBoxFlat_health_fill")
+value = 100.0
+show_percentage = false
+
+[node name="PetalLabel" type="Label" parent="HUD/VBoxContainer"]
+modulate = Color(1, 0.9, 0.2, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "🌸 0 / 10"
+
+[node name="KillLabel" type="Label" parent="HUD/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.5, 0.5, 1)
+theme_override_font_sizes/font_size = 13
+text = "☠ 0 kills"
+
+[node name="MinimapLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="MinimapPanel" type="Control" parent="MinimapLayer"]
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -180.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 180.0
+grow_horizontal = 0
+
+[node name="Background" type="ColorRect" parent="MinimapLayer/MinimapPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="PlayerDot" type="ColorRect" parent="MinimapLayer/MinimapPanel"]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+
+[node name="DialogLayer" type="CanvasLayer" parent="."]
+layer = 5
+visible = false
+
+[node name="PanelContainer" type="PanelContainer" parent="DialogLayer"]
+custom_minimum_size = Vector2(600, 120)
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -144.0
+offset_right = 300.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="DialogLayer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="NpcName" type="Label" parent="DialogLayer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Village Elder"
+horizontal_alignment = 1
+
+[node name="DialogText" type="Label" parent="DialogLayer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Welcome to the forest, traveler."
+autowrap_mode = 3
+
+[node name="Puglin" parent="." instance=ExtResource("99_6vv3i")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 2, -28)
+
+[node name="Imp" parent="." instance=ExtResource("100_1l6wf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 2.17, -22)
+
+[node name="Imp2" parent="." instance=ExtResource("100_1l6wf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 2.33, -19)
+
+[node name="Imp3" parent="." instance=ExtResource("100_1l6wf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 2.61, -18)
+
+[node name="Imp4" parent="." instance=ExtResource("100_1l6wf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28, 2.94, 5)
+
+[node name="Imp5" parent="." instance=ExtResource("100_1l6wf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 3.24, 9)
+
+[node name="Imp6" parent="." instance=ExtResource("100_1l6wf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 2.89, 10)
+
+[node name="Imp7" parent="." instance=ExtResource("100_1l6wf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 3.02, 30)
+
+[node name="Imp8" parent="." instance=ExtResource("100_1l6wf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 3.22, 32)
+
+[node name="Imp9" parent="." instance=ExtResource("100_1l6wf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 2.46, 33)
+
+[node name="Puglin2" parent="." instance=ExtResource("99_6vv3i")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 2.2, 20)
+
+[node name="House3D2" parent="." instance=ExtResource("7_vywx7")]
+transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, -3, 2, -5)

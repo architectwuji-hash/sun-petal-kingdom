@@ -1,0 +1,40 @@
+[gd_scene load_steps=5 format=3 uid="uid://blockywarrior01spk"]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy_base.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/kenney_blocky/character-b.glb" id="2_model"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+radius = 0.35
+height = 1.8
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_hurt"]
+radius = 1.1
+
+[node name="BlockyWarrior" type="CharacterBody3D"]
+script = ExtResource("1_script")
+enemy_name = "Blocky Warrior"
+enemy_level = 2
+move_speed = 3.5
+attack_range = 1.6
+detection_range = 14.0
+hit_damage = 8
+tint_color = Color(0.7, 0.08, 0.08, 1)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_body")
+
+[node name="CharacterModel" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="HurtBox" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("SphereShape3D_hurt")
+
+[node name="HealthLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
+font_size = 48
+billboard = 1
+text = "40 / 40"

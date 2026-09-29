@@ -675,6 +675,9 @@ func _try_collect_log(body: Node, area: Area3D) -> void:
 	area.set_meta("taken", true)
 	body.add_item("wood")
 	_spawn_pickup_vfx(area.global_position)
+	# Chopping a tree is loud — alert nearby enemies to the pickup position
+	if body.has_signal("made_noise"):
+		body.made_noise.emit(area.global_position, 0.9)
 	var tw := area.create_tween()
 	tw.tween_property(area, "global_position", area.global_position + Vector3(0, 1.0, 0), 0.2)
 	tw.parallel().tween_property(area, "scale", Vector3(0.05, 0.05, 0.05), 0.2)

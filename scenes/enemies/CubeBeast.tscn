@@ -1,0 +1,40 @@
+[gd_scene load_steps=5 format=3 uid="uid://cubebeast01spk"]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy_base.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/kenney_cube_pets/animal-lion.glb" id="2_model"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_body"]
+radius = 0.7
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_hurt"]
+radius = 1.2
+
+[node name="CubeBeast" type="CharacterBody3D"]
+script = ExtResource("1_script")
+enemy_name = "Cube Beast"
+enemy_level = 3
+move_speed = 5.5
+attack_range = 1.4
+attack_cooldown = 0.8
+detection_range = 22.0
+hit_damage = 12
+tint_color = Color(0.45, 0.05, 0.6, 1)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
+shape = SubResource("SphereShape3D_body")
+
+[node name="CharacterModel" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, 0)
+
+[node name="HurtBox" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
+shape = SubResource("SphereShape3D_hurt")
+
+[node name="HealthLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, 0)
+font_size = 48
+billboard = 1
+text = "60 / 60"
