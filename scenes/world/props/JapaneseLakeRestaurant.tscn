@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://japlakerest3d1"]
+
+[ext_resource type="Script" path="res://scripts/world/japanese_lake_restaurant.gd" id="1_rest"]
+
+[node name="JapaneseLakeRestaurant" type="Node3D"]
+script = ExtResource("1_rest")

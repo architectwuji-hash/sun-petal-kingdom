@@ -36,7 +36,7 @@ const COL_FOREST := Color(0.17, 0.30, 0.12)
 const COL_DIRT := Color(0.46, 0.34, 0.21)
 const COL_ROCK := Color(0.33, 0.35, 0.29)
 
-@export var map_size: int = 300:
+@export var map_size: int = 600:
 	set(v):
 		map_size = maxi(30, v)
 		_queue_regen()

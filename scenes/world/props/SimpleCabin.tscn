@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://simplecabin3d1"]
+
+[ext_resource type="PackedScene" path="res://assets/models/buildings/SimpleCabin/SM_SIMPLE_WOOD_CABIN.fbx" id="1_cabin"]
+
+[node name="SimpleCabin" type="StaticBody3D"]
+
+[node name="Model" parent="." instance=ExtResource("1_cabin")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = BoxShape3D.new()

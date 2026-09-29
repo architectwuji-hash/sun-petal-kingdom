@@ -12,6 +12,8 @@ const TreeScene: PackedScene = preload("res://scenes/world/props/KenneyTree.tscn
 const TreeHighScene: PackedScene = preload("res://scenes/world/props/KenneyTreeHigh.tscn")
 const PetalScene: PackedScene = preload("res://scenes/items/SunPetal.tscn")
 const ENEMY_SCENE: PackedScene = preload("res://scenes/enemies/ForestSprite.tscn")
+const SLIME_SCENE: PackedScene = preload("res://scenes/enemies/SlimeEnemy.tscn")
+const SCAVENGER_SCENE: PackedScene = preload("res://scenes/enemies/ScavengerEnemy.tscn")
 const HEAL_SCENE: PackedScene = preload("res://scenes/items/HealOrb.tscn")
 const MAX_ENEMIES: int = 5
 const RESPAWN_DELAY: float = 20.0
@@ -22,19 +24,19 @@ const DecorScenes: Array[PackedScene] = [
 	preload("res://scenes/world/props/KenneyPlant.tscn"),
 ]
 
-@onready var tree_root: Node3D = $TreeRoot
-@onready var decor_root: Node3D = $DecorRoot
-@onready var petal_root: Node3D = $PetalRoot
-@onready var enemy_root: Node3D = $EnemyRoot
+var tree_root: Node3D = null
+var decor_root: Node3D = null
+var petal_root: Node3D = null
+var enemy_root: Node3D = null
 @onready var _player_dot: ColorRect = $MinimapLayer/MinimapPanel/PlayerDot
-@onready var _player: CharacterBody3D = $Player3D
+var _player: CharacterBody3D = null
 @onready var _health_bar: ProgressBar = $HUD/VBoxContainer/HealthBar
 @onready var _petal_label: Label = $HUD/VBoxContainer/PetalLabel
 @onready var _kill_label: Label = $HUD/VBoxContainer/KillLabel
 @onready var _dialog_layer: CanvasLayer = $DialogLayer
 @onready var _dialog_text: Label = $DialogLayer/PanelContainer/VBoxContainer/DialogText
 @onready var _npc_name: Label = $DialogLayer/PanelContainer/VBoxContainer/NpcName
-@onready var _village_npc: Node3D = $Village/NPC3D
+var _village_npc: Node3D = null
 
 var _suppress_npc_interact: bool = false
 var petal_count: int = 0
@@ -64,15 +66,29 @@ func _ready() -> void:
 		music.play()
 
 	_dialog_layer.visible = false
-	_village_npc.interact_requested.connect(_on_npc_interact)
-	_player.health_changed.connect(_on_player_health_changed)
-	_player.player_died.connect(_on_player_died)
-	_health_bar.value = _player.health
-	_spawn_trees()
-	_spawn_decor()
-	_spawn_petals()
-	_spawn_heal_orbs(6)
-	_spawn_enemies(3)
+	if has_node("Village/NPC3D"):
+		_village_npc = get_node("Village/NPC3D") as Node3D
+		_village_npc.interact_requested.connect(_on_npc_interact)
+	if has_node("Player3D"):
+		_player = get_node("Player3D") as CharacterBody3D
+		_player.health_changed.connect(_on_player_health_changed)
+		_player.player_died.connect(_on_player_died)
+		_health_bar.value = _player.health
+	# 3-minute day/night cycle (drives the Sun + WorldEnvironment in this scene)
+	var day_night: Node = preload("res://scripts/world/day_night_cycle.gd").new()
+	day_night.name = "DayNightCycle"
+	add_child(day_night)
+	# Weather system — automatically picks from presets based on time
+	var weather_scene: PackedScene = load("res://addons/weather_atmosphere/weather_system_3d.tscn")
+	if weather_scene:
+		var weather := weather_scene.instantiate()
+		weather.name = "WeatherSystem"
+		add_child(weather)
+	#_spawn_trees()
+	#_spawn_decor()
+	#_spawn_petals()
+	#_spawn_heal_orbs(6)
+	#_spawn_enemies(3)
 	_setup_minimap()
 	_setup_overview_cam()
 
@@ -110,11 +126,12 @@ func _process(delta: float) -> void:
 		call_deferred("_reset_npc_interact_suppress")
 		return
 
-	var world_pos: Vector3 = _player.global_position
-	_player_dot.position = Vector2(
-		((world_pos.x + 200.0) / 400.0) * 160.0 - 4.0,
-		((world_pos.z + 200.0) / 400.0) * 160.0 - 4.0
-	)
+	if _player != null:
+		var world_pos: Vector3 = _player.global_position
+		_player_dot.position = Vector2(
+			((world_pos.x + 200.0) / 400.0) * 160.0 - 4.0,
+			((world_pos.z + 200.0) / 400.0) * 160.0 - 4.0
+		)
 
 
 func _on_player_health_changed(val: int) -> void:
@@ -201,15 +218,15 @@ func _spawn_trees() -> void:
 	while placed < TREE_COUNT and attempts < TREE_COUNT * 10:
 		attempts += 1
 		var pos := Vector3(
-			rng.randf_range(-150.0, 150.0),
+			rng.randf_range(-300.0, 300.0),
 			0.0,
-			rng.randf_range(-150.0, 150.0)
+			rng.randf_range(-300.0, 300.0)
 		)
 		if Vector2(pos.x, pos.z).length() < SPAWN_CLEAR_RADIUS:
 			continue
 		var tree_scene: PackedScene = TreeHighScene if rng.randi() % 2 == 0 else TreeScene
 		var tree: Node3D = tree_scene.instantiate()
-		tree_root.add_child(tree)
+		if tree_root != null: tree_root.add_child(tree)
 		tree.global_position = pos
 		placed += 1
 
@@ -222,15 +239,15 @@ func _spawn_decor() -> void:
 	while placed < DECOR_COUNT and attempts < DECOR_COUNT * 10:
 		attempts += 1
 		var pos := Vector3(
-			rng.randf_range(-150.0, 150.0),
+			rng.randf_range(-300.0, 300.0),
 			0.0,
-			rng.randf_range(-150.0, 150.0)
+			rng.randf_range(-300.0, 300.0)
 		)
 		if Vector2(pos.x, pos.z).length() < SPAWN_CLEAR_RADIUS:
 			continue
 		var decor_scene: PackedScene = DecorScenes[rng.randi() % DecorScenes.size()]
 		var decor: Node3D = decor_scene.instantiate()
-		decor_root.add_child(decor)
+		if decor_root != null: decor_root.add_child(decor)
 		decor.global_position = pos
 		decor.rotation.y = rng.randf_range(0.0, TAU)
 		placed += 1
@@ -249,9 +266,16 @@ func _spawn_one_enemy(rng: RandomNumberGenerator = null) -> void:
 	if spawn_rng == null:
 		spawn_rng = RandomNumberGenerator.new()
 		spawn_rng.seed = randi()
-	var enemy: Node = ENEMY_SCENE.instantiate()
-	var x: float = spawn_rng.randf_range(-150.0, 150.0)
-	var z: float = spawn_rng.randf_range(-150.0, 150.0)
+	# Pick enemy by time of day
+	var dn: Node = get_node_or_null("DayNightCycle")
+	var scene_to_use: PackedScene
+	if dn != null and dn.is_night():
+		scene_to_use = SLIME_SCENE
+	else:
+		scene_to_use = SCAVENGER_SCENE
+	var enemy: Node = scene_to_use.instantiate()
+	var x: float = spawn_rng.randf_range(-300.0, 300.0)
+	var z: float = spawn_rng.randf_range(-300.0, 300.0)
 	if absf(x) < 25.0 and absf(z) < 25.0:
 		if x != 0.0:
 			x += 30.0 * sign(x)
@@ -259,7 +283,7 @@ func _spawn_one_enemy(rng: RandomNumberGenerator = null) -> void:
 			x = 30.0
 	enemy.position = Vector3(x, 0.0, z)
 	enemy.tree_exiting.connect(_on_enemy_removed)
-	enemy_root.add_child(enemy)
+	if enemy_root != null: enemy_root.add_child(enemy)
 	_active_enemies.append(enemy)
 
 
@@ -276,8 +300,8 @@ func _spawn_heal_orbs(count: int) -> void:
 	rng.seed = 77777
 	for _i: int in count:
 		var orb: Node3D = HEAL_SCENE.instantiate()
-		var x: float = rng.randf_range(-140.0, 140.0)
-		var z: float = rng.randf_range(-140.0, 140.0)
+		var x: float = rng.randf_range(-290.0, 290.0)
+		var z: float = rng.randf_range(-290.0, 290.0)
 		if absf(x) < 20.0 and absf(z) < 20.0:
 			x += 25.0
 		orb.position = Vector3(x, 0.4, z)
@@ -298,14 +322,14 @@ func _spawn_petals() -> void:
 	while placed < PETAL_COUNT and attempts < PETAL_COUNT * 10:
 		attempts += 1
 		var pos := Vector3(
-			rng.randf_range(-80.0, 80.0),
+			rng.randf_range(-160.0, 160.0),
 			0.6,
-			rng.randf_range(-80.0, 80.0)
+			rng.randf_range(-160.0, 160.0)
 		)
 		if Vector2(pos.x, pos.z).length() < SPAWN_CLEAR_RADIUS:
 			continue
 		var petal: Node3D = PetalScene.instantiate()
 		petal.collected.connect(_on_petal_collected)
-		petal_root.add_child(petal)
+		if petal_root != null: petal_root.add_child(petal)
 		petal.global_position = pos
 		placed += 1

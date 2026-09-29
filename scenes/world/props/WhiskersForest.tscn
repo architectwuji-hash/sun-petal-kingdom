@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://whiskers0forest"]
+
+[ext_resource type="PackedScene" path="res://assets/models/buildings/WhiskersForest/House.fbx" id="1_house"]
+
+[node name="WhiskersForest" type="StaticBody3D"]
+script = null
+
+[node name="Model" parent="." instance=ExtResource("1_house")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = BoxShape3D.new()

@@ -1,0 +1,30 @@
+[gd_scene load_steps=5 format=3 uid="uid://scavenger_enemy_tscn"]
+
+[ext_resource type="Script" path="res://scripts/enemies/scavenger_enemy.gd" id="1_scav"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
+radius = 0.45
+height = 1.8
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_1"]
+radius = 0.45
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+albedo_color = Color(0.72, 0.58, 0.35)
+
+[node name="ScavengerEnemy" type="CharacterBody3D" groups=["enemy"]]
+script = ExtResource("1_scav")
+enemy_name = "Scavenger"
+hit_damage = 12
+move_speed = 2.5
+tint_color = Color(0.72, 0.58, 0.35)
+
+[node name="Body" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("CapsuleMesh_1")
+surface_material_override/0 = SubResource("StandardMaterial3D_1")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_1")
