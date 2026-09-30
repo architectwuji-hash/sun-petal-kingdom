@@ -20,7 +20,7 @@ func _ready() -> void:
 
 func _build() -> void:
 	# ── Water plane ─────────────────────────────────────────────────────────
-	_box(Vector3(0, -0.05, 0), Vector3(20, 0.1, 20), water_color, alpha_hint=true)
+	_box(Vector3(0, -0.05, 0), Vector3(20, 0.1, 20), water_color, true)
 
 	# ── Main platform ───────────────────────────────────────────────────────
 	_box(Vector3(0, 0.15, 0), Vector3(8, 0.3, 6), WOOD_COLOR)
