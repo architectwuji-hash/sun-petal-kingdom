@@ -11,14 +11,14 @@ radius = 0.45
 height = 1.8
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
-albedo_color = Color(0.72, 0.58, 0.35)
+albedo_color = Color(0.72, 0.58, 0.35, 1)
 
 [node name="ScavengerEnemy" type="CharacterBody3D" groups=["enemy"]]
 script = ExtResource("1_scav")
 enemy_name = "Scavenger"
 hit_damage = 12
 move_speed = 2.5
-tint_color = Color(0.72, 0.58, 0.35)
+tint_color = Color(0.72, 0.58, 0.35, 1)
 
 [node name="Body" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)

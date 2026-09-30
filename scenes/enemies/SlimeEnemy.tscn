@@ -12,7 +12,7 @@ script = ExtResource("1_slime")
 enemy_name = "Slime"
 hit_damage = 8
 move_speed = 2.8
-tint_color = Color(0.15, 0.85, 0.35)
+tint_color = Color(0.15, 0.85, 0.35, 1)
 
 [node name="SlimeModel" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)

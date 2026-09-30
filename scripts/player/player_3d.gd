@@ -470,7 +470,7 @@ func _merge_animation_library() -> void:
 	print("[DEV] anim_root=", anim_root.name, " skeleton=", _skeleton.name, " skel_rel_path=", skel_rel_path)
 	if dst_lib.has_animation("Idle"):
 		var idle_anim := dst_lib.get_animation("Idle")
-		print("[DEV] Idle track_count=", idle_anim.get_track_count(), " sample_path=", idle_anim.track_get_path(0) if idle_anim.get_track_count() > 0 else "none")
+		print("[DEV] Idle track_count=", idle_anim.get_track_count(), " sample_path=", str(idle_anim.track_get_path(0)) if idle_anim.get_track_count() > 0 else "none")
 
 func _toggle_dev_inspect() -> void:
 	# DEV TOOL ONLY - not part of the shipped game.
@@ -568,14 +568,14 @@ func add_item(item: String) -> void:
 	print("Picked up: ", item, " (", inventory[item], ")")
 
 func remove_item(item: String, count: int = 1) -> bool:
-	var have := inventory.get(item, 0)
+	var have: int = inventory.get(item, 0)
 	if have < count:
 		return false
 	inventory[item] = have - count
 	return true
 
 func get_item_count(item: String) -> int:
-	return inventory.get(item, 0)
+	return inventory.get(item, 0) as int
 
 # ── build mode ─────────────────────────────────────────────────────────────
 func _toggle_build_mode() -> void:
@@ -593,7 +593,7 @@ func _toggle_build_mode() -> void:
 		_ghost_fence.name = "GhostFence"
 		# Make every mesh in the ghost translucent
 		for m in _ghost_fence.find_children("*", "MeshInstance3D", true, false):
-			var mat := m.get_active_material(0)
+			var mat: Material = m.get_active_material(0)
 			if mat:
 				var ghost_mat := mat.duplicate() as BaseMaterial3D
 				if ghost_mat:
