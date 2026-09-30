@@ -5,8 +5,8 @@
 [ext_resource type="PackedScene" uid="uid://dy2dmmcl33xqq" path="res://scenes/player/Player3D.tscn" id="11_player3d"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/Puglin.tscn" id="99_6vv3i"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/Imp.tscn" id="100_1l6wf"]
-[ext_resource type="Script" path="res://scripts/world/forest_terrain.gd" id="ft_terrain"]
 [ext_resource type="PackedScene" path="res://scenes/world/props/JapaneseLakeRestaurant.tscn" id="200_jlrest"]
+[ext_resource type="Script" path="res://scripts/world/forest_terrain.gd" id="ft_terrain"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.32, 0.55, 0.9, 1)
@@ -195,4 +195,4 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 2.2, 20)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 2, 2)
 
 [node name="JapaneseLakeRestaurant" parent="." instance=ExtResource("200_jlrest")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -100, 2, -100)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -100, 0, -100)

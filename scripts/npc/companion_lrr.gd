@@ -106,6 +106,8 @@ func _make_projectile() -> Node3D:
 	body.gravity_scale = 0.0
 	body.collision_layer = 4
 	body.collision_mask  = 2
+	body.contact_monitor = true
+	body.max_contacts_reported = 4
 	var mi := MeshInstance3D.new()
 	var s   := SphereMesh.new()
 	s.radius = 0.12
@@ -148,6 +150,7 @@ func _physics_process(delta):
 """
 	var s := GDScript.new()
 	s.source_code = code
+	s.reload()
 	return s
 
 

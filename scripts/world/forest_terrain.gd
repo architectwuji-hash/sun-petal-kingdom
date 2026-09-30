@@ -7,7 +7,7 @@ class_name ForestTerrain
 ## Everything is rebuilt from `terrain_seed`, so the same seed = the same map
 ## in the editor and in-game. To make the map bigger, just raise `map_size`.
 
-const CELL := 2.0
+const CELL := 1.5
 const NATURE := "res://assets/models/nature/"
 
 const TREES := {
@@ -119,6 +119,9 @@ func height_at(x: float, z: float) -> float:
 	# Flat clearing in the middle (spawn / fight arena)
 	var r := Vector2(x, z).length()
 	h = lerpf(hill_height * 0.45, h, smoothstep(clearing_radius, clearing_radius + 10.0, r))
+	# Flat clearing for Japanese Lake Restaurant (A1 quadrant, -100,-100)
+	var r_rest := Vector2(x + 100.0, z + 100.0).length()
+	h = lerpf(0.0, h, smoothstep(14.0, 26.0, r_rest))
 	# Paths sink slightly into the ground
 	h -= path_mask(x, z) * 0.3
 	# Ridge around the border so the map feels enclosed
@@ -292,7 +295,7 @@ func _scatter() -> void:
 		tries += 1
 		var x := rng.randf_range(-half, half)
 		var z := rng.randf_range(-half, half)
-		if Vector2(x, z).length() < clearing_radius + 3.0 or path_mask(x, z) > 0.05:
+		if Vector2(x, z).length() < clearing_radius + 3.0 or path_mask(x, z) > 0.05 or Vector2(x + 100.0, z + 100.0).length() < 20.0:
 			continue
 		if rng.randf() > forest_amount(x, z) * 0.9 + 0.1:
 			continue
@@ -324,7 +327,7 @@ func _scatter() -> void:
 	for _i in int(14 * area_scale * decor_density):
 		var x := rng.randf_range(-half, half)
 		var z := rng.randf_range(-half, half)
-		if Vector2(x, z).length() < clearing_radius + 3.0 or path_mask(x, z) > 0.05:
+		if Vector2(x, z).length() < clearing_radius + 3.0 or path_mask(x, z) > 0.05 or Vector2(x + 100.0, z + 100.0).length() < 20.0:
 			continue
 		var ds := rng.randf_range(0.8, 1.1)
 		var dead_model: String = DEAD_TREES[rng.randi() % DEAD_TREES.size()]
