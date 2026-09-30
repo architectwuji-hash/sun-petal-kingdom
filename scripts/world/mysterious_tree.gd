@@ -88,5 +88,6 @@ func _add_cylinder(pos: Vector3, height: float, r_top: float, r_bot: float,
 	mi.mesh           = cyl
 	mi.set_surface_override_material(0, mat)
 	mi.position       = pos
+	mi.cast_shadow    = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(mi)
 	return mi

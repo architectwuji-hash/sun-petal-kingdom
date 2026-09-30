@@ -113,5 +113,6 @@ func _box(pos: Vector3, size: Vector3, color: Color,
 	mi.mesh  = box
 	mi.set_surface_override_material(0, mat)
 	mi.position = pos
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(mi)
 	return mi

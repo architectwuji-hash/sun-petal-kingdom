@@ -7,7 +7,7 @@ class_name ForestTerrain
 ## Everything is rebuilt from `terrain_seed`, so the same seed = the same map
 ## in the editor and in-game. To make the map bigger, just raise `map_size`.
 
-const CELL := 1.0
+const CELL := 2.0
 const NATURE := "res://assets/models/nature/"
 
 const TREES := {
@@ -271,7 +271,7 @@ func _scatter() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = terrain_seed
 	var half := map_size * 0.5 - 1.5
-	var area_scale := float(map_size * map_size) / 10000.0  # 1.0 at 100x100
+	var area_scale := float(map_size * map_size) / 20000.0  # 1.0 at 100x100
 	var buckets: Dictionary = {}   # model file -> Array[Transform3D]
 	var shadowless: Dictionary = {}
 	var colliders := StaticBody3D.new()
@@ -370,7 +370,7 @@ func _scatter() -> void:
 		shadowless[fk] = true
 
 	# --- Grass tufts everywhere ---
-	for _i in int(2200 * area_scale * grass_density):
+	for _i in int(1400 * area_scale * grass_density):
 		var x := rng.randf_range(-half, half)
 		var z := rng.randf_range(-half, half)
 		if path_mask(x, z) > 0.3:
