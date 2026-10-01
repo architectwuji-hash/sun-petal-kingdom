@@ -73,7 +73,8 @@ func _ready() -> void:
 		_player = get_node("Player3D") as CharacterBody3D
 		_player.health_changed.connect(_on_player_health_changed)
 		_player.player_died.connect(_on_player_died)
-		_health_bar.value = _player.health
+		if _health_bar != null:
+			_health_bar.value = _player.health
 	# 3-minute day/night cycle (drives the Sun + WorldEnvironment in this scene)
 	var day_night: Node = preload("res://scripts/world/day_night_cycle.gd").new()
 	day_night.name = "DayNightCycle"
@@ -98,7 +99,8 @@ func _setup_minimap() -> void:
 
 
 func _setup_overview_cam() -> void:
-	_play_cam = get_node("Camera3D") as Camera3D
+	# Static Camera3D was removed from scene; player_3d.gd builds its own follow-cam.
+	# _play_cam is grabbed lazily from the viewport when Tab is pressed.
 	_overview_cam = Camera3D.new()
 	_overview_cam.name = "OverviewCam"
 	_overview_cam.position = Vector3(0.0, 180.0, 0.0)
@@ -111,7 +113,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.keycode == KEY_TAB and event.pressed and not event.echo:
 		_overview_mode = not _overview_mode
 		_overview_cam.current = _overview_mode
-		_play_cam.current = not _overview_mode
+		# Grab the player's camera from the viewport if we don't have it yet
+		if _play_cam == null:
+			_play_cam = get_viewport().get_camera_3d()
+		if _play_cam != null:
+			_play_cam.current = not _overview_mode
 
 
 func _process(delta: float) -> void:
