@@ -66,15 +66,40 @@ const SWORD_ANIM_LIBRARY_SCENE_2 := preload("res://assets/animations/quaternius/
 # distortion. Gomushi was auto-rigged by Mixamo so its skeleton bones match exactly.
 # To add Walk/Sprint: go to Mixamo → upload this same Idle.fbx → pick the animation
 # → download WITHOUT SKIN → save as Walk.fbx / Sprint.fbx in this same folder.
-const MIXAMO_IDLE_SCENE := preload("res://assets/animations/mixamo/Idle.fbx")
-# const MIXAMO_WALK_SCENE   := preload("res://assets/animations/mixamo/Walk.fbx")
-# const MIXAMO_SPRINT_SCENE := preload("res://assets/animations/mixamo/Sprint.fbx")
+const MIXAMO_DIR := "res://assets/animations/mixamo/"
+# clip name in our AnimationPlayer -> Mixamo FBX file. Loaded with load(), so a
+# missing file is just skipped instead of stopping the game from starting.
+# To add Walk/Sprint later: drop Walk.fbx / Sprint.fbx in the folder and add
+# "Walk": "Walk.fbx", "Sprint": "Sprint.fbx" here.
+const MIXAMO_CLIPS := {
+	"Idle": "Idle.fbx",
+	"Mx_ThrustSlash": "ThrustSlash.fbx",
+	"Mx_HeavySwing": "HeavyWeaponSwing.fbx",
+	"Mx_MeleeCombo": "MeleeComboAttack.fbx",
+	"Mx_JumpAttack": "GreatSwordJumpAttack.fbx",
+	"Mx_RunJumpAttack": "RunJumpAttack.fbx",
+	"Mx_Punch": "Punching.fbx",
+	"Mx_Punch2": "Punching2.fbx",
+	"Mx_SideKick": "SideKick.fbx",
+	"Mx_SpellCast": "SpellCasting.fbx",
+	"Mx_CastingSpell": "CastingSpell.fbx",
+	"Mx_ChokeLift": "ChokeLift.fbx",
+	"Mx_KnockedOut": "KnockedOut.fbx",
+}
+# Playback speed per clip - Mixamo clips are long, so they're sped up to feel snappy.
+const CLIP_SPEED := {
+	"Mx_ThrustSlash": 2.0, "Mx_HeavySwing": 2.6, "Mx_MeleeCombo": 2.0,
+	"Mx_JumpAttack": 1.4, "Mx_RunJumpAttack": 2.0,
+	"Mx_Punch": 1.3, "Mx_Punch2": 1.3, "Mx_SideKick": 1.6,
+	"Mx_SpellCast": 2.0, "Mx_ChokeLift": 1.5, "Mx_KnockedOut": 1.8,
+}
+const UNARMED_COMBO: Array[String] = ["Mx_Punch", "Mx_Punch2", "Mx_SideKick"]
 # Universal Animation Library 2's actual 3-hit sword combo (same rig, same
 # retargeting trick as the first library) - A -> B -> C, each of the first
 # two followed by its own recovery clip if the player doesn't chain into the
 # next hit in time. Sword_Regular_C has no _Rec clip - it flows back to idle.
-const SWORD_COMBO_ANIMS: Array[String] = ["Sword_Regular_A", "Sword_Regular_B", "Sword_Regular_C"]
-const SWORD_COMBO_RECOVERIES: Array[String] = ["Sword_Regular_A_Rec", "Sword_Regular_B_Rec", ""]
+const SWORD_COMBO_ANIMS: Array[String] = ["Mx_ThrustSlash", "Mx_HeavySwing", "Mx_MeleeCombo"]
+const SWORD_COMBO_RECOVERIES: Array[String] = ["", "", ""]
 const AXE_SCENE := preload("res://assets/models/weapons/quaternius_axe.glb")
 const AXE_SWING_ANIM := "Sword_Attack"
 const AXE_SWING_SPEED: float = 1.3
@@ -212,11 +237,14 @@ func _input(event: InputEvent) -> void:
 			KEY_P:     _toggle_dev_inspect()
 			KEY_B:     _toggle_build_mode()
 			KEY_R:     _cycle_build_item()
+			KEY_G:     if not _is_dead and _play_clip("Mx_ChokeLift"): _apply_melee_hit(SWORD_DAMAGE)
 			KEY_ESCAPE:
 				if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 					Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 				else:
 					Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT and not _build_mode and not _is_dead:
+		_play_clip("Mx_SpellCast")
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if _build_mode:
 			_place_build_item()
@@ -540,7 +568,7 @@ func _parent_global_basis(skel: Skeleton3D, idx: int, skel_basis: Basis) -> Basi
 		return skel_basis
 	return (skel_basis * _bone_global_rest(skel, p).basis).orthonormalized()
 
-func _retarget_animation(anim: Animation, src_skel: Skeleton3D, src_basis: Basis, name_map: Callable, skel_rel_path: NodePath) -> Animation:
+func _retarget_animation(anim: Animation, src_skel: Skeleton3D, src_basis: Basis, name_map: Callable, skel_rel_path: NodePath, in_place: bool = false) -> Animation:
 	var dst_basis := _node_chain_basis(_char_model, _skeleton)
 	var out := anim.duplicate(true) as Animation
 	var src_root_h := 1.0
@@ -582,6 +610,11 @@ func _retarget_animation(anim: Animation, src_skel: Skeleton3D, src_basis: Basis
 				var pos: Vector3 = out.track_get_key_value(i, k)
 				var dv := s_par * (pos - s_rest.origin)
 				var np := d_rest.origin + (d_par.inverse() * dv) * ratio
+				if in_place:
+					# Keep the body over the capsule - attacks that lunge forward
+					# would otherwise leave the model ahead of the player and snap back.
+					np.x = d_rest.origin.x
+					np.z = d_rest.origin.z
 				out.track_set_key_value(i, k, np)
 		out.track_set_path(i, NodePath(str(skel_rel_path) + ":" + dst_name))
 	return out
@@ -672,15 +705,14 @@ func _load_mixamo_locomotion() -> void:
 	var anim_root := _anim.get_node(_anim.root_node)
 	var skel_path := anim_root.get_path_to(_skeleton)
 
-	# Map of (PackedScene → target clip name). Uncomment Walk/Sprint once downloaded.
-	var clip_map: Array = [
-		[MIXAMO_IDLE_SCENE,   "Idle"],
-		# [MIXAMO_WALK_SCENE,   "Walk"],
-		# [MIXAMO_SPRINT_SCENE, "Sprint"],
-	]
-	for pair in clip_map:
-		var scene_res: PackedScene = pair[0]
-		var target_name: String    = pair[1]
+	for target_name in MIXAMO_CLIPS:
+		var path: String = MIXAMO_DIR + MIXAMO_CLIPS[target_name]
+		if not ResourceLoader.exists(path):
+			print("[DEV] Mixamo clip missing: ", path)
+			continue
+		var scene_res := load(path) as PackedScene
+		if scene_res == null:
+			continue
 		var temp: Node = scene_res.instantiate()
 		var src_ap := _find_anim_player(temp)
 		var src_skel := _find_skeleton(temp)
@@ -696,12 +728,13 @@ func _load_mixamo_locomotion() -> void:
 				var src_anim: Animation = src_lib.get_animation(src_name)
 				var anim: Animation
 				if src_skel != null:
-					anim = _retarget_animation(src_anim, src_skel, src_basis, _map_mixamo_bone, skel_path)
+					anim = _retarget_animation(src_anim, src_skel, src_basis, _map_mixamo_bone, skel_path, true)
 				else:
 					anim = src_anim.duplicate(true)
 				# Remove the Quaternius-retargeted version (if any) and replace with Mixamo
 				if dst_lib.has_animation(target_name):
 					dst_lib.remove_animation(target_name)
+				anim.loop_mode = Animation.LOOP_LINEAR if target_name in ["Idle", "Walk", "Sprint"] else Animation.LOOP_NONE
 				dst_lib.add_animation(target_name, anim)
 				print("[DEV] Mixamo ", src_name, " → ", target_name, " (", anim.get_track_count(), " tracks)")
 				found = true
@@ -778,6 +811,9 @@ func set_health(value: int) -> void:
 
 func _die() -> void:
 	_is_dead = true
+	if _anim and _anim.has_animation("Mx_KnockedOut"):
+		_anim.get_animation("Mx_KnockedOut").loop_mode = Animation.LOOP_NONE
+		_play_clip("Mx_KnockedOut")
 	player_died.emit()
 	await get_tree().create_timer(3.0).timeout
 	_respawn()
@@ -975,16 +1011,35 @@ func _apply_melee_hit(damage: int) -> void:
 			target.take_damage(damage)
 
 func _play_swing_anim() -> void:
-	if _sword_equipped:
+	if _sword_equipped and not is_on_floor() and _play_clip("Mx_JumpAttack"):
+		_spawn_slash_vfx()
+	elif _sword_equipped and Input.is_action_pressed("sprint") and Vector2(velocity.x, velocity.z).length() > MOVE_SPEED and _play_clip("Mx_RunJumpAttack"):
+		_spawn_slash_vfx()
+	elif _sword_equipped:
 		_play_sword_combo_hit()
 	elif _axe_equipped:
 		_play_axe_chop()
 	else:
-		var anim_name := "Punch_Cross"
-		if _anim and _anim.has_animation(anim_name):
-			_anim.stop()
-			_anim.play(anim_name, 0.05, 1.6)
-			_attack_anim_time = _anim.get_animation(anim_name).length / 1.6
+		# Unarmed: punch -> punch -> side kick, same combo window as the sword
+		if _combo_reset_timer <= 0.0:
+			_combo_index = 0
+		var clip: String = UNARMED_COMBO[_combo_index % UNARMED_COMBO.size()]
+		if not _play_clip(clip):
+			_play_clip("Punch_Cross")
+		_combo_reset_timer = _attack_anim_time + COMBO_WINDOW
+		_combo_index = (_combo_index + 1) % UNARMED_COMBO.size()
+
+
+## Plays a one-shot clip at its CLIP_SPEED and holds off idle/walk until it ends.
+func _play_clip(clip: String) -> bool:
+	if _anim == null or not _anim.has_animation(clip):
+		return false
+	var spd: float = CLIP_SPEED.get(clip, 1.6)
+	_pending_recovery = ""
+	_anim.stop()
+	_anim.play(clip, 0.1, spd)
+	_attack_anim_time = _anim.get_animation(clip).length / spd
+	return true
 
 
 func _play_axe_chop() -> void:
@@ -1011,9 +1066,10 @@ func _play_sword_combo_hit() -> void:
 	var hit_anim := SWORD_COMBO_ANIMS[_combo_index]
 	var rec_anim := SWORD_COMBO_RECOVERIES[_combo_index]
 	if _anim and _anim.has_animation(hit_anim):
+		var spd: float = CLIP_SPEED.get(hit_anim, 1.6)
 		_anim.stop()
-		_anim.play(hit_anim, 0.05, 1.6)
-		var hit_length: float = _anim.get_animation(hit_anim).length / 1.6
+		_anim.play(hit_anim, 0.1, spd)
+		var hit_length: float = _anim.get_animation(hit_anim).length / spd
 		# Slightly longer than the clip so it finishes (and its recovery clip can
 		# start) before the idle/walk logic takes over.
 		_attack_anim_time = hit_length + 0.1
