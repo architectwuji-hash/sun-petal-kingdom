@@ -62,6 +62,13 @@ const SWORD_GLOW_SHADER := preload("res://assets/shaders/enchanted_fresnel.gdsha
 # and a soft pulsing light rather than swapping in a mismatched asset pack.
 const SWORD_ANIM_LIBRARY_SCENE := preload("res://assets/animations/quaternius/UAL1_Standard.glb")
 const SWORD_ANIM_LIBRARY_SCENE_2 := preload("res://assets/animations/quaternius/UAL2_Standard.glb")
+# Mixamo locomotion animations for Gomushi — proper rig match, no retargeting
+# distortion. Gomushi was auto-rigged by Mixamo so its skeleton bones match exactly.
+# To add Walk/Sprint: go to Mixamo → upload this same Idle.fbx → pick the animation
+# → download WITHOUT SKIN → save as Walk.fbx / Sprint.fbx in this same folder.
+const MIXAMO_IDLE_SCENE := preload("res://assets/animations/mixamo/Idle.fbx")
+# const MIXAMO_WALK_SCENE   := preload("res://assets/animations/mixamo/Walk.fbx")
+# const MIXAMO_SPRINT_SCENE := preload("res://assets/animations/mixamo/Sprint.fbx")
 # Universal Animation Library 2's actual 3-hit sword combo (same rig, same
 # retargeting trick as the first library) - A -> B -> C, each of the first
 # two followed by its own recovery clip if the player doesn't chain into the
@@ -164,6 +171,7 @@ func _ready() -> void:
 			_char_model.add_child(_anim)
 	if _anim:
 		_merge_animation_library()
+		_load_mixamo_locomotion()   # overrides Idle/Walk/Sprint with proper Mixamo versions
 		# UAL clips use plain names (Idle, Walk, Sprint — no _Loop suffix)
 		for loop_name in ["Idle", "Walk", "Sprint", "Jog_Fwd", "Swim_Fwd", "Swim_Idle", "Sword_Idle", "Crouch_Idle", "Crouch_Fwd"]:
 			if _anim.has_animation(loop_name):
@@ -544,6 +552,59 @@ func _merge_animation_library() -> void:
 			var chk_anim := dst_lib.get_animation(chk_name)
 			print("[DEV] ", chk_name, " track_count=", chk_anim.get_track_count(), " sample_path=", str(chk_anim.track_get_path(0)) if chk_anim.get_track_count() > 0 else "none")
 			break
+
+func _load_mixamo_locomotion() -> void:
+	# Load locomotion animations from Mixamo FBX files and apply them to Gomushi's
+	# skeleton. Since Gomushi was auto-rigged by Mixamo, the bone names match exactly
+	# after stripping the "mixamorig:" prefix — no remapping table needed.
+	# Each Mixamo FBX contains one animation named "mixamo.com"; we rename it to
+	# the clip name we actually use ("Idle", "Walk", "Sprint").
+	if not _anim or not _skeleton:
+		return
+	if not _anim.has_animation_library(""):
+		_anim.add_animation_library("", AnimationLibrary.new())
+	var dst_lib := _anim.get_animation_library("")
+	var anim_root := _anim.get_node(_anim.root_node)
+	var skel_path := anim_root.get_path_to(_skeleton)
+
+	# Map of (PackedScene → target clip name). Uncomment Walk/Sprint once downloaded.
+	var clip_map: Array = [
+		[MIXAMO_IDLE_SCENE,   "Idle"],
+		# [MIXAMO_WALK_SCENE,   "Walk"],
+		# [MIXAMO_SPRINT_SCENE, "Sprint"],
+	]
+	for pair in clip_map:
+		var scene_res: PackedScene = pair[0]
+		var target_name: String    = pair[1]
+		var temp: Node = scene_res.instantiate()
+		var src_ap := _find_anim_player(temp)
+		if not src_ap:
+			temp.queue_free()
+			print("[DEV] Mixamo FBX for ", target_name, " has no AnimationPlayer")
+			continue
+		var found := false
+		for lib_name in src_ap.get_animation_library_list():
+			var src_lib := src_ap.get_animation_library(lib_name)
+			for src_name in src_lib.get_animation_list():
+				var anim: Animation = src_lib.get_animation(src_name).duplicate(true)
+				# Rewrite every track's bone path to point at our player's skeleton.
+				# Mixamo track paths include "mixamorig:" in the bone subname; strip it
+				# so it matches the already-stripped names on Gomushi's skeleton.
+				for i in anim.get_track_count():
+					var bone := anim.track_get_path(i).get_concatenated_subnames()
+					if bone.begins_with("mixamorig:") or bone.begins_with("mixamorig_"):
+						bone = bone.substr(10)
+					anim.track_set_path(i, NodePath(str(skel_path) + ":" + bone))
+				# Remove the Quaternius-retargeted version (if any) and replace with Mixamo
+				if dst_lib.has_animation(target_name):
+					dst_lib.remove_animation(target_name)
+				dst_lib.add_animation(target_name, anim)
+				print("[DEV] Mixamo ", src_name, " → ", target_name, " (", anim.get_track_count(), " tracks)")
+				found = true
+				break
+			if found:
+				break
+		temp.queue_free()
 
 func _toggle_dev_inspect() -> void:
 	# DEV TOOL ONLY - not part of the shipped game.
