@@ -466,8 +466,8 @@ func _strip_mixamo_prefix() -> void:
 	# interpreted as two subnames ("mixamorig" + "Hips") and the bone lookup
 	# silently fails — animations play but nothing moves.
 	# Stripping the prefix at runtime gives clean names ("Hips", "Spine", …)
-	# that resolve correctly.  Mesh skinning binds by bone INDEX, not name,
-	# so renaming never breaks the mesh.
+	# that resolve correctly.  Mesh skin binds use bone NAMES, so _fix_skin_bind_names()
+	# renames those to match.
 	if not _skeleton:
 		return
 	var stripped := false
@@ -481,11 +481,32 @@ func _strip_mixamo_prefix() -> void:
 			stripped = true
 	if stripped:
 		print("[DEV] Stripped mixamorig prefix from skeleton bones")
+		# glTF imports bind the mesh skin to bones BY NAME, so after renaming
+		# the bones we must rename the skin binds too — otherwise every vertex
+		# loses its bone and the whole body collapses into a tiny blob.
+		_fix_skin_bind_names(_char_model)
 	# Always print bone names so we can verify what Godot loaded / renamed
 	var bone_names: Array = []
 	for i in min(_skeleton.get_bone_count(), 20):
 		bone_names.append(_skeleton.get_bone_name(i))
 	print("[DEV] Skeleton bones (", _skeleton.get_bone_count(), " total, first 20): ", bone_names)
+
+func _fix_skin_bind_names(node: Node) -> void:
+	if node is MeshInstance3D:
+		var mi := node as MeshInstance3D
+		if mi.skin != null:
+			var sk: Skin = mi.skin.duplicate()
+			var changed := false
+			for b in sk.get_bind_count():
+				var bn := String(sk.get_bind_name(b))
+				if bn.begins_with("mixamorig:") or bn.begins_with("mixamorig_"):
+					sk.set_bind_name(b, bn.substr(10))
+					changed = true
+			if changed:
+				mi.skin = sk   # reassigning forces the skeleton to re-register the skin
+				print("[DEV] Fixed skin bind names on ", mi.name)
+	for c in node.get_children():
+		_fix_skin_bind_names(c)
 
 func _merge_animation_library() -> void:
 	# The base character ships with no animations of its own - pull them in
