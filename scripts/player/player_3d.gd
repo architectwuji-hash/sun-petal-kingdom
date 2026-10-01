@@ -73,6 +73,9 @@ const MIXAMO_DIR := "res://assets/animations/mixamo/"
 # "Walk": "Walk.fbx", "Sprint": "Sprint.fbx" here.
 const MIXAMO_CLIPS := {
 	"Idle": "Idle.fbx",
+	"Walk": "Walk.fbx",
+	"Sprint": "Sprint.fbx",
+	"RunBackward": "RunBackward.fbx",
 	"Mx_ThrustSlash": "ThrustSlash.fbx",
 	"Mx_HeavySwing": "HeavyWeaponSwing.fbx",
 	"Mx_MeleeCombo": "MeleeComboAttack.fbx",
@@ -734,7 +737,7 @@ func _load_mixamo_locomotion() -> void:
 				# Remove the Quaternius-retargeted version (if any) and replace with Mixamo
 				if dst_lib.has_animation(target_name):
 					dst_lib.remove_animation(target_name)
-				anim.loop_mode = Animation.LOOP_LINEAR if target_name in ["Idle", "Walk", "Sprint"] else Animation.LOOP_NONE
+				anim.loop_mode = Animation.LOOP_LINEAR if target_name in ["Idle", "Walk", "Sprint", "RunBackward"] else Animation.LOOP_NONE
 				dst_lib.add_animation(target_name, anim)
 				print("[DEV] Mixamo ", src_name, " → ", target_name, " (", anim.get_track_count(), " tracks)")
 				found = true
@@ -790,7 +793,11 @@ func _update_locomotion_anim(delta: float) -> void:
 	# still (Sword_Idle) - no sword-specific walk/sprint - so we use it
 	# only at rest and fall back to the normal locomotion loops otherwise.
 	var want := "Sword_Idle" if (_sword_equipped or _axe_equipped) else "Idle"
-	if flat_speed > MOVE_SPEED + 0.5:
+	# Moving backwards relative to where the player faces -> backpedal clip
+	var local_vel := global_transform.basis.inverse() * Vector3(velocity.x, 0, velocity.z)
+	if flat_speed > 0.3 and local_vel.z > 0.3 and _anim.has_animation("RunBackward"):
+		want = "RunBackward"
+	elif flat_speed > MOVE_SPEED + 0.5:
 		want = "Sprint"
 	elif flat_speed > 0.3:
 		want = "Walk"
