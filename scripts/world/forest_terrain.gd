@@ -8,6 +8,7 @@ class_name ForestTerrain
 ## in the editor and in-game. To make the map bigger, just raise `map_size`.
 
 const CELL := 1.5
+const CHUNK := 50.0   # size of each draw tile (metres)
 const NATURE := "res://assets/models/nature/"
 
 const TREES := {
@@ -36,6 +37,10 @@ const COL_FOREST := Color(0.17, 0.30, 0.12)
 const COL_DIRT := Color(0.46, 0.34, 0.21)
 const COL_ROCK := Color(0.33, 0.35, 0.29)
 
+## How far away each kind of prop is still drawn. Lower = faster.
+@export var tree_draw_distance: float = 90.0
+@export var decor_draw_distance: float = 50.0
+@export var grass_draw_distance: float = 30.0
 @export var map_size: int = 600:
 	set(v):
 		map_size = maxi(30, v)
@@ -81,7 +86,7 @@ var _forest := FastNoiseLite.new()
 var _root: Node3D = null
 var _regen_pending := false
 var _part_cache: Dictionary = {}
-var _mm_parts: Dictionary = {}   # model -> Array of [MultiMesh, part_offset]
+var _mm_parts: Dictionary = {}   # model -> {offsets, lookup (global idx -> [chunk, local idx]), chunks}
 var _harvest: Array = []         # one Dictionary per choppable tree
 
 
@@ -238,10 +243,15 @@ func _build_ground() -> void:
 	var mi := MeshInstance3D.new()
 	mi.name = "Ground"
 	mi.mesh = mesh
+	# Ground receives shadows but doesn't cast them - skips re-drawing the
+	# whole 600 m terrain into the shadow map every frame.
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_root.add_child(mi)
 
 	var body := StaticBody3D.new()
 	body.name = "GroundCollision"
+	# Scale body so each HeightMapShape3D cell = CELL units (1.5), matching the visual mesh
+	body.scale = Vector3(CELL, 1.0, CELL)
 	var shape := HeightMapShape3D.new()
 	shape.map_width = n
 	shape.map_depth = n
@@ -405,22 +415,56 @@ func _add_cylinder(parent: Node3D, x: float, z: float, radius: float, height: fl
 
 
 func _build_multimesh(model: String, xforms: Array, shadows: bool) -> void:
+	# The map is split into CHUNK-sized tiles, one MultiMesh per tile per model
+	# part. Each tile gets a visibility range, so Godot only draws (and only
+	# renders shadows for) the tiles near the camera instead of the whole
+	# 600 m forest every frame.
 	var parts := _get_parts(model)
+	var draw_dist := _draw_distance(model)
+	var by_chunk: Dictionary = {}   # Vector2i -> Array[int] (global indices)
+	var lookup: Array = []
+	lookup.resize(xforms.size())
+	for k in xforms.size():
+		var o: Vector3 = (xforms[k] as Transform3D).origin
+		var key := Vector2i(floori(o.x / CHUNK), floori(o.z / CHUNK))
+		if not by_chunk.has(key):
+			by_chunk[key] = []
+		lookup[k] = [key, by_chunk[key].size()]
+		by_chunk[key].append(k)
+	var entry := {"offsets": [], "lookup": lookup, "chunks": {}}
 	for part in parts:
-		var mm := MultiMesh.new()
-		mm.transform_format = MultiMesh.TRANSFORM_3D
-		mm.mesh = part[0]
-		mm.instance_count = xforms.size()
-		for k in xforms.size():
-			mm.set_instance_transform(k, (xforms[k] as Transform3D) * (part[1] as Transform3D))
-		var mmi := MultiMeshInstance3D.new()
-		mmi.name = model.get_basename()
-		mmi.multimesh = mm
-		if not _mm_parts.has(model):
-			_mm_parts[model] = []
-		_mm_parts[model].append([mm, part[1]])
-		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shadows else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		_root.add_child(mmi)
+		entry["offsets"].append(part[1])
+	for key in by_chunk:
+		var ids: Array = by_chunk[key]
+		var mms: Array = []
+		for pi in parts.size():
+			var part: Array = parts[pi]
+			var mm := MultiMesh.new()
+			mm.transform_format = MultiMesh.TRANSFORM_3D
+			mm.mesh = part[0]
+			mm.instance_count = ids.size()
+			for li in ids.size():
+				mm.set_instance_transform(li, (xforms[ids[li]] as Transform3D) * (part[1] as Transform3D))
+			var mmi := MultiMeshInstance3D.new()
+			mmi.name = "%s_p%d_%d_%d" % [model.get_basename(), pi, key.x, key.y]
+			mmi.set_meta("chunk_center", Vector2((key.x + 0.5) * CHUNK, (key.y + 0.5) * CHUNK))
+			mmi.multimesh = mm
+			mmi.visibility_range_end = draw_dist
+			mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shadows else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			_root.add_child(mmi)
+			mms.append(mm)
+		entry["chunks"][key] = mms
+	_mm_parts[model] = entry
+
+
+func _draw_distance(model: String) -> float:
+	if TREES.has(model) or DEAD_TREES.has(model):
+		return tree_draw_distance
+	if GRASS.has(model):
+		return grass_draw_distance
+	if FLOWERS.has(model):
+		return grass_draw_distance * 1.4
+	return decor_draw_distance
 
 
 ## Pulls every mesh (and its local offset) out of an imported model, and swaps
@@ -567,8 +611,13 @@ func chop_at(point: Vector3, reach: float, chopper: Node3D) -> bool:
 
 
 func _set_tree_xform(tree: Dictionary, xf: Transform3D) -> void:
-	for part in _mm_parts.get(tree["model"], []):
-		(part[0] as MultiMesh).set_instance_transform(tree["idx"], xf * (part[1] as Transform3D))
+	var entry: Dictionary = _mm_parts.get(tree["model"], {})
+	if entry.is_empty():
+		return
+	var loc: Array = entry["lookup"][tree["idx"]]
+	var mms: Array = entry["chunks"][loc[0]]
+	for i in mms.size():
+		(mms[i] as MultiMesh).set_instance_transform(loc[1], xf * (entry["offsets"][i] as Transform3D))
 
 
 ## Tilts the tree around its base, away from `chopper`, by `angle` radians.

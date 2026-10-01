@@ -84,6 +84,9 @@ func _ready() -> void:
 	if weather_scene:
 		var weather := weather_scene.instantiate()
 		weather.name = "WeatherSystem"
+		# Keep enough fog that trees fade out before the draw-distance cutoff
+		if "min_fog_density" in weather:
+			weather.min_fog_density = 0.014
 		add_child(weather)
 	#_spawn_trees()
 	#_spawn_decor()

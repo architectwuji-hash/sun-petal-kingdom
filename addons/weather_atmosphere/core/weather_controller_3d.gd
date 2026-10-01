@@ -38,6 +38,8 @@ const QUALITY_PARTICLE_SCALES := {
 
 @export_group("Environment Ownership")
 @export var manage_environment := true
+## Fog never drops below this, so distant scenery fades out instead of popping in.
+@export_range(0.0, 1.0, 0.001) var min_fog_density := 0.0
 @export var duplicate_environment_on_ready := true
 
 @export_group("Forward+ Enhancement")
@@ -282,7 +284,7 @@ func _apply_runtime_state() -> void:
 	var state := get_effective_state()
 	if manage_environment and world_environment != null and world_environment.environment != null:
 		var environment := world_environment.environment
-		var density := clampf(float(state["fog_density"]), 0.0, 1.0)
+		var density := clampf(maxf(float(state["fog_density"]), min_fog_density), 0.0, 1.0)
 		environment.fog_enabled = density > 0.0001 or float(state["fog_height_density"]) > 0.0001
 		environment.fog_density = density
 		environment.fog_light_color = state["fog_color"]
