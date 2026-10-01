@@ -5,8 +5,10 @@ signal player_died
 ## Emitted when the player makes noise enemies can hear.
 ## origin = world position of the sound, volume 0.0–1.0 scales hearing radius.
 signal made_noise(origin: Vector3, volume: float)
-## Fence section scene used by build mode.
-const FENCE_SCENE := preload("res://scenes/objects/Fence3D.tscn")
+## Wall scenes used by build mode.
+const WOOD_WALL_SCENE  := preload("res://scenes/objects/WoodWall3D.tscn")
+const STONE_WALL_SCENE := preload("res://scenes/objects/StoneWall3D.tscn")
+enum BuildItem { WOOD_WALL, STONE_WALL }
 
 # ── tunables ──────────────────────────────────────────────────────────────────
 const MOVE_SPEED:   float = 6.0
@@ -33,6 +35,25 @@ var _attack_anim_time: float = 0.0
 var _dev_inspect_mode: bool = false
 var _sprint_noise_timer: float = 0.0
 const _SPRINT_NOISE_INTERVAL := 1.2   ## seconds between sprint pings
+# Remap Quaternius UAL bone names → Mixamo bone names (after stripping "mixamorig:" prefix).
+# We strip that prefix at runtime because Godot's NodePath uses ":" as a separator, so a
+# bone named "mixamorig:Hips" inside a track path "Skeleton3D:mixamorig:Hips" is parsed as
+# two subnames ("mixamorig" + "Hips") and the lookup silently fails.  Stripped names like
+# "Hips" contain no colon and resolve correctly.  Mesh skinning uses bone *indices* not
+# names, so renaming at runtime does not break the mesh.
+const BONE_REMAP_Q_TO_MIXAMO: Dictionary = {
+	"pelvis": "Hips", "spine_01": "Spine",
+	"spine_02": "Spine1", "spine_03": "Spine2",
+	"clavicle_l": "LeftShoulder", "upperarm_l": "LeftArm",
+	"lowerarm_l": "LeftForeArm", "hand_l": "LeftHand",
+	"clavicle_r": "RightShoulder", "upperarm_r": "RightArm",
+	"lowerarm_r": "RightForeArm", "hand_r": "RightHand",
+	"thigh_l": "LeftUpLeg", "calf_l": "LeftLeg",
+	"foot_l": "LeftFoot", "ball_l": "LeftToeBase",
+	"thigh_r": "RightUpLeg", "calf_r": "RightLeg",
+	"foot_r": "RightFoot", "ball_r": "RightToeBase",
+	"neck_01": "Neck", "head": "Head",
+}
 const SWORD_SCENE := preload("res://assets/models/weapons/quaternius_sword_golden.gltf")
 const SWORD_GLOW_SHADER := preload("res://assets/shaders/enchanted_fresnel.gdshader")
 # Bronze/plain versions of this same pack's swords didn't read as "mythical" -
@@ -93,13 +114,16 @@ var inventory: Dictionary = {
 	"souls":      0,
 	"monkey_fur": 0,
 	"wood":       0,
+	"stone":      0,
 }
 
 # ── build mode ──────────────────────────────────────────────────────────────
-const FENCE_WOOD_COST   := 3          ## wood needed to place one fence section
-const FENCE_PLACE_DIST  := 3.5        ## metres in front of player
-var _build_mode:  bool    = false
-var _ghost_fence: Node3D  = null      ## semi-transparent preview
+const WALL_WOOD_COST    := 3          ## wood needed to place one wood wall
+const WALL_STONE_COST   := 5          ## stone needed to place one stone wall
+const WALL_PLACE_DIST   := 3.5        ## metres in front of player
+var _build_mode:  bool      = false
+var _build_item:  BuildItem = BuildItem.WOOD_WALL
+var _ghost_wall:  Node3D    = null    ## semi-transparent preview
 var _place_ray:   RayCast3D = null    ## ground-snapping ray
 
 func _ready() -> void:
@@ -125,6 +149,9 @@ func _ready() -> void:
 	if _char_model:
 		_anim = _find_anim_player(_char_model)
 		_skeleton = _find_skeleton(_char_model)
+		# Strip "mixamorig:" prefix from Mixamo bone names so NodePath parsing
+		# works correctly (colons in bone names break track path resolution).
+		_strip_mixamo_prefix()
 		if _anim == null:
 			# The base character ships with zero animations of its own, so
 			# Godot's glTF import won't have created an AnimationPlayer for
@@ -137,11 +164,12 @@ func _ready() -> void:
 			_char_model.add_child(_anim)
 	if _anim:
 		_merge_animation_library()
-		for loop_name in ["Idle", "Walk", "Sprint", "Sword_Idle"]:
+		# UAL clips use plain names (Idle, Walk, Sprint — no _Loop suffix)
+		for loop_name in ["Idle", "Walk", "Sprint", "Jog_Fwd", "Swim_Fwd", "Swim_Idle", "Sword_Idle", "Crouch_Idle", "Crouch_Fwd"]:
 			if _anim.has_animation(loop_name):
 				_anim.get_animation(loop_name).loop_mode = Animation.LOOP_LINEAR
-		if _anim.has_animation("TreeChopping_Loop"):
-			_anim.get_animation("TreeChopping_Loop").loop_mode = Animation.LOOP_NONE
+		if _anim.has_animation("TreeChopping"):
+			_anim.get_animation("TreeChopping").loop_mode = Animation.LOOP_NONE
 		_anim.play("Idle")
 		_anim.animation_finished.connect(_on_anim_finished)
 	# New rig (Quaternius Universal Base Character) has a real elbow and
@@ -175,6 +203,7 @@ func _input(event: InputEvent) -> void:
 			KEY_Q:     _switch_weapon()
 			KEY_P:     _toggle_dev_inspect()
 			KEY_B:     _toggle_build_mode()
+			KEY_R:     _cycle_build_item()
 			KEY_ESCAPE:
 				if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 					Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
@@ -182,7 +211,7 @@ func _input(event: InputEvent) -> void:
 					Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if _build_mode:
-			_place_fence()
+			_place_build_item()
 		else:
 			_do_attack()
 	if event.is_action_pressed("ui_accept"):
@@ -238,13 +267,15 @@ func _attach_sword() -> void:
 	if not _skeleton:
 		print("Sword attach failed: no Skeleton3D found on character model")
 		return
-	var bone_idx := _skeleton.find_bone("hand_r")
+	# After _strip_mixamo_prefix(), Mixamo rig has "RightHand"; Quaternius has "hand_r"
+	var _hand_bone_r := "RightHand" if _skeleton.find_bone("RightHand") != -1 else "hand_r"
+	var bone_idx := _skeleton.find_bone(_hand_bone_r)
 	if bone_idx == -1:
-		print("Sword attach failed: hand_r bone not found")
+		print("Sword attach failed: no right hand bone found")
 		return
 	var attach := BoneAttachment3D.new()
 	attach.name = "SwordAttachment"
-	attach.bone_name = "hand_r"
+	attach.bone_name = _hand_bone_r
 	_skeleton.add_child(attach)
 	_sword = SWORD_SCENE.instantiate()
 	attach.add_child(_sword)
@@ -272,12 +303,12 @@ func _attach_sword() -> void:
 func _attach_axe() -> void:
 	if not _skeleton:
 		return
-	var bone_idx := _skeleton.find_bone("hand_r")
-	if bone_idx == -1:
+	var _hand_bone_r2 := "RightHand" if _skeleton.find_bone("RightHand") != -1 else "hand_r"
+	if _skeleton.find_bone(_hand_bone_r2) == -1:
 		return
 	var attach := BoneAttachment3D.new()
 	attach.name = "AxeAttachment"
-	attach.bone_name = "hand_r"
+	attach.bone_name = _hand_bone_r2
 	_skeleton.add_child(attach)
 	_axe = AXE_SCENE.instantiate()
 	attach.add_child(_axe)
@@ -316,7 +347,10 @@ func _switch_weapon() -> void:
 
 func _attach_outfit() -> void:
 	if not _skeleton:
-		print("Outfit attach failed: no Skeleton3D found on character model")
+		return
+	# Quaternius Ranger outfit only fits the Quaternius Universal Base Character rig
+	if _skeleton.find_bone("hand_r") == -1:
+		print("[DEV] Skipping Ranger outfit — not a Quaternius rig")
 		return
 	for scene in [OUTFIT_BODY_SCENE, OUTFIT_ARMS_SCENE, OUTFIT_LEGS_SCENE, OUTFIT_FEET_SCENE, OUTFIT_HOOD_SCENE, OUTFIT_PAULDRON_SCENE]:
 		_graft_outfit_piece(scene)
@@ -418,6 +452,33 @@ func _find_skeleton(node: Node) -> Skeleton3D:
 			return found
 	return null
 
+func _strip_mixamo_prefix() -> void:
+	# Godot NodePath uses ":" as a subname separator, so a bone named
+	# "mixamorig:Hips" inside a track path "Skeleton3D:mixamorig:Hips" is
+	# interpreted as two subnames ("mixamorig" + "Hips") and the bone lookup
+	# silently fails — animations play but nothing moves.
+	# Stripping the prefix at runtime gives clean names ("Hips", "Spine", …)
+	# that resolve correctly.  Mesh skinning binds by bone INDEX, not name,
+	# so renaming never breaks the mesh.
+	if not _skeleton:
+		return
+	var stripped := false
+	for i in _skeleton.get_bone_count():
+		var bname := _skeleton.get_bone_name(i)
+		# Tripo3D exports with underscore separator ("mixamorig_Hips");
+		# standard Mixamo exports use colon ("mixamorig:Hips").
+		# Both prefixes are 10 characters, so substr(10) strips either one.
+		if bname.begins_with("mixamorig:") or bname.begins_with("mixamorig_"):
+			_skeleton.set_bone_name(i, bname.substr(10))
+			stripped = true
+	if stripped:
+		print("[DEV] Stripped mixamorig prefix from skeleton bones")
+	# Always print bone names so we can verify what Godot loaded / renamed
+	var bone_names: Array = []
+	for i in min(_skeleton.get_bone_count(), 20):
+		bone_names.append(_skeleton.get_bone_name(i))
+	print("[DEV] Skeleton bones (", _skeleton.get_bone_count(), " total, first 20): ", bone_names)
+
 func _merge_animation_library() -> void:
 	# The base character ships with no animations of its own - pull them in
 	# from Quaternius's separate Universal Animation Library glb at runtime
@@ -463,14 +524,26 @@ func _merge_animation_library() -> void:
 					var anim: Animation = src_lib.get_animation(anim_name).duplicate(true)
 					for i in anim.get_track_count():
 						var bone_subpath := anim.track_get_path(i).get_concatenated_subnames()
+						# Per-track bone resolution: try the UAL name directly in our skeleton;
+						# if not found, try the Mixamo-mapped name; fall back to original.
+						# This handles both same-rig (Quaternius→Quaternius, no remap) and
+						# cross-rig (Quaternius UAL → Mixamo Gomushi, remap to Hips/Spine/…).
+						if _skeleton.find_bone(bone_subpath) == -1 and BONE_REMAP_Q_TO_MIXAMO.has(bone_subpath):
+							var remapped: String = BONE_REMAP_Q_TO_MIXAMO[bone_subpath]
+							if _skeleton.find_bone(remapped) != -1:
+								bone_subpath = remapped
 						anim.track_set_path(i, NodePath(str(skel_rel_path) + ":" + bone_subpath))
 					dst_lib.add_animation(anim_name, anim)
 		lib_scene.queue_free()
 	print("[DEV] Animations merged: ", dst_lib.get_animation_list())
 	print("[DEV] anim_root=", anim_root.name, " skeleton=", _skeleton.name, " skel_rel_path=", skel_rel_path)
-	if dst_lib.has_animation("Idle"):
-		var idle_anim := dst_lib.get_animation("Idle")
-		print("[DEV] Idle track_count=", idle_anim.get_track_count(), " sample_path=", str(idle_anim.track_get_path(0)) if idle_anim.get_track_count() > 0 else "none")
+	var uses_mixamo := _skeleton.find_bone("Hips") != -1 and _skeleton.find_bone("pelvis") == -1
+	print("[DEV] uses_mixamo=", uses_mixamo, "  Hips_idx=", _skeleton.find_bone("Hips"), "  pelvis_idx=", _skeleton.find_bone("pelvis"))
+	for chk_name in ["Idle_Loop", "Idle"]:
+		if dst_lib.has_animation(chk_name):
+			var chk_anim := dst_lib.get_animation(chk_name)
+			print("[DEV] ", chk_name, " track_count=", chk_anim.get_track_count(), " sample_path=", str(chk_anim.track_get_path(0)) if chk_anim.get_track_count() > 0 else "none")
+			break
 
 func _toggle_dev_inspect() -> void:
 	# DEV TOOL ONLY - not part of the shipped game.
@@ -581,64 +654,85 @@ func get_item_count(item: String) -> int:
 func _toggle_build_mode() -> void:
 	_build_mode = not _build_mode
 	if _build_mode:
-		# Lazily create the downward ray for ground-snapping
 		if _place_ray == null:
 			_place_ray = RayCast3D.new()
 			_place_ray.name = "PlaceRay"
 			_place_ray.target_position = Vector3(0, -10, 0)
 			_place_ray.enabled = true
 			add_child(_place_ray)
-		# Spawn ghost preview
-		_ghost_fence = FENCE_SCENE.instantiate()
-		_ghost_fence.name = "GhostFence"
-		# Make every mesh in the ghost translucent
-		for m in _ghost_fence.find_children("*", "MeshInstance3D", true, false):
-			var mat: Material = m.get_active_material(0)
-			if mat:
-				var ghost_mat := mat.duplicate() as BaseMaterial3D
-				if ghost_mat:
-					ghost_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-					ghost_mat.albedo_color.a = 0.45
-					m.set_surface_override_material(0, ghost_mat)
-		# Disable collision on ghost so it does not block movement
-		for col in _ghost_fence.find_children("*", "CollisionShape3D", true, false):
-			col.disabled = true
-		get_tree().root.add_child(_ghost_fence)
-		_show_float_text("Build Mode ON  (B=exit, LClick=place, " + str(FENCE_WOOD_COST) + " Wood each)", global_position + Vector3(0, 3, 0))
+		_spawn_ghost_wall()
+		var cost_str := str(WALL_WOOD_COST) + " Wood" if _build_item == BuildItem.WOOD_WALL else str(WALL_STONE_COST) + " Stone"
+		_show_float_text("Build Mode ON  (B=exit, R=cycle, LClick=place, " + cost_str + ")", global_position + Vector3(0, 3, 0))
 	else:
-		if _ghost_fence:
-			_ghost_fence.queue_free()
-			_ghost_fence = null
+		if _ghost_wall:
+			_ghost_wall.queue_free()
+			_ghost_wall = null
 		_show_float_text("Build Mode OFF", global_position + Vector3(0, 2.5, 0))
 
-func _update_build_mode(_delta: float) -> void:
-	if not _build_mode or _ghost_fence == null:
+func _spawn_ghost_wall() -> void:
+	if _ghost_wall:
+		_ghost_wall.queue_free()
+		_ghost_wall = null
+	var scene := WOOD_WALL_SCENE if _build_item == BuildItem.WOOD_WALL else STONE_WALL_SCENE
+	_ghost_wall = scene.instantiate()
+	_ghost_wall.name = "GhostWall"
+	for m in _ghost_wall.find_children("*", "MeshInstance3D", true, false):
+		var mat: Material = m.get_active_material(0)
+		if mat:
+			var ghost_mat := mat.duplicate() as BaseMaterial3D
+			if ghost_mat:
+				ghost_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+				ghost_mat.albedo_color.a = 0.45
+				m.set_surface_override_material(0, ghost_mat)
+	for col in _ghost_wall.find_children("*", "CollisionShape3D", true, false):
+		col.disabled = true
+	get_tree().root.add_child(_ghost_wall)
+
+func _cycle_build_item() -> void:
+	if not _build_mode:
 		return
-	# Position the ghost in front of the player at ground level
+	_build_item = BuildItem.STONE_WALL if _build_item == BuildItem.WOOD_WALL else BuildItem.WOOD_WALL
+	var name_str := "Stone Wall" if _build_item == BuildItem.STONE_WALL else "Wood Wall"
+	_show_float_text(name_str, global_position + Vector3(0, 2.5, 0))
+	_spawn_ghost_wall()
+
+func _update_build_mode(_delta: float) -> void:
+	if not _build_mode or _ghost_wall == null:
+		return
 	var fwd := -global_transform.basis.z
 	fwd.y = 0.0
 	if fwd.length_squared() > 0.001:
 		fwd = fwd.normalized()
-	var target_xz := global_position + fwd * FENCE_PLACE_DIST
-	# Ground-snap via raycast
+	var target_xz := global_position + fwd * WALL_PLACE_DIST
 	var ground_y := global_position.y
 	if _place_ray and _place_ray.is_colliding():
 		ground_y = _place_ray.get_collision_point().y
-	_ghost_fence.global_position = Vector3(target_xz.x, ground_y, target_xz.z)
-	_ghost_fence.rotation.y = rotation.y
+	_ghost_wall.global_position = Vector3(target_xz.x, ground_y, target_xz.z)
+	_ghost_wall.rotation.y = rotation.y
 
-func _place_fence() -> void:
-	if not _build_mode or _ghost_fence == null:
+func _place_build_item() -> void:
+	if not _build_mode or _ghost_wall == null:
 		return
-	if get_item_count("wood") < FENCE_WOOD_COST:
-		_show_float_text("Need " + str(FENCE_WOOD_COST) + " Wood  (have " + str(get_item_count("wood")) + ")", global_position + Vector3(0, 2.5, 0))
-		return
-	remove_item("wood", FENCE_WOOD_COST)
-	var fence := FENCE_SCENE.instantiate()
-	fence.global_position = _ghost_fence.global_position
-	fence.rotation.y     = _ghost_fence.rotation.y
-	get_tree().root.add_child(fence)
-	_show_float_text("-" + str(FENCE_WOOD_COST) + " Wood  |  Fence placed!", fence.global_position + Vector3(0, 2.5, 0))
+	if _build_item == BuildItem.WOOD_WALL:
+		if get_item_count("wood") < WALL_WOOD_COST:
+			_show_float_text("Need " + str(WALL_WOOD_COST) + " Wood  (have " + str(get_item_count("wood")) + ")", global_position + Vector3(0, 2.5, 0))
+			return
+		remove_item("wood", WALL_WOOD_COST)
+		var wall := WOOD_WALL_SCENE.instantiate()
+		wall.global_position = _ghost_wall.global_position
+		wall.rotation.y = _ghost_wall.rotation.y
+		get_tree().root.add_child(wall)
+		_show_float_text("-" + str(WALL_WOOD_COST) + " Wood  |  Wood Wall placed!", wall.global_position + Vector3(0, 2.5, 0))
+	else:
+		if get_item_count("stone") < WALL_STONE_COST:
+			_show_float_text("Need " + str(WALL_STONE_COST) + " Stone  (have " + str(get_item_count("stone")) + ")", global_position + Vector3(0, 2.5, 0))
+			return
+		remove_item("stone", WALL_STONE_COST)
+		var wall := STONE_WALL_SCENE.instantiate()
+		wall.global_position = _ghost_wall.global_position
+		wall.rotation.y = _ghost_wall.rotation.y
+		get_tree().root.add_child(wall)
+		_show_float_text("-" + str(WALL_STONE_COST) + " Stone  |  Stone Wall placed!", wall.global_position + Vector3(0, 2.5, 0))
 
 func _show_float_text(text: String, world_pos: Vector3) -> void:
 	var lbl := Label3D.new()
@@ -672,6 +766,7 @@ func _do_attack() -> void:
 			return
 		_apply_melee_hit(AXE_DAMAGE)
 		_chop_trees()
+		_mine_rocks()
 		# Axe thud — loud noise that attracts nearby enemies
 		made_noise.emit(global_position, 1.0)
 	else:
@@ -685,6 +780,15 @@ func _chop_trees() -> void:
 		if terrain.has_method("chop_at") and terrain.chop_at(chop_point, 1.8, self):
 			_cam_shake = max(_cam_shake, 0.15)
 			return
+
+func _mine_rocks() -> void:
+	# Only the axe mines rocks. Rocks register themselves in "harvestable_rocks".
+	var mine_point := global_position - global_transform.basis.z * 1.3
+	for rock in get_tree().get_nodes_in_group("harvestable_rocks"):
+		if rock.has_method("mine_at") and rock.mine_at(mine_point, 1.8, self):
+			_cam_shake = max(_cam_shake, 0.15)
+			return
+
 
 func _apply_melee_hit(damage: int) -> void:
 	# Sphere cast in front of player — immediate, no hitbox polling needed

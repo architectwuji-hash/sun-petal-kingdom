@@ -1,0 +1,30 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://addons/weather_atmosphere/core/weather_controller_3d.gd" id="1_controller"]
+[ext_resource type="Script" path="res://addons/weather_atmosphere/components/precipitation_3d.gd" id="2_precipitation"]
+[ext_resource type="Script" path="res://addons/weather_atmosphere/components/lightning_3d.gd" id="3_lightning"]
+[ext_resource type="Script" path="res://addons/weather_atmosphere/components/atmosphere_particles_3d.gd" id="4_atmosphere"]
+[ext_resource type="Script" path="res://addons/weather_atmosphere/components/rain_splash_3d.gd" id="5_splash"]
+[ext_resource type="Script" path="res://addons/weather_atmosphere/components/weather_audio.gd" id="6_audio"]
+[ext_resource type="Script" path="res://addons/weather_atmosphere/debug/wind_visualizer_3d.gd" id="7_wind_debug"]
+
+[node name="WeatherSystem3D" type="Node3D"]
+script = ExtResource("1_controller")
+
+[node name="Precipitation3D" type="Node3D" parent="."]
+script = ExtResource("2_precipitation")
+
+[node name="Lightning3D" type="Node" parent="."]
+script = ExtResource("3_lightning")
+
+[node name="AtmosphereParticles3D" type="Node3D" parent="."]
+script = ExtResource("4_atmosphere")
+
+[node name="RainSplash3D" type="Node3D" parent="."]
+script = ExtResource("5_splash")
+
+[node name="WeatherAudio" type="Node" parent="."]
+script = ExtResource("6_audio")
+
+[node name="WindVisualizer3D" type="Node3D" parent="."]
+script = ExtResource("7_wind_debug")

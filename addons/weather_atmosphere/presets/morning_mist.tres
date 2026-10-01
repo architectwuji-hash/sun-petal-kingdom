@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeatherProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://addons/weather_atmosphere/core/weather_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Morning Mist"
+wind_direction = Vector3(0.96, 0, 0.28)
+wind_speed = 0.8
+gust_strength = 0.08
+gust_frequency = 0.12
+fog_density = 0.006
+fog_color = Color(0.68, 0.73, 0.76, 1)
+fog_height = 1.2
+fog_height_density = 0.012
+mist_intensity = 0.72
+environment_brightness = 0.72
+sun_energy_multiplier = 0.62
+sun_color = Color(1, 0.82, 0.63, 1)
+ambient_tint = Color(0.76, 0.78, 0.75, 1)

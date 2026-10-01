@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="WeatherProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://addons/weather_atmosphere/core/weather_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Heavy Snow"
+precipitation_type = 2
+precipitation_intensity = 0.82
+particle_size_scale = 1.18
+fall_speed_scale = 0.72
+turbulence = 0.85
+precipitation_color = Color(0.91, 0.95, 1, 1)
+wind_direction = Vector3(-0.72, 0, 0.69)
+wind_speed = 5.5
+gust_strength = 0.42
+gust_frequency = 0.48
+fog_density = 0.009
+fog_color = Color(0.65, 0.72, 0.8, 1)
+mist_intensity = 0.32
+environment_brightness = 0.62
+sun_energy_multiplier = 0.55
+sun_color = Color(0.74, 0.82, 0.95, 1)
+ambient_tint = Color(0.7, 0.78, 0.9, 1)
+wind_audio_level = 0.38

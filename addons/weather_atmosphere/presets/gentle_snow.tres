@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="WeatherProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://addons/weather_atmosphere/core/weather_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Gentle Snow"
+precipitation_type = 2
+precipitation_intensity = 0.42
+particle_size_scale = 1.2
+fall_speed_scale = 0.45
+turbulence = 0.55
+precipitation_color = Color(0.92, 0.96, 1, 1)
+wind_direction = Vector3(-0.8, 0, 0.2)
+wind_speed = 2.0
+gust_strength = 0.12
+gust_frequency = 0.15
+fog_density = 0.004
+fog_color = Color(0.67, 0.74, 0.82, 1)
+mist_intensity = 0.18
+environment_brightness = 0.72
+sun_energy_multiplier = 0.78
+sun_color = Color(0.84, 0.9, 1, 1)
+ambient_tint = Color(0.7, 0.78, 0.88, 1)
+wind_audio_level = 0.12

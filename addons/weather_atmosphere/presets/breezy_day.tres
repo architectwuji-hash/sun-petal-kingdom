@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WeatherProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://addons/weather_atmosphere/core/weather_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Breezy Day"
+wind_direction = Vector3(0.86, 0, -0.5)
+wind_speed = 6.5
+gust_strength = 0.38
+gust_frequency = 0.42
+environment_brightness = 1.05
+sun_energy_multiplier = 1.08
+sun_color = Color(1, 0.95, 0.84, 1)
+ambient_tint = Color(0.84, 0.91, 1, 1)
+wind_audio_level = 0.28

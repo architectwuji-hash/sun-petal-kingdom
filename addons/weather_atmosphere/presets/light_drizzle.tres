@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="WeatherProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://addons/weather_atmosphere/core/weather_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Light Drizzle"
+precipitation_type = 1
+precipitation_intensity = 0.24
+particle_size_scale = 0.68
+fall_speed_scale = 0.82
+precipitation_color = Color(0.78, 0.86, 0.94, 0.9)
+wind_direction = Vector3(0.94, 0, 0.34)
+wind_speed = 2.2
+gust_strength = 0.12
+gust_frequency = 0.2
+fog_density = 0.004
+fog_color = Color(0.55, 0.61, 0.67, 1)
+mist_intensity = 0.12
+environment_brightness = 0.8
+sun_energy_multiplier = 0.72
+sun_color = Color(0.78, 0.84, 0.91, 1)
+ambient_tint = Color(0.72, 0.79, 0.87, 1)
+rain_audio_level = 0.22
+wind_audio_level = 0.08

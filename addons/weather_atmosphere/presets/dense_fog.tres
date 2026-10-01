@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="WeatherProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://addons/weather_atmosphere/core/weather_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Dense Fog"
+wind_direction = Vector3(0.7, 0, 0.3)
+wind_speed = 0.35
+fog_density = 0.035
+fog_color = Color(0.52, 0.56, 0.59, 1)
+fog_height = 2.0
+fog_height_density = 0.025
+mist_intensity = 0.95
+environment_brightness = 0.52
+sun_energy_multiplier = 0.38
+sun_color = Color(0.72, 0.75, 0.77, 1)
+ambient_tint = Color(0.61, 0.64, 0.66, 1)

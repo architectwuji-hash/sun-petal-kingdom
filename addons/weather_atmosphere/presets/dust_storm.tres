@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="WeatherProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://addons/weather_atmosphere/core/weather_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Dust Storm"
+precipitation_type = 3
+precipitation_intensity = 0.9
+precipitation_color = Color(0.72, 0.48, 0.24, 1)
+airborne_type = 0
+airborne_size_scale = 1.25
+airborne_buoyancy = 0.08
+wind_direction = Vector3(0.98, 0, 0.18)
+wind_speed = 18.0
+gust_strength = 0.9
+gust_frequency = 1.1
+fog_density = 0.012
+fog_color = Color(0.48, 0.31, 0.18, 1)
+fog_height = 2.0
+fog_height_density = 0.01
+mist_intensity = 0.38
+environment_brightness = 0.5
+sun_energy_multiplier = 0.5
+sun_color = Color(1, 0.64, 0.36, 1)
+ambient_tint = Color(0.62, 0.42, 0.25, 1)
+wind_audio_level = 1.0

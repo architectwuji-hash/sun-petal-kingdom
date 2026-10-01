@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="WeatherProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://addons/weather_atmosphere/core/weather_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Thunderstorm"
+precipitation_type = 1
+precipitation_intensity = 0.95
+particle_size_scale = 1.1
+fall_speed_scale = 1.45
+turbulence = 0.5
+precipitation_color = Color(0.65, 0.76, 0.88, 1)
+wind_direction = Vector3(0.75, 0, 0.66)
+wind_speed = 13.0
+gust_strength = 0.82
+gust_frequency = 0.9
+fog_density = 0.014
+fog_color = Color(0.27, 0.32, 0.4, 1)
+mist_intensity = 0.65
+environment_brightness = 0.42
+sun_energy_multiplier = 0.32
+sun_color = Color(0.56, 0.65, 0.78, 1)
+ambient_tint = Color(0.4, 0.48, 0.6, 1)
+lightning_enabled = true
+lightning_interval_min = 5.0
+lightning_interval_max = 12.0
+lightning_strength = 0.9
+rain_audio_level = 1.0
+wind_audio_level = 0.8
