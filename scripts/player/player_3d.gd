@@ -508,6 +508,84 @@ func _fix_skin_bind_names(node: Node) -> void:
 	for c in node.get_children():
 		_fix_skin_bind_names(c)
 
+
+# ---------------------------------------------------------------------------
+# Retargeting: animations authored on another rig (Quaternius UAL, or a
+# different Mixamo character) store bone rotations relative to THAT rig's rest
+# pose and bone axes. Copying them raw onto Gomushi twists the body (lying
+# sideways, limbs bent wrong). This converts each key into "how far the bone
+# moved from rest, measured in world space" and re-applies that motion on top
+# of Gomushi's own rest pose.
+# ---------------------------------------------------------------------------
+func _node_chain_basis(root: Node, node: Node) -> Basis:
+	var b := Basis.IDENTITY
+	var n := node
+	while n != null and n != root:
+		if n is Node3D:
+			b = (n as Node3D).transform.basis.orthonormalized() * b
+		n = n.get_parent()
+	return b
+
+func _bone_global_rest(skel: Skeleton3D, idx: int) -> Transform3D:
+	var t := Transform3D.IDENTITY
+	var i := idx
+	while i != -1:
+		t = skel.get_bone_rest(i) * t
+		i = skel.get_bone_parent(i)
+	return t
+
+func _parent_global_basis(skel: Skeleton3D, idx: int, skel_basis: Basis) -> Basis:
+	var p := skel.get_bone_parent(idx)
+	if p == -1:
+		return skel_basis
+	return (skel_basis * _bone_global_rest(skel, p).basis).orthonormalized()
+
+func _retarget_animation(anim: Animation, src_skel: Skeleton3D, src_basis: Basis, name_map: Callable, skel_rel_path: NodePath) -> Animation:
+	var dst_basis := _node_chain_basis(_char_model, _skeleton)
+	var out := anim.duplicate(true) as Animation
+	var src_root_h := 1.0
+	var dst_root_h := 1.0
+	for i in range(out.get_track_count() - 1, -1, -1):
+		var src_name := out.track_get_path(i).get_concatenated_subnames()
+		var ttype := out.track_get_type(i)
+		var si := src_skel.find_bone(src_name)
+		var dst_name: String = name_map.call(src_name)
+		var di := _skeleton.find_bone(dst_name) if dst_name != "" else -1
+		if si == -1 or di == -1 or ttype == Animation.TYPE_SCALE_3D:
+			out.remove_track(i)
+			continue
+		var s_rest := src_skel.get_bone_rest(si)
+		var d_rest := _skeleton.get_bone_rest(di)
+		var s_par := _parent_global_basis(src_skel, si, src_basis)
+		var d_par := _parent_global_basis(_skeleton, di, dst_basis)
+		if ttype == Animation.TYPE_ROTATION_3D:
+			var sq := s_par.get_rotation_quaternion()
+			var dq := d_par.get_rotation_quaternion()
+			var s_rest_q := s_rest.basis.get_rotation_quaternion()
+			var d_rest_q := d_rest.basis.get_rotation_quaternion()
+			for k in out.track_get_key_count(i):
+				var q: Quaternion = out.track_get_key_value(i, k)
+				var delta_local := q * s_rest_q.inverse()
+				var delta_world := sq * delta_local * sq.inverse()
+				var nq := (dq.inverse() * delta_world * dq) * d_rest_q
+				out.track_set_key_value(i, k, nq.normalized())
+		elif ttype == Animation.TYPE_POSITION_3D:
+			# Only the root bone (Hips) keeps position keys - other bones'
+			# position tracks would stretch Gomushi to the source's proportions.
+			if src_skel.get_bone_parent(si) != -1:
+				out.remove_track(i)
+				continue
+			src_root_h = maxf((src_basis * _bone_global_rest(src_skel, si).origin).length(), 0.001)
+			dst_root_h = maxf((dst_basis * _bone_global_rest(_skeleton, di).origin).length(), 0.001)
+			var ratio := dst_root_h / src_root_h
+			for k in out.track_get_key_count(i):
+				var pos: Vector3 = out.track_get_key_value(i, k)
+				var dv := s_par * (pos - s_rest.origin)
+				var np := d_rest.origin + (d_par.inverse() * dv) * ratio
+				out.track_set_key_value(i, k, np)
+		out.track_set_path(i, NodePath(str(skel_rel_path) + ":" + dst_name))
+	return out
+
 func _merge_animation_library() -> void:
 	# The base character ships with no animations of its own - pull them in
 	# from Quaternius's separate Universal Animation Library glb at runtime
@@ -544,24 +622,20 @@ func _merge_animation_library() -> void:
 	for lib_scene_res in lib_scenes:
 		var lib_scene: Node = lib_scene_res.instantiate()
 		var lib_anim := _find_anim_player(lib_scene)
+		var lib_skel := _find_skeleton(lib_scene)
+		var lib_basis := _node_chain_basis(lib_scene, lib_skel) if lib_skel else Basis.IDENTITY
 		if lib_anim:
 			for lib_name in lib_anim.get_animation_library_list():
 				var src_lib := lib_anim.get_animation_library(lib_name)
 				for anim_name in src_lib.get_animation_list():
 					if dst_lib.has_animation(anim_name):
 						continue
-					var anim: Animation = src_lib.get_animation(anim_name).duplicate(true)
-					for i in anim.get_track_count():
-						var bone_subpath := anim.track_get_path(i).get_concatenated_subnames()
-						# Per-track bone resolution: try the UAL name directly in our skeleton;
-						# if not found, try the Mixamo-mapped name; fall back to original.
-						# This handles both same-rig (Quaternius→Quaternius, no remap) and
-						# cross-rig (Quaternius UAL → Mixamo Gomushi, remap to Hips/Spine/…).
-						if _skeleton.find_bone(bone_subpath) == -1 and BONE_REMAP_Q_TO_MIXAMO.has(bone_subpath):
-							var remapped: String = BONE_REMAP_Q_TO_MIXAMO[bone_subpath]
-							if _skeleton.find_bone(remapped) != -1:
-								bone_subpath = remapped
-						anim.track_set_path(i, NodePath(str(skel_rel_path) + ":" + bone_subpath))
+					var src_anim: Animation = src_lib.get_animation(anim_name)
+					var anim: Animation
+					if lib_skel != null:
+						anim = _retarget_animation(src_anim, lib_skel, lib_basis, _map_quaternius_bone, skel_rel_path)
+					else:
+						anim = src_anim.duplicate(true)
 					dst_lib.add_animation(anim_name, anim)
 		lib_scene.queue_free()
 	print("[DEV] Animations merged: ", dst_lib.get_animation_list())
@@ -573,6 +647,16 @@ func _merge_animation_library() -> void:
 			var chk_anim := dst_lib.get_animation(chk_name)
 			print("[DEV] ", chk_name, " track_count=", chk_anim.get_track_count(), " sample_path=", str(chk_anim.track_get_path(0)) if chk_anim.get_track_count() > 0 else "none")
 			break
+
+func _map_quaternius_bone(src_name: String) -> String:
+	if _skeleton.find_bone(src_name) != -1:
+		return src_name
+	return BONE_REMAP_Q_TO_MIXAMO.get(src_name, "")
+
+func _map_mixamo_bone(src_name: String) -> String:
+	if src_name.begins_with("mixamorig:") or src_name.begins_with("mixamorig_"):
+		return src_name.substr(10)
+	return src_name
 
 func _load_mixamo_locomotion() -> void:
 	# Load locomotion animations from Mixamo FBX files and apply them to Gomushi's
@@ -599,6 +683,8 @@ func _load_mixamo_locomotion() -> void:
 		var target_name: String    = pair[1]
 		var temp: Node = scene_res.instantiate()
 		var src_ap := _find_anim_player(temp)
+		var src_skel := _find_skeleton(temp)
+		var src_basis := _node_chain_basis(temp, src_skel) if src_skel else Basis.IDENTITY
 		if not src_ap:
 			temp.queue_free()
 			print("[DEV] Mixamo FBX for ", target_name, " has no AnimationPlayer")
@@ -607,15 +693,12 @@ func _load_mixamo_locomotion() -> void:
 		for lib_name in src_ap.get_animation_library_list():
 			var src_lib := src_ap.get_animation_library(lib_name)
 			for src_name in src_lib.get_animation_list():
-				var anim: Animation = src_lib.get_animation(src_name).duplicate(true)
-				# Rewrite every track's bone path to point at our player's skeleton.
-				# Mixamo track paths include "mixamorig:" in the bone subname; strip it
-				# so it matches the already-stripped names on Gomushi's skeleton.
-				for i in anim.get_track_count():
-					var bone := anim.track_get_path(i).get_concatenated_subnames()
-					if bone.begins_with("mixamorig:") or bone.begins_with("mixamorig_"):
-						bone = bone.substr(10)
-					anim.track_set_path(i, NodePath(str(skel_path) + ":" + bone))
+				var src_anim: Animation = src_lib.get_animation(src_name)
+				var anim: Animation
+				if src_skel != null:
+					anim = _retarget_animation(src_anim, src_skel, src_basis, _map_mixamo_bone, skel_path)
+				else:
+					anim = src_anim.duplicate(true)
 				# Remove the Quaternius-retargeted version (if any) and replace with Mixamo
 				if dst_lib.has_animation(target_name):
 					dst_lib.remove_animation(target_name)
