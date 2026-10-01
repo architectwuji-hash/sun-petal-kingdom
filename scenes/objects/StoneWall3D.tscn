@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://stone_wall_3d01"]
+
+[ext_resource type="Script" path="res://scripts/objects/stone_wall.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/models/walls/stone_wall_lowpoly.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_col"]
+size = Vector3(2.0, 3.0, 0.4)
+
+[node name="StoneWall3D" type="StaticBody3D"]
+script = ExtResource("1_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 1.5, 0)
+shape = SubResource("BoxShape3D_col")
+
+[node name="WallModel" parent="." instance=ExtResource("2_model")]
