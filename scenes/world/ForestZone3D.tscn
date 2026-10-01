@@ -1,14 +1,9 @@
-[gd_scene load_steps=20 format=3 uid="uid://forestzone3dspk01"]
+[gd_scene load_steps=11 format=3 uid="uid://cus1twjytlw8k"]
 
 [ext_resource type="Script" path="res://scripts/world/forest_zone_3d.gd" id="1_forest3d"]
-[ext_resource type="PackedScene" uid="uid://player3dspk01" path="res://scenes/player/Player3D.tscn" id="2_player3d"]
-[ext_resource type="Texture2D" path="res://assets/textures/ground/grass.png" id="3_grass_tex"]
-[ext_resource type="PackedScene" path="res://assets/models/buildings/kenney_houses/building-sample-house-a.glb" id="4_house_a"]
-[ext_resource type="PackedScene" path="res://assets/models/buildings/kenney_houses/building-sample-house-b.glb" id="5_house_b"]
-[ext_resource type="PackedScene" uid="uid://b0hgjbts2q6jm" path="res://assets/models/buildings/kenney_town/windmill.glb" id="6_windmill"]
-[ext_resource type="PackedScene" uid="uid://npc3dspk01" path="res://scenes/npc/NPC3D.tscn" id="8_npc"]
-[ext_resource type="PackedScene" path="res://assets/models/nature/kenney_forest/stones.glb" id="9_stones"]
-[ext_resource type="PackedScene" path="res://assets/models/buildings/kenney_town/stall-green.glb" id="10_stall_green"]
+[ext_resource type="PackedScene" uid="uid://dy2dmmcl33xqq" path="res://scenes/player/Player3D.tscn" id="11_player3d"]
+[ext_resource type="PackedScene" uid="uid://bxqlyvea6qol5" path="res://assets/models/props/House3D.glb" id="house3d_01"]
+[ext_resource type="Script" path="res://scripts/world/water_zone.gd" id="water_zone_gd"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.4, 0.7, 1, 1)
@@ -24,94 +19,41 @@ ambient_light_source = 2
 ambient_light_color = Color(0.3, 0.4, 0.5, 1)
 ambient_light_energy = 0.4
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
-albedo_color = Color(1, 1, 1, 1)
-albedo_texture = ExtResource("3_grass_tex")
-uv1_scale = Vector3(40, 40, 1)
-roughness = 0.9
-metallic = 0.0
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_ground"]
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
-size = Vector2(400, 400)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
-size = Vector3(400, 0.2, 400)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_logs"]
-albedo_color = Color(0.231373, 0.121569, 0.0392157, 1)
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_logs"]
-top_radius = 0.15
-bottom_radius = 0.15
-height = 1.2
+[sub_resource type="BoxShape3D" id="BoxShape3D_water_zone"]
+size = Vector3(280, 10, 160)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_health_fill"]
 bg_color = Color(0.85, 0.15, 0.15, 1)
 
 [node name="ForestZone3D" type="Node3D"]
-process_mode = 0
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 111, 9, -22)
 script = ExtResource("1_forest3d")
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-rotation_degrees = Vector3(-60, 30, 0)
-light_energy = 1.2
-shadow_enabled = true
-shadow_blur = 2.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_world")
 
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, 8)
-fov = 75.0
-current = true
-
 [node name="Ground" type="StaticBody3D" parent="."]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
-material_override = SubResource("StandardMaterial3D_ground")
-mesh = SubResource("PlaneMesh_ground")
-
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
-shape = SubResource("BoxShape3D_ground")
+transform = Transform3D(25, 0, 0, 0, 25, 0, 0, 0, 25, 0, 0, 0)
+shape = SubResource("WorldBoundaryShape3D_ground")
+metadata/_edit_group_ = true
+metadata/_edit_lock_ = true
 
-[node name="Village" type="Node3D" parent="."]
+[node name="WaterZone" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -140, -5, 200)
+script = ExtResource("water_zone_gd")
 
-[node name="HouseA" type="Node3D" parent="Village"]
-transform = Transform3D(-2.828427, 0, 2.828427, 0, 4, 0, -2.828427, 0, -2.828427, -20, 0, -20)
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WaterZone"]
+shape = SubResource("BoxShape3D_water_zone")
 
-[node name="Model" parent="Village/HouseA" instance=ExtResource("4_house_a")]
+[node name="Player3D" parent="." instance=ExtResource("11_player3d")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -80, 0, 74)
+metadata/_edit_lock_ = true
 
-[node name="HouseB" type="Node3D" parent="Village"]
-transform = Transform3D(-2.828427, 0, -2.828427, 0, 4, 0, 2.828427, 0, -2.828427, 20, 0, -20)
-
-[node name="Model" parent="Village/HouseB" instance=ExtResource("5_house_b")]
-
-[node name="HouseC" type="Node3D" parent="Village"]
-transform = Transform3D(0, 0, 4, 0, 4, 0, -4, 0, 0, -25, 0, 2)
-
-[node name="Model" parent="Village/HouseC" instance=ExtResource("4_house_a")]
-
-[node name="HouseD" type="Node3D" parent="Village"]
-transform = Transform3D(0, 0, -4, 0, 4, 0, 4, 0, 0, 24, 0, 8)
-
-[node name="Model" parent="Village/HouseD" instance=ExtResource("4_house_a")]
-
-[node name="HouseE" type="Node3D" parent="Village"]
-transform = Transform3D(-4, 0, 0, 0, 4, 0, 0, 0, -4, 0, 0, 24)
-
-[node name="Model" parent="Village/HouseE" instance=ExtResource("5_house_b")]
-
-[node name="NPC3D" parent="Village" instance=ExtResource("8_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 0)
-
-[node name="TreeRoot" type="Node3D" parent="."]
-
-[node name="DecorRoot" type="Node3D" parent="."]
-
-[node name="PetalRoot" type="Node3D" parent="."]
-
-[node name="EnemyRoot" type="Node3D" parent="."]
+# Camera3D removed: player_3d.gd builds its own follow-cam in _ready()
 
 [node name="HUD" type="CanvasLayer" parent="."]
 layer = 8
@@ -131,7 +73,6 @@ text = "HP"
 custom_minimum_size = Vector2(180, 18)
 layout_mode = 2
 theme_override_styles/fill = SubResource("StyleBoxFlat_health_fill")
-max_value = 100.0
 value = 100.0
 show_percentage = false
 
@@ -146,9 +87,6 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.5, 0.5, 1)
 theme_override_font_sizes/font_size = 13
 text = "☠ 0 kills"
-
-[node name="Player3D" parent="." instance=ExtResource("2_player3d")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 
 [node name="MinimapLayer" type="CanvasLayer" parent="."]
 layer = 10
@@ -177,7 +115,6 @@ color = Color(0, 0, 0, 1)
 layout_mode = 0
 offset_right = 8.0
 offset_bottom = 8.0
-color = Color(1, 1, 1, 1)
 
 [node name="DialogLayer" type="CanvasLayer" parent="."]
 layer = 5
@@ -212,3 +149,6 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = "Welcome to the forest, traveler."
 autowrap_mode = 3
+
+[node name="House3D" parent="." instance=ExtResource("house3d_01")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80, 0, 30)

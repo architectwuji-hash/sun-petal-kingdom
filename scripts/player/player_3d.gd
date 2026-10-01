@@ -283,8 +283,8 @@ func _attach_sword() -> void:
 		return
 	var attach := BoneAttachment3D.new()
 	attach.name = "SwordAttachment"
-	attach.bone_name = _hand_bone_r
 	_skeleton.add_child(attach)
+	attach.bone_name = _hand_bone_r  # set AFTER add_child so bone_idx resolves
 	_sword = SWORD_SCENE.instantiate()
 	attach.add_child(_sword)
 	# hand_r's own local +Y axis already points the same way the fingers
@@ -316,8 +316,8 @@ func _attach_axe() -> void:
 		return
 	var attach := BoneAttachment3D.new()
 	attach.name = "AxeAttachment"
-	attach.bone_name = _hand_bone_r2
 	_skeleton.add_child(attach)
+	attach.bone_name = _hand_bone_r2  # set AFTER add_child so bone_idx resolves
 	_axe = AXE_SCENE.instantiate()
 	attach.add_child(_axe)
 	# Measured from the pack's own Axe.obj: the haft runs along local +Y
