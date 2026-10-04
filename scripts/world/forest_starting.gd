@@ -2,6 +2,7 @@ extends Node3D
 
 const BasicEnemyScene := preload("res://scenes/enemies/BasicEnemy.tscn")
 const SunflowerPickupScene := preload("res://scenes/world/SunflowerPickup.tscn")
+const HarvestableRockScene := preload("res://scenes/objects/HarvestableRock.tscn")
 const TREE_SCENES: Array = [
 	preload("res://assets/models/nature/MapleTree_1.gltf"),
 	preload("res://assets/models/nature/MapleTree_2.gltf"),
@@ -45,6 +46,8 @@ func _ready() -> void:
 	_spawn_bushes()
 	_spawn_initial_enemies()
 	_spawn_sunflowers()
+	_spawn_rocks()
+	_spawn_mushrooms()
 	_build_dock()
 	_setup_south_cove_trigger()
 	_build_campfire_fx()
@@ -314,3 +317,147 @@ void fragment() {
 	var ground_material := ShaderMaterial.new()
 	ground_material.shader = shader
 	ground_mesh.material_override = ground_material
+
+
+# ── ROCKS ─────────────────────────────────────────────────────────────────────
+
+func _spawn_rocks() -> void:
+	## Scatter harvestable boulders throughout the forest. They drop stone chunks
+	## when mined with the axe. 3 swings per rock, respawn after 90 s.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 77341
+	var count := 16
+	for i: int in count:
+		var angle: float = rng.randf_range(0.0, TAU)
+		var dist: float = rng.randf_range(12.0, 80.0)
+		var pos := Vector3(cos(angle) * dist, 0.0, sin(angle) * dist)
+		# Keep clear of the central campfire and the dock
+		if pos.length() < 10.0 or (pos.z > 82.0 and abs(pos.x) < 5.0):
+			continue
+		var rock: HarvestableRock = HarvestableRockScene.instantiate()
+		rock.rock_variant = rng.randi_range(1, 5)
+		add_child(rock)
+		rock.global_position = pos
+		rock.rotation.y = rng.randf_range(0.0, TAU)
+
+
+# ── MUSHROOMS ─────────────────────────────────────────────────────────────────
+
+const MUSHROOM_RESPAWN_TIME: float = 45.0
+const MUSHROOM_COUNT: int = 12
+
+func _spawn_mushrooms() -> void:
+	## Scatter forageable mushrooms through the forest. Walk over one to collect it;
+	## it re-grows after MUSHROOM_RESPAWN_TIME seconds.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 55219
+	for _i: int in MUSHROOM_COUNT:
+		var angle: float = rng.randf_range(0.0, TAU)
+		var dist: float = rng.randf_range(8.0, 75.0)
+		var pos := Vector3(cos(angle) * dist, 0.0, sin(angle) * dist)
+		if abs(pos.x) > 92.0 or abs(pos.z) > 92.0:
+			continue
+		_place_mushroom(pos)
+
+
+func _place_mushroom(pos: Vector3) -> void:
+	var area := Area3D.new()
+	area.name = "MushroomPickup"
+	area.collision_layer = 0
+	area.collision_mask = 2  # player layer
+	add_child(area)
+	area.global_position = pos
+
+	# Collision
+	var cs := CollisionShape3D.new()
+	cs.shape = SphereShape3D.new()
+	(cs.shape as SphereShape3D).radius = 0.7
+	area.add_child(cs)
+
+	# Visual: stem + cap using basic meshes
+	var stem := MeshInstance3D.new()
+	var stem_mesh := CylinderMesh.new()
+	stem_mesh.top_radius = 0.08
+	stem_mesh.bottom_radius = 0.10
+	stem_mesh.height = 0.28
+	var stem_mat := StandardMaterial3D.new()
+	stem_mat.albedo_color = Color(0.88, 0.82, 0.72)
+	stem_mesh.material = stem_mat
+	stem.mesh = stem_mesh
+	stem.position = Vector3(0.0, 0.14, 0.0)
+	area.add_child(stem)
+
+	var cap := MeshInstance3D.new()
+	var cap_mesh := SphereMesh.new()
+	cap_mesh.radius = 0.22
+	cap_mesh.height = 0.30
+	var cap_mat := StandardMaterial3D.new()
+	cap_mat.albedo_color = Color(0.72, 0.18, 0.10)  # red mushroom cap
+	cap_mesh.material = cap_mat
+	cap.mesh = cap_mesh
+	cap.position = Vector3(0.0, 0.38, 0.0)
+	area.add_child(cap)
+
+	# Glow light (soft warm underside glow)
+	var glow := OmniLight3D.new()
+	glow.light_color = Color(1.0, 0.7, 0.3)
+	glow.light_energy = 0.4
+	glow.omni_range = 1.2
+	glow.position = Vector3(0.0, 0.2, 0.0)
+	area.add_child(glow)
+
+	# Connect pickup
+	area.body_entered.connect(_on_mushroom_entered.bind(area))
+
+
+func _on_mushroom_entered(body: Node3D, area: Area3D) -> void:
+	if not is_instance_valid(area):
+		return
+	if not body.is_in_group("player"):
+		return
+	if not body.has_method("add_item"):
+		return
+	# Hide the mushroom visually, re-enable after respawn
+	area.visible = false
+	for child: Node in area.get_children():
+		if child is CollisionShape3D:
+			(child as CollisionShape3D).set_deferred("disabled", true)
+	body.add_item("mushroom")
+	_spawn_pickup_sparkle(area.global_position, Color(1.0, 0.6, 0.2))
+	# Respawn
+	get_tree().create_timer(MUSHROOM_RESPAWN_TIME).timeout.connect(func() -> void:
+		if is_instance_valid(area):
+			area.visible = true
+			for child: Node in area.get_children():
+				if child is CollisionShape3D:
+					(child as CollisionShape3D).disabled = false
+	)
+
+
+func _spawn_pickup_sparkle(at: Vector3, color: Color) -> void:
+	var p := CPUParticles3D.new()
+	p.one_shot       = true
+	p.emitting       = false
+	p.amount         = 10
+	p.lifetime       = 0.5
+	p.explosiveness  = 1.0
+	p.direction      = Vector3.UP
+	p.spread         = 60.0
+	p.initial_velocity_min = 2.0
+	p.initial_velocity_max = 4.0
+	p.gravity        = Vector3(0, -9, 0)
+	p.scale_amount_min = 0.3
+	p.scale_amount_max = 0.7
+	var quad := QuadMesh.new()
+	quad.size = Vector2(0.12, 0.12)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.emission_enabled = true
+	mat.emission = color
+	mat.emission_energy_multiplier = 2.0
+	quad.material = mat
+	p.mesh = quad
+	add_child(p)
+	p.global_position = at
+	p.emitting = true
+	get_tree().create_timer(0.8).timeout.connect(p.queue_free)
