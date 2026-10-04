@@ -915,9 +915,72 @@ func _show_light_flash() -> void:
 func _on_dark_tier_changed(tier: int) -> void:
 	var names: Array[String] = ["Tainted", "Corrupted", "Infernal", "Damned", "Forsaken", "Hellbound"]
 	print("🔴 Dark Tier %d: %s" % [tier, names[tier - 1]])
-	# Future: adjust enemy spawn rate / world visuals based on tier
+	_apply_dark_tier_rewards(tier)
+
+func _apply_dark_tier_rewards(tier: int) -> void:
+	## Tier 3+ — random demons start joining fights instead of attacking.
+	## We flag this globally so any demon NPC spawned later checks it.
+	if tier >= 3:
+		get_tree().set_meta("dark_tier", tier)
+		get_tree().call_group("demon_enemy", "on_dark_tier_raised", tier)
+
+	## Tier 4 — Demon King becomes a permanent companion.
+	if tier == 4:
+		_summon_companion("demon_king")
+		_show_hud_message("😈 The Demon King has pledged himself to you.")
+
+	## Tier 5 — pack of 3 minor demons follows the player.
+	if tier == 5:
+		for _i: int in 3:
+			_summon_companion("demon_minor")
+		_show_hud_message("😈 A pack of minor demons now follows you.")
+
+	## Tier 6 — Hellbound. All demons fight for you.
+	if tier == 6:
+		get_tree().set_meta("dark_tier", 6)
+		get_tree().call_group("demon_enemy", "on_dark_tier_raised", 6)
+		_show_hud_message("👑 You are their ruler. ALL demons fight for you.")
 
 func _on_divine_tier_changed(tier: int) -> void:
 	var names: Array[String] = ["Acknowledged", "Devoted", "Chosen", "Blessed", "Sacred", "Divine"]
 	print("☀ Divine Tier %d: %s" % [tier, names[tier - 1]])
-	# Future: bloom world, golden bird, weather shift based on tier
+	_apply_divine_tier_rewards(tier)
+
+func _apply_divine_tier_rewards(tier: int) -> void:
+	## Tier 1 — +10% attack (handled in player_3d via divine_bonus).
+	if tier == 1:
+		_show_hud_message("☀ Auros acknowledges you. +10% attack.")
+
+	## Tier 2 — +20% attack.
+	if tier == 2:
+		_show_hud_message("☀ Auros blesses you. +20% attack.")
+
+	## Tier 3 — +35% attack, golden bird placeholder.
+	if tier == 3:
+		_show_hud_message("☀ A golden messenger bird now follows you. +35% attack.")
+		## TODO: spawn golden bird NPC when asset is ready
+
+	## Tier 4 — +50% attack, Dark Protection (evil attacks 40% less damage).
+	if tier == 4:
+		if is_instance_valid(_player) and _player.has_method("set"):
+			_player.dark_protection_percent = 40
+		_show_hud_message("☀ Blessed by Auros. +50% attack. Evil attacks deal 40%% less damage.")
+
+	## Tier 5 — +65% attack, demons begin fleeing.
+	if tier >= 5:
+		get_tree().set_meta("divine_tier", tier)
+		get_tree().call_group("demon_enemy", "on_divine_tier_raised", tier)
+	if tier == 5:
+		_show_hud_message("☀ Sacred. Demons flee before you. +65% attack.")
+
+	## Tier 6 — +100% attack (double damage), Angel Champion, all demons flee, world blooms.
+	if tier == 6:
+		_summon_companion("angel_champion")
+		get_tree().set_meta("divine_tier", 6)
+		get_tree().call_group("demon_enemy", "on_divine_tier_raised", 6)
+		_show_hud_message("✨ DIVINE. You deal double damage. Angel Champion fights at your side. All demons flee.")
+
+func _show_hud_message(msg: String) -> void:
+	## Floating world-space text above the player for tier announcements.
+	if is_instance_valid(_player) and _player.has_method("_show_float_text"):
+		_player._show_float_text(msg, _player.global_position + Vector3(0, 3.5, 0))

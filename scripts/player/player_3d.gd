@@ -174,7 +174,8 @@ var divine_bonus: int           = 0   ## permanent attack bonus from Auros
 
 const DARK_THRESHOLDS:   Array[int] = [100, 1000, 10000, 25000, 50000, 100000]
 const DIVINE_THRESHOLDS: Array[int] = [100, 1000, 10000, 25000, 50000, 100000]
-const DIVINE_BONUSES:    Array[int] = [1, 2, 3, 5, 7, 10]
+const DIVINE_BONUSES:    Array[int] = [10, 20, 35, 50, 65, 100]  ## % attack multipliers
+var dark_protection_percent: int = 0  ## % reduction on evil-type attacks (max 40 at divine tier 4)
 
 # ── build mode ──────────────────────────────────────────────────────────────
 const WALL_WOOD_COST    := 3          ## wood needed to place one wood wall
@@ -959,11 +960,13 @@ func _check_divine_tier() -> void:
 		divine_bonus = DIVINE_BONUSES[divine_tier - 1]
 		divine_tier_changed.emit(divine_tier)
 		var names: Array[String] = ["Acknowledged", "Devoted", "Chosen", "Blessed", "Sacred", "Divine"]
-		_show_float_text("☀ " + names[divine_tier - 1] + " +" + str(divine_bonus) + " ATK", global_position + Vector3(0, 3.0, 0))
-		print("Divine Tier reached: ", divine_tier, " | Bonus: +", divine_bonus)
+		_show_float_text("☀ " + names[divine_tier - 1] + " +" + str(divine_bonus) + "% ATK", global_position + Vector3(0, 3.0, 0))
+		print("Divine Tier reached: ", divine_tier, " | Bonus: +", divine_bonus, "%")
 
 func get_attack_power() -> int:
-	return inventory.get("souls", 0) + divine_bonus
+	var base: int = inventory.get("souls", 0)
+	## Apply divine bonus as a percentage multiplier
+	return base + int(base * divine_bonus / 100.0)
 
 # ── build mode ─────────────────────────────────────────────────────────────
 func _toggle_build_mode() -> void:
