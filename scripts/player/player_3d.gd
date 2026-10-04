@@ -140,7 +140,7 @@ var _skeleton: Skeleton3D = null
 var _sword_equipped: bool = false
 var _axe: Node3D = null
 var _axe_equipped: bool = false
-var _current_weapon: String = "sword"  # "sword" | "axe"
+var _current_weapon: String = "sword"  # "sword" | "axe" | "hands"
 
 # Quaternius "Modular Character Outfits - Fantasy" - Ranger set, chosen for
 # the forest scenes. Ships as separate skinned-mesh parts that share the
@@ -411,6 +411,7 @@ func _attach_axe() -> void:
 	_axe.visible = false  # sword is default; shown only when player switches
 
 func _switch_weapon() -> void:
+	## Cycle: sword → axe → hands → sword
 	if _current_weapon == "sword":
 		if _sword:
 			_sword.visible = false
@@ -420,15 +421,26 @@ func _switch_weapon() -> void:
 		_axe_equipped = true
 		_current_weapon = "axe"
 		_swing_token += 1
+		_show_float_text("🪓 Axe", global_position + Vector3(0, 2.5, 0))
 		print("[DEV] Switched to axe")
-	else:
+	elif _current_weapon == "axe":
 		if _axe:
 			_axe.visible = false
+		if _sword:
+			_sword.visible = false
+		_axe_equipped = false
+		_sword_equipped = false
+		_current_weapon = "hands"
+		_show_float_text("✊ Bare Hands", global_position + Vector3(0, 2.5, 0))
+		print("[DEV] Switched to hands")
+	else:
+		## hands → sword
 		if _sword:
 			_sword.visible = true
 		_sword_equipped = true
 		_axe_equipped = false
 		_current_weapon = "sword"
+		_show_float_text("⚔ Sword", global_position + Vector3(0, 2.5, 0))
 		print("[DEV] Switched to sword")
 
 func _attach_outfit() -> void:
@@ -846,7 +858,7 @@ func _update_locomotion_anim(delta: float) -> void:
 	# The animation library only has a sword-specific pose for standing
 	# still (Sword_Idle) - no sword-specific walk/sprint - so we use it
 	# only at rest and fall back to the normal locomotion loops otherwise.
-	var want := "Sword_Idle" if (_sword_equipped or _axe_equipped) else "Idle"
+	var want := "Sword_Idle" if (_sword_equipped or _axe_equipped) else "Idle"  ## "Idle" also covers bare hands
 	# Moving backwards relative to where the player faces -> backpedal clip
 	var local_vel := global_transform.basis.inverse() * Vector3(velocity.x, 0, velocity.z)
 	if flat_speed > 0.3 and local_vel.z > 0.3 and _anim.has_animation("RunBackward"):
