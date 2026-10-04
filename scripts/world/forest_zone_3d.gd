@@ -19,6 +19,8 @@ const HarvestableRockScene: PackedScene = preload("res://scenes/objects/Harvesta
 const ROCK_COUNT: int = 16
 const MUSHROOM_COUNT: int = 12
 const MUSHROOM_RESPAWN_TIME: float = 45.0
+const FRUIT_TREE_CHANCE:    float = 0.25  ## 25 % of trees bear fruit
+const FRUIT_RESPAWN_TIME:   float = 90.0  ## seconds before fruit regrows
 const DecorScenes: Array[PackedScene] = [
 	preload("res://scenes/world/props/KenneyRocksHigh.tscn"),
 	preload("res://scenes/world/props/KenneyRocksLow.tscn"),
@@ -254,6 +256,10 @@ func _spawn_trees() -> void:
 		var tree: Node3D = tree_scene.instantiate()
 		if tree_root != null: tree_root.add_child(tree)
 		tree.global_position = pos
+		## 25 % chance this tree bears fruit — use the same seeded RNG so
+		## the layout is deterministic across runs.
+		if rng.randf() < FRUIT_TREE_CHANCE:
+			_attach_fruit_to_tree(tree)
 		placed += 1
 
 
@@ -464,6 +470,68 @@ func _on_mushroom_entered(body: Node3D, area: Area3D) -> void:
 	)
 
 
+func _attach_fruit_to_tree(tree: Node3D) -> void:
+	## Hang a fruit pickup about 2 m above the base of the tree.
+	## Implemented as an Area3D child so it inherits the tree's position.
+	var area := Area3D.new()
+	area.name = "FruitPickup"
+	area.collision_layer = 0
+	area.collision_mask  = 2   ## layer 2 = player body
+	tree.add_child(area)
+	area.global_position = tree.global_position + Vector3(0, 2.0, 0)
+
+	## Fruit mesh — small orange sphere
+	var mesh_inst := MeshInstance3D.new()
+	var sphere    := SphereMesh.new()
+	sphere.radius = 0.18
+	sphere.height = 0.36
+	mesh_inst.mesh = sphere
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(1.0, 0.45, 0.05)  ## orange
+	mesh_inst.set_surface_override_material(0, mat)
+	area.add_child(mesh_inst)
+
+	## Soft warm glow so the fruit is visible under the canopy
+	var light := OmniLight3D.new()
+	light.light_color  = Color(1.0, 0.65, 0.2)
+	light.light_energy = 0.5
+	light.omni_range   = 1.5
+	area.add_child(light)
+
+	## Pickup collision — generous radius so the player doesn't have to be precise
+	var col   := CollisionShape3D.new()
+	var shape := SphereShape3D.new()
+	shape.radius = 1.2
+	col.shape = shape
+	area.add_child(col)
+
+	area.body_entered.connect(_on_fruit_entered.bind(area))
+
+
+func _on_fruit_entered(body: Node3D, area: Area3D) -> void:
+	if not is_instance_valid(area):
+		return
+	if not body.is_in_group("player"):
+		return
+	if not body.has_method("add_item"):
+		return
+	## Hide fruit and disable collision immediately
+	area.visible = false
+	for child: Node in area.get_children():
+		if child is CollisionShape3D:
+			(child as CollisionShape3D).set_deferred("disabled", true)
+	body.add_item("fruit")
+	_spawn_pickup_sparkle(area.global_position, Color(1.0, 0.55, 0.1))
+	## Fruit regrows after FRUIT_RESPAWN_TIME seconds
+	get_tree().create_timer(FRUIT_RESPAWN_TIME).timeout.connect(func() -> void:
+		if is_instance_valid(area):
+			area.visible = true
+			for child: Node in area.get_children():
+				if child is CollisionShape3D:
+					(child as CollisionShape3D).disabled = false
+	)
+
+
 func _spawn_pickup_sparkle(at: Vector3, color: Color) -> void:
 	var particles := CPUParticles3D.new()
 	particles.emitting        = true
@@ -507,7 +575,7 @@ func _setup_resource_panel() -> void:
 	inner.add_theme_constant_override("separation", 4)
 	margin.add_child(inner)
 
-	for entry: Array in [["🪵 Wood", "wood"], ["🪨 Stone", "stone"], ["🍄 Shroom", "mushroom"]]:
+	for entry: Array in [["🪵 Wood", "wood"], ["🪨 Stone", "stone"], ["🍄 Shroom", "mushroom"], ["🍊 Fruit", "fruit"]]:
 		var lbl := Label.new()
 		lbl.text = entry[0] + ": 0"
 		lbl.add_theme_font_size_override("font_size", 14)
@@ -518,7 +586,7 @@ func _setup_resource_panel() -> void:
 
 func _on_inventory_changed(item: String, new_count: int) -> void:
 	if _res_labels.has(item):
-		var icons: Dictionary = {"wood": "🪵 Wood", "stone": "🪨 Stone", "mushroom": "🍄 Shroom"}
+		var icons: Dictionary = {"wood": "🪵 Wood", "stone": "🪨 Stone", "mushroom": "🍄 Shroom", "fruit": "🍊 Fruit"}
 		var prefix: String = icons.get(item, item.capitalize())
 		(_res_labels[item] as Label).text = "%s: %d" % [prefix, new_count]
 
