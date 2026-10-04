@@ -13,6 +13,7 @@ signal died(enemy: EnemyBase)
 @export var lose_range: float = 22.0       ## Chase drops off beyond this distance
 @export var hearing_range: float = 20.0    ## Radius for made_noise response
 @export var hit_damage: int = 10
+@export var xp_reward: int = 0   ## 0 = auto (enemy_level * 5)
 @export var wander_radius: float = 8.0
 @export var idle_time_min: float = 1.0
 @export var idle_time_max: float = 3.5
@@ -36,6 +37,7 @@ var health: int = 0
 var _player: CharacterBody3D = null
 var _can_attack := true
 var _dying := false
+var _last_hit_by: Node = null   ## tracks who dealt the killing blow
 var _saved_mats: Dictionary = {}
 
 var _state: State = State.IDLE
@@ -54,6 +56,7 @@ const _VISION_INTERVAL := 0.15
 
 
 func _ready() -> void:
+	add_to_group("enemy")
 	max_health = enemy_level * 20
 	health = max_health
 	_spawn_position = global_position
@@ -64,7 +67,6 @@ func _ready() -> void:
 	if _nav_agent == null:
 		_nav_agent = NavigationAgent3D.new()
 		_nav_agent.name = "NavigationAgent3D"
-		_nav_agent.simplify_path = true
 		add_child(_nav_agent)
 
 	# ── RayCast3D for line-of-sight checks — same auto-create pattern.
@@ -91,6 +93,7 @@ func _ready() -> void:
 		_anim.name = "AnimationPlayer"
 		_skeleton.get_parent().add_child(_anim)
 	if _anim and _skeleton:
+		_strip_mixamo_prefix()
 		_merge_ual_animations()
 		_set_loop("Idle_Loop")
 		_set_loop("Walk_Loop")
@@ -103,6 +106,37 @@ func _ready() -> void:
 	_update_label()
 	_start_idle()
 
+
+
+func _strip_mixamo_prefix() -> void:
+	if _skeleton == null:
+		return
+	var stripped := false
+	for i: int in _skeleton.get_bone_count():
+		var bname: String = _skeleton.get_bone_name(i)
+		if bname.begins_with("mixamorig:") or bname.begins_with("mixamorig_"):
+			_skeleton.set_bone_name(i, bname.substr(10))
+			stripped = true
+	if stripped:
+		_fix_skin_bind_names(self)
+		print("[Enemy] Stripped mixamorig prefix from ", enemy_name)
+
+
+func _fix_skin_bind_names(node: Node) -> void:
+	if node is MeshInstance3D:
+		var mi := node as MeshInstance3D
+		if mi.skin != null:
+			var sk: Skin = mi.skin.duplicate()
+			var changed := false
+			for b: int in sk.get_bind_count():
+				var bn: String = String(sk.get_bind_name(b))
+				if bn.begins_with("mixamorig:") or bn.begins_with("mixamorig_"):
+					sk.set_bind_name(b, bn.substr(10))
+					changed = true
+			if changed:
+				mi.skin = sk
+	for child: Node in node.get_children():
+		_fix_skin_bind_names(child)
 
 # ── ANIMATION LOADING ─────────────────────────────────────────────────────────
 
@@ -245,17 +279,19 @@ func _pick_wander_target() -> void:
 	_play_anim("walk")
 
 
-func _tick_wander(delta: float, dist_to_player: float) -> void:
+func _tick_wander(_delta: float, dist_to_player: float) -> void:
 	if dist_to_player < detection_range and _can_see_player():
 		_set_state(State.CHASE)
 		return
 
 	if _nav_agent:
-		# Nav-based wander: drive agent to wander target
-		if _nav_agent.is_navigation_finished():
+		# Pick a new wander target only when we physically arrive at the current
+		# one. is_navigation_finished() caused an infinite repick loop when no
+		# nav mesh was present (returns true immediately every frame).
+		if global_position.distance_to(_wander_target) < 1.2:
 			_pick_wander_target()
-			_nav_agent.target_position = _wander_target
-		_nav_move(move_speed * 0.6)
+		_nav_agent.target_position = _wander_target
+		_nav_move(move_speed * 0.6, _wander_target)
 	else:
 		# Fallback: direct movement
 		var to_target := _wander_target - global_position
@@ -266,10 +302,10 @@ func _tick_wander(delta: float, dist_to_player: float) -> void:
 		var dir := to_target.normalized()
 		velocity.x = dir.x * move_speed * 0.6
 		velocity.z = dir.z * move_speed * 0.6
-		rotation.y = atan2(-dir.x, -dir.z)
+		rotation.y = atan2(dir.x, dir.z)
 
 
-func _tick_chase(delta: float, dist: float) -> void:
+func _tick_chase(_delta: float, dist: float) -> void:
 	# Lost sight and out of range → search last known position
 	if dist > lose_range or not _can_see_player():
 		if dist > lose_range:
@@ -285,12 +321,12 @@ func _tick_chase(delta: float, dist: float) -> void:
 
 	if _nav_agent:
 		_nav_agent.target_position = _player.global_position
-		_nav_move(move_speed)
+		_nav_move(move_speed, _player.global_position)
 		# Face the player directly while chasing
 		var look_dir := _player.global_position - global_position
 		look_dir.y = 0.0
 		if look_dir.length_squared() > 0.01:
-			rotation.y = atan2(-look_dir.x, -look_dir.z)
+			rotation.y = atan2(look_dir.x, look_dir.z)
 	else:
 		var dir := (_player.global_position - global_position)
 		dir.y = 0.0
@@ -298,10 +334,10 @@ func _tick_chase(delta: float, dist: float) -> void:
 			dir = dir.normalized()
 			velocity.x = dir.x * move_speed
 			velocity.z = dir.z * move_speed
-			rotation.y = atan2(-dir.x, -dir.z)
+			rotation.y = atan2(dir.x, dir.z)
 
 
-func _tick_search(delta: float) -> void:
+func _tick_search(_delta: float) -> void:
 	## Move to last-known position. If player is spotted en route, re-enter CHASE.
 	var dist := global_position.distance_to(_player.global_position)
 	if dist < detection_range and _can_see_player():
@@ -310,10 +346,10 @@ func _tick_search(delta: float) -> void:
 
 	if _nav_agent:
 		_nav_agent.target_position = _last_known_pos
-		if _nav_agent.is_navigation_finished():
+		if global_position.distance_to(_last_known_pos) < 1.0:
 			_set_state(State.IDLE)
 			return
-		_nav_move(move_speed * 0.7)
+		_nav_move(move_speed * 0.7, _last_known_pos)
 	else:
 		var to_last := _last_known_pos - global_position
 		to_last.y = 0.0
@@ -323,20 +359,35 @@ func _tick_search(delta: float) -> void:
 		var dir := to_last.normalized()
 		velocity.x = dir.x * move_speed * 0.7
 		velocity.z = dir.z * move_speed * 0.7
-		rotation.y = atan2(-dir.x, -dir.z)
+		rotation.y = atan2(dir.x, dir.z)
 
 
 ## Drive velocity using NavigationAgent3D's next path position.
-func _nav_move(spd: float) -> void:
+## Falls back to direct movement toward fallback_target when no nav mesh exists.
+func _nav_move(spd: float, fallback_target: Vector3 = Vector3.INF) -> void:
 	if not _nav_agent:
 		return
 	var next := _nav_agent.get_next_path_position()
-	var dir := (next - global_position).normalized()
+	var to_next := next - global_position
+	to_next.y = 0.0
+	# When the next-position is essentially here, the nav mesh is not providing
+	# a valid path. Fall back to straight-line movement so enemies still roam
+	# in scenes without a baked NavigationRegion3D.
+	if to_next.length_squared() < 0.09 and fallback_target != Vector3.INF:
+		var direct := fallback_target - global_position
+		direct.y = 0.0
+		if direct.length_squared() > 0.25:
+			var fdir := direct.normalized()
+			velocity.x = fdir.x * spd
+			velocity.z = fdir.z * spd
+			rotation.y = atan2(fdir.x, fdir.z)
+		return
+	var dir := to_next.normalized()
 	velocity.x = dir.x * spd
 	velocity.z = dir.z * spd
 	var flat_dir := Vector3(dir.x, 0.0, dir.z)
 	if flat_dir.length_squared() > 0.01:
-		rotation.y = atan2(-flat_dir.x, -flat_dir.z)
+		rotation.y = atan2(flat_dir.x, flat_dir.z)
 
 
 ## Line-of-sight check — uses RayCast3D; falls back to true if no ray.
@@ -373,7 +424,7 @@ func _face_player() -> void:
 	var dir := (_player.global_position - global_position)
 	dir.y = 0.0
 	if dir.length_squared() > 0.001:
-		rotation.y = atan2(-dir.x, -dir.z)
+		rotation.y = atan2(dir.x, dir.z)
 
 
 # ── ATTACK ────────────────────────────────────────────────────────────────────
@@ -392,9 +443,11 @@ func _do_attack() -> void:
 
 # ── DAMAGE / DEATH ────────────────────────────────────────────────────────────
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, attacker: Node = null) -> void:
 	if _dying:
 		return
+	if attacker != null:
+		_last_hit_by = attacker
 	health -= amount
 	_update_label()
 	_spawn_damage_number(amount)
@@ -403,9 +456,10 @@ func take_damage(amount: int) -> void:
 		_die()
 
 
-func _on_hurtbox_area_entered(area: Area3D) -> void:
-	if area.name == "AttackHitbox":
-		take_damage(enemy_level * 5 + 10)
+func _on_hurtbox_area_entered(_area: Area3D) -> void:
+	pass  # Damage is handled by the player's _apply_melee_hit() sphere cast.
+	# The AttackHitbox Area3D is always monitorable, so proximity alone used to
+	# trigger take_damage() here — removed to fix the auto-damage bug.
 
 
 func _die() -> void:
@@ -419,11 +473,62 @@ func _die() -> void:
 		elif child is Area3D:
 			(child as Area3D).monitoring = false
 			(child as Area3D).monitorable = false
-	var tween := create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(self, "scale", Vector3(1.3, 1.3, 1.3), 0.12)
-	tween.tween_property(self, "scale", Vector3.ZERO, 0.2).set_delay(0.12)
-	await get_tree().create_timer(0.35).timeout
+	_grant_xp()
+	_absorb_into_player()
+
+
+func _grant_xp() -> void:
+	var amount := xp_reward if xp_reward > 0 else enemy_level * 5
+	if _last_hit_by != null and is_instance_valid(_last_hit_by):
+		if _last_hit_by.has_method("kip_add_xp"):
+			_last_hit_by.kip_add_xp(amount)
+			return
+		if _last_hit_by.has_method("add_xp"):
+			_last_hit_by.add_xp(amount)
+			return
+	# Fallback: give XP to whichever player node has add_xp()
+	for node: Node in get_tree().get_nodes_in_group("player"):
+		if node.has_method("add_xp"):
+			node.add_xp(amount)
+			return
+
+func _absorb_into_player() -> void:
+	var player: Node3D = get_tree().get_first_node_in_group("player") as Node3D
+
+	# Add glow to the corpse
+	var glow := OmniLight3D.new()
+	glow.light_color = Color(0.5, 0.9, 1.0)
+	glow.light_energy = 0.0
+	glow.omni_range = 3.5
+	add_child(glow)
+
+	# Phase 1: pulse glow on the body
+	var t1 := create_tween()
+	t1.tween_property(glow, "light_energy", 4.0, 0.4)
+	t1.tween_property(glow, "light_energy", 1.5, 0.4)
+	await t1.finished
+
+	# Phase 2: lift off the ground
+	var t2 := create_tween()
+	t2.set_parallel(true)
+	t2.tween_property(self, "global_position", global_position + Vector3(0, 2.5, 0), 0.5).set_trans(Tween.TRANS_SINE)
+	t2.tween_property(glow, "light_energy", 6.0, 0.5)
+	await t2.finished
+
+	# Phase 3: fly into player
+	if player == null:
+		queue_free()
+		return
+	var fly := create_tween()
+	fly.set_parallel(true)
+	var target: Vector3 = player.global_position + Vector3(0, 1.2, 0)
+	fly.tween_property(self, "global_position", target, 0.55).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN)
+	fly.tween_property(self, "scale", Vector3(0.15, 0.15, 0.15), 0.55).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN)
+	fly.tween_property(glow, "light_energy", 0.0, 0.55)
+	await fly.finished
+
+	if is_instance_valid(player) and player.has_method("absorb_soul"):
+		player.absorb_soul()
 	queue_free()
 
 
