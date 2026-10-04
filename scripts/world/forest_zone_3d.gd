@@ -93,6 +93,8 @@ func _ready() -> void:
 	_spawn_rocks()
 	_spawn_mushrooms()
 	_setup_resource_panel()
+	_spawn_demon_npc()
+	_spawn_auros_shrine()
 
 
 
@@ -519,3 +521,403 @@ func _on_inventory_changed(item: String, new_count: int) -> void:
 		var icons: Dictionary = {"wood": "🪵 Wood", "stone": "🪨 Stone", "mushroom": "🍄 Shroom"}
 		var prefix: String = icons.get(item, item.capitalize())
 		(_res_labels[item] as Label).text = "%s: %d" % [prefix, new_count]
+
+
+# ─── Soul System: Demon NPC & Auros Shrine ───────────────────────────────────
+
+var _soul_menu: Control       = null   ## the popup panel
+var _soul_menu_type: String   = ""     ## "demon" or "auros"
+var _companion: Node3D        = null   ## active companion (demon or angel)
+
+func _spawn_demon_npc() -> void:
+	var body := StaticBody3D.new()
+	body.name = "DemonNPC"
+	add_child(body)
+	body.global_position = Vector3(60.0, 0.0, -40.0)
+
+	# Visual — dark humanoid shape
+	var mesh_inst := MeshInstance3D.new()
+	var cap := CapsuleMesh.new()
+	cap.radius = 0.4
+	cap.height = 1.8
+	mesh_inst.mesh = cap
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color    = Color(0.08, 0.0, 0.12)
+	mat.emission_enabled = true
+	mat.emission        = Color(0.6, 0.0, 1.0)
+	mat.emission_energy = 1.2
+	mesh_inst.set_surface_override_material(0, mat)
+	mesh_inst.position.y = 0.9
+	body.add_child(mesh_inst)
+
+	# Eye glow
+	var eye := OmniLight3D.new()
+	eye.light_color  = Color(1.0, 0.0, 0.3)
+	eye.light_energy = 2.0
+	eye.omni_range   = 3.0
+	eye.position.y   = 1.5
+	body.add_child(eye)
+
+	# Name label
+	var label3d := Label3D.new()
+	label3d.text       = "😈 Demon\n[E] Deal"
+	label3d.font_size  = 32
+	label3d.modulate   = Color(1.0, 0.3, 1.0)
+	label3d.billboard  = BaseMaterial3D.BILLBOARD_ENABLED
+	label3d.position.y = 2.4
+	body.add_child(label3d)
+
+	# Collision
+	var col := CollisionShape3D.new()
+	var shape := CapsuleShape3D.new()
+	shape.radius = 0.4
+	shape.height = 1.8
+	col.shape = shape
+	col.position.y = 0.9
+	body.add_child(col)
+
+	# Interaction area
+	var area := Area3D.new()
+	area.collision_layer = 0
+	area.collision_mask  = 2
+	body.add_child(area)
+	var acol := CollisionShape3D.new()
+	var asphere := SphereShape3D.new()
+	asphere.radius = 3.0
+	acol.shape = asphere
+	area.add_child(acol)
+	area.body_entered.connect(_on_demon_area_entered)
+	area.body_exited.connect(_on_soul_area_exited)
+
+
+func _spawn_auros_shrine() -> void:
+	var body := StaticBody3D.new()
+	body.name = "AurosShrine"
+	add_child(body)
+	body.global_position = Vector3(-55.0, 0.0, -50.0)
+
+	# Base plinth
+	var plinth := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = Vector3(1.4, 0.5, 1.4)
+	plinth.mesh = box
+	var stone_mat := StandardMaterial3D.new()
+	stone_mat.albedo_color = Color(0.85, 0.80, 0.65)
+	plinth.set_surface_override_material(0, stone_mat)
+	plinth.position.y = 0.25
+	body.add_child(plinth)
+
+	# Pillar
+	var pillar := MeshInstance3D.new()
+	var cyl := CylinderMesh.new()
+	cyl.top_radius    = 0.15
+	cyl.bottom_radius = 0.18
+	cyl.height        = 1.8
+	pillar.mesh = cyl
+	pillar.set_surface_override_material(0, stone_mat)
+	pillar.position.y = 1.4
+	body.add_child(pillar)
+
+	# Sun disc on top
+	var disc := MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.35
+	sphere.height = 0.35
+	disc.mesh = sphere
+	var sun_mat := StandardMaterial3D.new()
+	sun_mat.albedo_color     = Color(1.0, 0.85, 0.2)
+	sun_mat.emission_enabled = true
+	sun_mat.emission         = Color(1.0, 0.75, 0.1)
+	sun_mat.emission_energy  = 2.0
+	disc.set_surface_override_material(0, sun_mat)
+	disc.position.y = 2.65
+	body.add_child(disc)
+
+	# Shrine glow
+	var light := OmniLight3D.new()
+	light.light_color  = Color(1.0, 0.9, 0.3)
+	light.light_energy = 1.5
+	light.omni_range   = 5.0
+	light.position.y   = 2.65
+	body.add_child(light)
+
+	# Label
+	var label3d := Label3D.new()
+	label3d.text      = "☀ Auros Shrine\n[E] Sacrifice"
+	label3d.font_size = 32
+	label3d.modulate  = Color(1.0, 0.95, 0.4)
+	label3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label3d.position.y = 3.3
+	body.add_child(label3d)
+
+	# Collision for body
+	var col := CollisionShape3D.new()
+	var cshape := BoxShape3D.new()
+	cshape.size = Vector3(1.4, 2.8, 1.4)
+	col.shape = cshape
+	col.position.y = 1.4
+	body.add_child(col)
+
+	# Interaction area
+	var area := Area3D.new()
+	area.collision_layer = 0
+	area.collision_mask  = 2
+	body.add_child(area)
+	var acol := CollisionShape3D.new()
+	var asphere := SphereShape3D.new()
+	asphere.radius = 3.0
+	acol.shape = asphere
+	area.add_child(acol)
+	area.body_entered.connect(_on_auros_area_entered)
+	area.body_exited.connect(_on_soul_area_exited)
+
+
+func _on_demon_area_entered(body: Node3D) -> void:
+	if body.is_in_group("player"):
+		_open_soul_menu("demon")
+
+func _on_auros_area_entered(body: Node3D) -> void:
+	if body.is_in_group("player"):
+		_open_soul_menu("auros")
+
+func _on_soul_area_exited(body: Node3D) -> void:
+	if body.is_in_group("player"):
+		_close_soul_menu()
+
+
+func _open_soul_menu(menu_type: String) -> void:
+	if _soul_menu != null:
+		return
+	_soul_menu_type = menu_type
+	var canvas := CanvasLayer.new()
+	canvas.name  = "SoulMenuCanvas"
+	canvas.layer = 20
+	add_child(canvas)
+
+	var panel := PanelContainer.new()
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	panel.offset_left   = -200.0
+	panel.offset_right  = 200.0
+	panel.offset_top    = -220.0
+	panel.offset_bottom = 120.0
+	canvas.add_child(panel)
+	_soul_menu = panel
+
+	var margin := MarginContainer.new()
+	for side: String in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 14)
+	panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	margin.add_child(vbox)
+
+	var title := Label.new()
+	if menu_type == "demon":
+		title.text    = "😈  Demon Deal"
+		title.modulate = Color(0.9, 0.4, 1.0)
+	else:
+		title.text    = "☀  Auros Shrine"
+		title.modulate = Color(1.0, 0.95, 0.3)
+	title.add_theme_font_size_override("font_size", 20)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	var soul_lbl := Label.new()
+	var soul_count: int = _player.inventory.get("souls", 0) if is_instance_valid(_player) else 0
+	soul_lbl.text = "Souls: %d" % soul_count
+	soul_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	soul_lbl.add_theme_font_size_override("font_size", 14)
+	vbox.add_child(soul_lbl)
+
+	var sep := HSeparator.new()
+	vbox.add_child(sep)
+
+	var options: Array[Array] = []
+	if menu_type == "demon":
+		options = [
+			["Fear Aura (10 souls)",    10,  "fear_aura"],
+			["Shadow Step (20 souls)",  20,  "shadow_step"],
+			["Summon Demon (25 souls)", 25,  "summon_demon"],
+			["World Intel (10 souls)",  10,  "world_intel"],
+		]
+	else:
+		options = [
+			["Solar Burst (10 souls)",   10, "solar_burst"],
+			["Healing Aura (20 souls)",  20, "healing_aura"],
+			["Summon Angel (25 souls)",  25, "summon_angel"],
+			["Favor Offering (any)",      1, "favor_offering"],
+		]
+
+	for opt: Array in options:
+		var btn := Button.new()
+		btn.text = opt[0] as String
+		btn.add_theme_font_size_override("font_size", 13)
+		vbox.add_child(btn)
+		var cost: int      = opt[1] as int
+		var action: String = opt[2] as String
+		btn.pressed.connect(_on_soul_option.bind(action, cost))
+
+	var close_btn := Button.new()
+	close_btn.text = "Leave"
+	close_btn.add_theme_font_size_override("font_size", 13)
+	close_btn.modulate = Color(0.8, 0.8, 0.8)
+	vbox.add_child(close_btn)
+	close_btn.pressed.connect(_close_soul_menu)
+
+
+func _close_soul_menu() -> void:
+	if _soul_menu == null:
+		return
+	var canvas: Node = _soul_menu.get_parent()
+	_soul_menu = null
+	_soul_menu_type = ""
+	if is_instance_valid(canvas):
+		canvas.queue_free()
+
+
+func _on_soul_option(action: String, cost: int) -> void:
+	if not is_instance_valid(_player):
+		return
+	var soul_count: int = _player.inventory.get("souls", 0)
+	if soul_count < cost:
+		return
+
+	match action:
+		"fear_aura":
+			if _player.sell_souls(cost):
+				_show_dark_flash()
+				print("Fear Aura activated!")
+		"shadow_step":
+			if _player.sell_souls(cost):
+				_show_dark_flash()
+				print("Shadow Step unlocked!")
+		"summon_demon":
+			if _player.sell_souls(cost):
+				_summon_companion("demon")
+		"world_intel":
+			if _player.sell_souls(cost):
+				print("World Intel: enemies revealed!")
+		"solar_burst":
+			if _player.sacrifice_souls(cost):
+				_show_light_flash()
+				print("Solar Burst activated!")
+		"healing_aura":
+			if _player.sacrifice_souls(cost):
+				_player.set_health(_player.health + 40)
+				_show_light_flash()
+				print("Healing Aura!")
+		"summon_angel":
+			if _player.sacrifice_souls(cost):
+				_summon_companion("angel")
+		"favor_offering":
+			if _player.sacrifice_souls(cost):
+				print("Auros Favor offered.")
+
+	_close_soul_menu()
+
+
+func _summon_companion(kind: String) -> void:
+	# Dismiss existing companion
+	if is_instance_valid(_companion):
+		_companion.queue_free()
+		_companion = null
+
+	var body := CharacterBody3D.new()
+	body.name = "Companion_" + kind
+	add_child(body)
+	if is_instance_valid(_player):
+		body.global_position = _player.global_position + Vector3(2.0, 0.0, 0.0)
+
+	# Visual
+	var mesh_inst := MeshInstance3D.new()
+	var cap := CapsuleMesh.new()
+	cap.radius = 0.3
+	cap.height = 1.5
+	mesh_inst.mesh = cap
+	var mat := StandardMaterial3D.new()
+	if kind == "demon":
+		mat.albedo_color     = Color(0.15, 0.0, 0.25)
+		mat.emission_enabled = true
+		mat.emission         = Color(0.8, 0.0, 0.9)
+		mat.emission_energy  = 1.0
+	else:
+		mat.albedo_color     = Color(1.0, 0.95, 0.7)
+		mat.emission_enabled = true
+		mat.emission         = Color(1.0, 0.9, 0.3)
+		mat.emission_energy  = 1.5
+	mesh_inst.set_surface_override_material(0, mat)
+	mesh_inst.position.y = 0.75
+	body.add_child(mesh_inst)
+
+	# Glow
+	var light := OmniLight3D.new()
+	light.light_color  = Color(0.8, 0.0, 1.0) if kind == "demon" else Color(1.0, 0.95, 0.3)
+	light.light_energy = 1.2
+	light.omni_range   = 2.5
+	light.position.y   = 0.9
+	body.add_child(light)
+
+	# Label
+	var label3d := Label3D.new()
+	label3d.text      = "😈" if kind == "demon" else "😇"
+	label3d.font_size = 48
+	label3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label3d.position.y = 2.0
+	body.add_child(label3d)
+
+	# Collision
+	var col := CollisionShape3D.new()
+	var cshape := CapsuleShape3D.new()
+	cshape.radius = 0.3
+	cshape.height = 1.5
+	col.shape = cshape
+	col.position.y = 0.75
+	body.add_child(col)
+
+	_companion = body
+	_spawn_pickup_sparkle(body.global_position, Color(0.8, 0.0, 1.0) if kind == "demon" else Color(1.0, 0.9, 0.2))
+
+	# Companion follows player via timer
+	var follow_timer := Timer.new()
+	follow_timer.wait_time = 0.1
+	follow_timer.autostart = true
+	body.add_child(follow_timer)
+	follow_timer.timeout.connect(func() -> void:
+		if not is_instance_valid(body) or not is_instance_valid(_player):
+			return
+		var target: Vector3 = _player.global_position + Vector3(1.8, 0.0, 1.8)
+		var dir: Vector3 = (target - body.global_position)
+		if dir.length() > 2.0:
+			body.velocity = dir.normalized() * 5.0
+			body.move_and_slide()
+	)
+
+	# Auto-dismiss after 5 minutes
+	get_tree().create_timer(300.0).timeout.connect(func() -> void:
+		if is_instance_valid(body):
+			body.queue_free()
+		if _companion == body:
+			_companion = null
+	)
+
+	var name_str: String = "Demon Companion" if kind == "demon" else "Angel Companion"
+	print(name_str, " summoned!")
+
+
+func _show_dark_flash() -> void:
+	_spawn_pickup_sparkle(_player.global_position + Vector3(0, 1, 0), Color(0.6, 0.0, 0.9))
+
+func _show_light_flash() -> void:
+	_spawn_pickup_sparkle(_player.global_position + Vector3(0, 1, 0), Color(1.0, 0.95, 0.3))
+
+
+func _on_dark_tier_changed(tier: int) -> void:
+	var names: Array[String] = ["Tainted", "Corrupted", "Infernal", "Damned", "Forsaken", "Hellbound"]
+	print("🔴 Dark Tier %d: %s" % [tier, names[tier - 1]])
+	# Future: adjust enemy spawn rate / world visuals based on tier
+
+func _on_divine_tier_changed(tier: int) -> void:
+	var names: Array[String] = ["Acknowledged", "Devoted", "Chosen", "Blessed", "Sacred", "Divine"]
+	print("☀ Divine Tier %d: %s" % [tier, names[tier - 1]])
+	# Future: bloom world, golden bird, weather shift based on tier

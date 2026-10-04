@@ -6,6 +6,8 @@ signal player_died
 ## Emitted when the player makes noise enemies can hear.
 ## origin = world position of the sound, volume 0.0–1.0 scales hearing radius.
 signal made_noise(origin: Vector3, volume: float)
+signal dark_tier_changed(tier: int)
+signal divine_tier_changed(tier: int)
 ## Wall scenes used by build mode.
 const WOOD_WALL_SCENE  := preload("res://scenes/objects/WoodWall3D.tscn")
 const STONE_WALL_SCENE := preload("res://scenes/objects/StoneWall3D.tscn")
@@ -162,6 +164,17 @@ var inventory: Dictionary = {
 	"stone":      0,
 	"mushroom":   0,
 }
+
+# ── Soul System ────────────────────────────────────────────────────────────
+var souls_sold_total: int       = 0   ## cumulative souls sold to demons
+var souls_sacrificed_total: int = 0   ## cumulative souls sacrificed to Auros
+var dark_tier: int              = 0   ## 0-5 (Tainted→Hellbound)
+var divine_tier: int            = 0   ## 0-5 (Acknowledged→Divine)
+var divine_bonus: int           = 0   ## permanent attack bonus from Auros
+
+const DARK_THRESHOLDS:   Array[int] = [100, 1000, 10000, 25000, 50000, 100000]
+const DIVINE_THRESHOLDS: Array[int] = [100, 1000, 10000, 25000, 50000, 100000]
+const DIVINE_BONUSES:    Array[int] = [1, 2, 3, 5, 7, 10]
 
 # ── build mode ──────────────────────────────────────────────────────────────
 const WALL_WOOD_COST    := 3          ## wood needed to place one wood wall
@@ -858,6 +871,10 @@ func set_health(value: int) -> void:
 
 func _die() -> void:
 	_is_dead = true
+	# Soul respawn cost
+	if inventory.get("souls", 0) > 0:
+		inventory["souls"] -= 1
+		inventory_changed.emit("souls", inventory["souls"])
 	if _anim and _anim.has_animation("Mx_KnockedOut"):
 		_anim.get_animation("Mx_KnockedOut").loop_mode = Animation.LOOP_NONE
 		_play_clip("Mx_KnockedOut")
@@ -899,6 +916,54 @@ func remove_item(item: String, count: int = 1) -> bool:
 
 func get_item_count(item: String) -> int:
 	return inventory.get(item, 0) as int
+
+# ── Soul System ─────────────────────────────────────────────────────────────
+
+func sell_souls(amount: int) -> bool:
+	if inventory.get("souls", 0) < amount:
+		return false
+	inventory["souls"] -= amount
+	inventory_changed.emit("souls", inventory["souls"])
+	souls_sold_total += amount
+	_check_dark_tier()
+	return true
+
+func sacrifice_souls(amount: int) -> bool:
+	if inventory.get("souls", 0) < amount:
+		return false
+	inventory["souls"] -= amount
+	inventory_changed.emit("souls", inventory["souls"])
+	souls_sacrificed_total += amount
+	_check_divine_tier()
+	return true
+
+func _check_dark_tier() -> void:
+	var new_tier: int = 0
+	for i: int in DARK_THRESHOLDS.size():
+		if souls_sold_total >= DARK_THRESHOLDS[i]:
+			new_tier = i + 1
+	if new_tier != dark_tier:
+		dark_tier = new_tier
+		dark_tier_changed.emit(dark_tier)
+		var names: Array[String] = ["Tainted", "Corrupted", "Infernal", "Damned", "Forsaken", "Hellbound"]
+		_show_float_text("Dark Tier: " + names[dark_tier - 1], global_position + Vector3(0, 3.0, 0))
+		print("Dark Tier reached: ", dark_tier)
+
+func _check_divine_tier() -> void:
+	var new_tier: int = 0
+	for i: int in DIVINE_THRESHOLDS.size():
+		if souls_sacrificed_total >= DIVINE_THRESHOLDS[i]:
+			new_tier = i + 1
+	if new_tier != divine_tier:
+		divine_tier = new_tier
+		divine_bonus = DIVINE_BONUSES[divine_tier - 1]
+		divine_tier_changed.emit(divine_tier)
+		var names: Array[String] = ["Acknowledged", "Devoted", "Chosen", "Blessed", "Sacred", "Divine"]
+		_show_float_text("☀ " + names[divine_tier - 1] + " +" + str(divine_bonus) + " ATK", global_position + Vector3(0, 3.0, 0))
+		print("Divine Tier reached: ", divine_tier, " | Bonus: +", divine_bonus)
+
+func get_attack_power() -> int:
+	return inventory.get("souls", 0) + divine_bonus
 
 # ── build mode ─────────────────────────────────────────────────────────────
 func _toggle_build_mode() -> void:
