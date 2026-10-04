@@ -2,6 +2,7 @@ extends CharacterBody3D
 
 signal inventory_changed(item: String, new_count: int)
 signal health_changed(current: int, maximum: int)
+signal hunger_changed(current: int, maximum: int)
 signal player_died
 ## Emitted when the player makes noise enemies can hear.
 ## origin = world position of the sound, volume 0.0–1.0 scales hearing radius.
@@ -38,6 +39,16 @@ var _anim: AnimationPlayer = null
 var _attack_anim_time: float = 0.0
 var _dev_inspect_mode: bool = false
 var _sprint_noise_timer: float = 0.0
+# ── hunger system ───────────────────────────────────────────────────────────
+var hunger: int        = 100
+var max_hunger: int    = 100
+var _hunger_timer: float  = 0.0   ## time since last hunger tick
+var _starve_timer: float  = 0.0   ## time since last starvation damage
+const HUNGER_DRAIN_INTERVAL: float = 10.0  ## seconds per 1 hunger drained
+const HUNGER_STARVE_INTERVAL: float = 3.0  ## seconds per 1 HP lost when starving
+# ── inventory UI ─────────────────────────────────────────────────────────────
+var _inv_ui_layer: CanvasLayer = null
+var _inv_ui_open: bool = false
 # ── charge blast state ────────────────────────────────────────────────────────
 var _is_charging: bool = false
 var _charge_power: float = 0.0
@@ -254,6 +265,11 @@ func set_input_blocked(v: bool) -> void:
 	_input_blocked = v
 
 func _input(event: InputEvent) -> void:
+	## Inventory toggle must work even when blocked (to close the panel)
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.physical_keycode == KEY_I:
+			_toggle_inventory_ui()
+			return
 	if _input_blocked:
 		return
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
@@ -274,6 +290,7 @@ func _input(event: InputEvent) -> void:
 			KEY_Q:     _switch_weapon()
 			KEY_P:     _toggle_dev_inspect()
 			KEY_B:     _toggle_build_mode()
+			KEY_H:     _eat_food()
 			KEY_R:     _cycle_build_item()
 			KEY_G:     if not _is_dead and _play_clip("Mx_ChokeLift"): _apply_melee_hit(SWORD_DAMAGE)
 			KEY_ESCAPE:
@@ -308,6 +325,20 @@ func _physics_process(delta: float) -> void:
 
 	_attack_cooldown = max(_attack_cooldown - delta, 0.0)
 	_combo_reset_timer = max(_combo_reset_timer - delta, 0.0)
+	# ── hunger drain ──
+	_hunger_timer += delta
+	if _hunger_timer >= HUNGER_DRAIN_INTERVAL:
+		_hunger_timer -= HUNGER_DRAIN_INTERVAL
+		if hunger > 0:
+			hunger -= 1
+			hunger_changed.emit(hunger, max_hunger)
+	if hunger == 0:
+		_starve_timer += delta
+		if _starve_timer >= HUNGER_STARVE_INTERVAL:
+			_starve_timer -= HUNGER_STARVE_INTERVAL
+			take_damage(1)
+	else:
+		_starve_timer = 0.0
 
 	if _dev_inspect_mode:
 		velocity = Vector3.ZERO
@@ -1491,3 +1522,149 @@ func apply_save_data(d: Dictionary) -> void:
 	for key: String in saved_inv:
 		inventory[key] = int(saved_inv[key])
 	emit_signal("health_changed", health, max_health)
+
+
+# ── Hunger: Eat Food ─────────────────────────────────────────────────────────
+
+func _eat_food() -> void:
+	## Press H to eat. Tries fruit first, then tottie. (H key)
+	for food: String in ["fruit", "tottie"]:
+		if inventory.get(food, 0) > 0:
+			inventory[food] -= 1
+			inventory_changed.emit(food, inventory[food])
+			var restore: int = 25 if food == "fruit" else 50
+			hunger = mini(hunger + restore, max_hunger)
+			hunger_changed.emit(hunger, max_hunger)
+			_show_float_text("🍽 Ate %s (+%d hunger)" % [food.capitalize(), restore],
+				global_position + Vector3(0, 2.5, 0))
+			return
+	_show_float_text("No food! (need Fruit or Tottie)", global_position + Vector3(0, 2.5, 0))
+
+
+# ── Inventory UI ─────────────────────────────────────────────────────────────
+
+func _toggle_inventory_ui() -> void:
+	if _inv_ui_open:
+		_close_inventory_ui()
+	else:
+		_open_inventory_ui()
+
+
+func _open_inventory_ui() -> void:
+	if _inv_ui_layer != null:
+		_inv_ui_layer.queue_free()
+	_inv_ui_open = true
+	set_input_blocked(true)
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
+	_inv_ui_layer = CanvasLayer.new()
+	_inv_ui_layer.layer = 15
+	add_child(_inv_ui_layer)
+
+	## Dark overlay
+	var bg := ColorRect.new()
+	bg.color = Color(0.0, 0.0, 0.0, 0.72)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_inv_ui_layer.add_child(bg)
+
+	## Center panel
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.offset_left   = -260.0
+	panel.offset_right  = 260.0
+	panel.offset_top    = -210.0
+	panel.offset_bottom = 210.0
+	_inv_ui_layer.add_child(panel)
+
+	var margin := MarginContainer.new()
+	for side: String in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 14)
+	panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	margin.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "🎒 Inventory"
+	title.add_theme_font_size_override("font_size", 22)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	var hint := Label.new()
+	hint.text = "[ H ] Eat Food  •  [ I ] Close"
+	hint.add_theme_font_size_override("font_size", 11)
+	hint.modulate = Color(0.65, 0.65, 0.65)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(hint)
+
+	vbox.add_child(HSeparator.new())
+
+	## Hunger bar row
+	var hunger_row := HBoxContainer.new()
+	vbox.add_child(hunger_row)
+	var hunger_icon := Label.new()
+	hunger_icon.text = "🍽 Hunger"
+	hunger_icon.add_theme_font_size_override("font_size", 13)
+	hunger_row.add_child(hunger_icon)
+	var hunger_bar := ProgressBar.new()
+	hunger_bar.min_value = 0.0
+	hunger_bar.max_value = float(max_hunger)
+	hunger_bar.value = float(hunger)
+	hunger_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var hunger_color: Color = Color(0.95, 0.75, 0.1) if hunger < 30 else Color(0.35, 0.9, 0.35)
+	hunger_bar.modulate = hunger_color
+	hunger_row.add_child(hunger_bar)
+	var hunger_val := Label.new()
+	hunger_val.text = " %d" % hunger
+	hunger_val.add_theme_font_size_override("font_size", 13)
+	hunger_row.add_child(hunger_val)
+
+	vbox.add_child(HSeparator.new())
+
+	## Item grid
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 24)
+	grid.add_theme_constant_override("v_separation", 8)
+	vbox.add_child(grid)
+
+	var icons: Dictionary = {
+		"souls":      "💀 Souls",
+		"wood":       "🪵 Wood",
+		"stone":      "🪨 Stone",
+		"mushroom":   "🍄 Mushroom",
+		"fruit":      "🍊 Fruit",
+		"tottie":     "🐾 Tottie",
+		"meat":       "🥩 Meat",
+		"cowhide":    "🐄 Cowhide",
+		"monkey_fur": "🐒 Monkey Fur",
+	}
+	for key: String in inventory:
+		var count: int = inventory.get(key, 0)
+		if count <= 0 and key not in ["souls"]:
+			continue
+		var lbl := Label.new()
+		var display: String = icons.get(key, key.capitalize())
+		lbl.text = "%s: %d" % [display, count]
+		lbl.add_theme_font_size_override("font_size", 14)
+		## Highlight food items in warm color
+		if key in ["fruit", "tottie", "meat"]:
+			lbl.modulate = Color(1.0, 0.85, 0.4)
+		grid.add_child(lbl)
+
+	## Close button
+	vbox.add_child(HSeparator.new())
+	var close_btn := Button.new()
+	close_btn.text = "Close  [ I ]"
+	close_btn.pressed.connect(_close_inventory_ui)
+	vbox.add_child(close_btn)
+
+
+func _close_inventory_ui() -> void:
+	_inv_ui_open = false
+	set_input_blocked(false)
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	if _inv_ui_layer != null:
+		_inv_ui_layer.queue_free()
+		_inv_ui_layer = null

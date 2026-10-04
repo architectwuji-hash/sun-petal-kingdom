@@ -44,6 +44,8 @@ var _village_npc: Node3D = null
 
 var _suppress_npc_interact: bool = false
 var _res_labels: Dictionary = {}   ## "wood" → Label, "stone" → Label, "mushroom" → Label
+var _hunger_bar: ProgressBar = null   ## hunger meter in the HUD
+var _night_enemy_multiplier: int = 1  ## 2 at night
 var petal_count: int = 0
 var _overview_mode: bool = false
 var _overview_cam: Camera3D = null
@@ -70,12 +72,19 @@ func _ready() -> void:
 		_player.player_died.connect(_on_player_died)
 		if _player.has_signal("inventory_changed"):
 			_player.inventory_changed.connect(_on_inventory_changed)
+		if _player.has_signal("hunger_changed"):
+			_player.hunger_changed.connect(_on_hunger_changed)
 		if _health_bar != null:
 			_health_bar.value = _player.health
 	# 3-minute day/night cycle (drives the Sun + WorldEnvironment in this scene)
 	var day_night: Node = preload("res://scripts/world/day_night_cycle.gd").new()
 	day_night.name = "DayNightCycle"
 	add_child(day_night)
+	## Hook up day/night gameplay effects
+	if day_night.has_signal("day_started"):
+		day_night.day_started.connect(_on_day_started)
+	if day_night.has_signal("night_started"):
+		day_night.night_started.connect(_on_night_started)
 	# Weather system — automatically picks from presets based on time
 	var weather_scene: PackedScene = load("res://addons/weather_atmosphere/weather_system_3d.tscn")
 	if weather_scene:
@@ -85,6 +94,8 @@ func _ready() -> void:
 		if "min_fog_density" in weather:
 			weather.min_fog_density = 0.014
 		add_child(weather)
+		if weather.has_signal("state_changed"):
+			weather.state_changed.connect(_on_weather_state_changed)
 	#_spawn_trees()
 	#_spawn_decor()
 	#_spawn_petals()
@@ -593,6 +604,21 @@ func _setup_resource_panel() -> void:
 		lbl.modulate = Color(0.95, 0.95, 0.85)
 		inner.add_child(lbl)
 		_res_labels[entry[1]] = lbl
+	## Hunger bar at the bottom of the resource panel
+	var hunger_sep := HSeparator.new()
+	inner.add_child(hunger_sep)
+	var hunger_lbl := Label.new()
+	hunger_lbl.text = "🍽 Hunger"
+	hunger_lbl.add_theme_font_size_override("font_size", 12)
+	hunger_lbl.modulate = Color(0.95, 0.85, 0.5)
+	inner.add_child(hunger_lbl)
+	_hunger_bar = ProgressBar.new()
+	_hunger_bar.min_value = 0.0
+	_hunger_bar.max_value = 100.0
+	_hunger_bar.value = 100.0
+	_hunger_bar.custom_minimum_size = Vector2(150.0, 14.0)
+	_hunger_bar.modulate = Color(0.4, 0.9, 0.4)
+	inner.add_child(_hunger_bar)
 
 
 func _on_inventory_changed(item: String, new_count: int) -> void:
@@ -1063,3 +1089,66 @@ func _show_hud_message(msg: String) -> void:
 	## Floating world-space text above the player for tier announcements.
 	if is_instance_valid(_player) and _player.has_method("_show_float_text"):
 		_player._show_float_text(msg, _player.global_position + Vector3(0, 3.5, 0))
+
+
+# ── Day / Night Gameplay Effects ────────────────────────────────────────────
+
+func _on_day_started() -> void:
+	_night_enemy_multiplier = 1
+	_show_hud_message("☀ Day breaks. The forest is calmer.")
+	## Remove extra night enemies beyond normal cap
+	while _active_enemies.size() > MAX_ENEMIES:
+		var extra: Node = _active_enemies.pop_back()
+		if is_instance_valid(extra):
+			extra.queue_free()
+
+
+func _on_night_started() -> void:
+	_night_enemy_multiplier = 2
+	_show_hud_message("🌙 Night falls. Enemies grow bold.")
+	## Spawn extra enemies immediately up to 2× the normal cap
+	var target: int = MAX_ENEMIES * _night_enemy_multiplier
+	while _active_enemies.size() < target:
+		_spawn_one_enemy()
+
+
+# ── Weather Gameplay Effects ────────────────────────────────────────────────
+
+func _on_weather_state_changed(state: Dictionary) -> void:
+	var rain: float  = float(state.get("rain_intensity", 0.0))
+	var fog: float   = float(state.get("fog_density",    0.0))
+
+	## Rain → halve mushroom and fruit respawn times
+	if rain > 0.4:
+		if MUSHROOM_RESPAWN_TIME != 20.0:  # avoid repeat messages
+			_show_hud_message("🌧 Rain speeds up foraging.")
+	## Thick fog → more aggressive enemy spawn
+	if fog > 0.55:
+		_night_enemy_multiplier = maxi(_night_enemy_multiplier, 2)
+		_show_hud_message("🌫 Thick fog. The monsters close in.")
+	else:
+		if _night_enemy_multiplier == 2 and not _is_night_active():
+			_night_enemy_multiplier = 1
+
+
+func _is_night_active() -> bool:
+	var dn: Node = get_node_or_null("DayNightCycle")
+	if dn and dn.has_method("is_night"):
+		return dn.call("is_night") as bool
+	return false
+
+
+# ── Hunger HUD callback ─────────────────────────────────────────────────────
+
+func _on_hunger_changed(current: int, maximum: int) -> void:
+	if _hunger_bar == null:
+		return
+	_hunger_bar.max_value = float(maximum)
+	_hunger_bar.value = float(current)
+	## Color: green when full, orange when low, red when starving
+	if current > 50:
+		_hunger_bar.modulate = Color(0.35, 0.9, 0.35)
+	elif current > 20:
+		_hunger_bar.modulate = Color(0.95, 0.75, 0.1)
+	else:
+		_hunger_bar.modulate = Color(0.9, 0.2, 0.1)
