@@ -471,65 +471,76 @@ func _on_mushroom_entered(body: Node3D, area: Area3D) -> void:
 
 
 func _attach_fruit_to_tree(tree: Node3D) -> void:
-	## Hang a fruit pickup about 2 m above the base of the tree.
-	## Implemented as an Area3D child so it inherits the tree's position.
+	## Hang an E-key interactable fruit pickup 2 m above the tree base.
+	## No glow — the only way to know a tree has fruit is to walk up and
+	## see the "[E] Pick Fruit" prompt appear.
 	var area := Area3D.new()
-	area.name = "FruitPickup"
-	area.collision_layer = 0
+	area.name       = "FruitPickup"
+	area.collision_layer = 4   ## same layer as other interactables
 	area.collision_mask  = 2   ## layer 2 = player body
 	tree.add_child(area)
 	area.global_position = tree.global_position + Vector3(0, 2.0, 0)
 
-	## Fruit mesh — small orange sphere
+	## Fruit mesh — small orange sphere, no light source
 	var mesh_inst := MeshInstance3D.new()
 	var sphere    := SphereMesh.new()
 	sphere.radius = 0.18
 	sphere.height = 0.36
 	mesh_inst.mesh = sphere
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(1.0, 0.45, 0.05)  ## orange
+	mat.albedo_color = Color(1.0, 0.45, 0.05)
 	mesh_inst.set_surface_override_material(0, mat)
 	area.add_child(mesh_inst)
 
-	## Soft warm glow so the fruit is visible under the canopy
-	var light := OmniLight3D.new()
-	light.light_color  = Color(1.0, 0.65, 0.2)
-	light.light_energy = 0.5
-	light.omni_range   = 1.5
-	area.add_child(light)
+	## [E] prompt label — hidden until the player enters the area
+	var hint := Label3D.new()
+	hint.text       = "[E] Pick Fruit"
+	hint.position   = Vector3(0, 0.6, 0)
+	hint.pixel_size = 0.006
+	hint.billboard  = BaseMaterial3D.BILLBOARD_ENABLED
+	hint.visible    = false
+	area.add_child(hint)
 
-	## Pickup collision — generous radius so the player doesn't have to be precise
+	## Pickup collision — 1.5 m radius trigger
 	var col   := CollisionShape3D.new()
 	var shape := SphereShape3D.new()
-	shape.radius = 1.2
+	shape.radius = 1.5
 	col.shape = shape
 	area.add_child(col)
 
-	area.body_entered.connect(_on_fruit_entered.bind(area))
+	## Show/hide the hint as the player walks in and out
+	area.body_entered.connect(func(b: Node3D) -> void:
+		if b.is_in_group("player"): hint.visible = true)
+	area.body_exited.connect(func(b: Node3D) -> void:
+		if b.is_in_group("player"): hint.visible = false)
 
-
-func _on_fruit_entered(body: Node3D, area: Area3D) -> void:
-	if not is_instance_valid(area):
-		return
-	if not body.is_in_group("player"):
-		return
-	if not body.has_method("add_item"):
-		return
-	## Hide fruit and disable collision immediately
-	area.visible = false
-	for child: Node in area.get_children():
-		if child is CollisionShape3D:
-			(child as CollisionShape3D).set_deferred("disabled", true)
-	body.add_item("fruit")
-	_spawn_pickup_sparkle(area.global_position, Color(1.0, 0.55, 0.1))
-	## Fruit regrows after FRUIT_RESPAWN_TIME seconds
-	get_tree().create_timer(FRUIT_RESPAWN_TIME).timeout.connect(func() -> void:
-		if is_instance_valid(area):
-			area.visible = true
-			for child: Node in area.get_children():
-				if child is CollisionShape3D:
-					(child as CollisionShape3D).disabled = false
+	## Store collect logic as a Callable in meta — _try_interact() checks
+	## "_interact_callable" when the node has no interact() method.
+	var zone: Node3D = self
+	area.set_meta("_interact_callable", func(player: Node3D) -> void:
+		if not is_instance_valid(area) or not area.visible:
+			return
+		if not player.has_method("add_item"):
+			return
+		area.visible = false
+		hint.visible = false
+		for child: Node in area.get_children():
+			if child is CollisionShape3D:
+				(child as CollisionShape3D).set_deferred("disabled", true)
+		area.remove_from_group("interactable")
+		player.add_item("fruit")
+		zone._spawn_pickup_sparkle(area.global_position, Color(1.0, 0.55, 0.1))
+		zone.get_tree().create_timer(FRUIT_RESPAWN_TIME).timeout.connect(func() -> void:
+			if is_instance_valid(area):
+				area.visible = true
+				for child: Node in area.get_children():
+					if child is CollisionShape3D:
+						(child as CollisionShape3D).disabled = false
+				area.add_to_group("interactable")
+		)
 	)
+	area.add_to_group("interactable")
+
 
 
 func _spawn_pickup_sparkle(at: Vector3, color: Color) -> void:

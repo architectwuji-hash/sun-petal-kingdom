@@ -1296,8 +1296,14 @@ func _try_interact() -> void:
 			if d < best_dist:
 				best_dist = d
 				best = node
-	if best and best.has_method("interact"):
+	if best == null:
+		return
+	if best.has_method("interact"):
 		best.interact(self)
+	elif best.has_meta("_interact_callable"):
+		## Used by runtime-built interactables (e.g. fruit trees) that cannot
+		## attach a script method but can store a Callable in metadata.
+		(best.get_meta("_interact_callable") as Callable).call(self)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # CHARGE BLAST SYSTEM
