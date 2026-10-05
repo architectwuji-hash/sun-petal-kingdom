@@ -141,7 +141,7 @@ func _physics_process(delta: float) -> void:
 		if dist < WAVE_DISTANCE and not _waving:
 			_waving = true
 			_play_anim("Wave")
-			var ld := (_player_ref.global_position - global_position)
+			var ld: Vector3 = (_player_ref.global_position as Vector3) - global_position
 			ld.y = 0.0
 			if ld.length() > 0.01:
 				look_at(global_position + ld, Vector3.UP)
@@ -193,7 +193,7 @@ func interact(player: Node) -> void:
 	if _dialogue_canvas != null:
 		return
 	if player != null:
-		var ld := (player.global_position - global_position)
+		var ld: Vector3 = (player.global_position as Vector3) - global_position
 		ld.y = 0.0
 		if ld.length() > 0.01:
 			look_at(global_position + ld, Vector3.UP)
