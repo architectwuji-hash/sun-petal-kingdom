@@ -45,7 +45,7 @@ func _spawn_model() -> void:
 	var model: Node3D = packed.instantiate()
 	model.scale = Vector3(0.01, 0.01, 0.01)
 	add_child(model)
-	_load_animations()
+	_load_animations.call_deferred()  # defer so FBX loading doesn't freeze main thread
 
 func _add_placeholder() -> void:
 	var mesh_inst := MeshInstance3D.new()

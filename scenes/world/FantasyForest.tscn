@@ -1,4 +1,4 @@
-[gd_scene format=4 uid="uid://1tt2ji4se8ep"]
+[gd_scene format=3 uid="uid://1tt2ji4se8ep"]
 
 [ext_resource type="Script" uid="uid://cneyrc0uub06b" path="res://scripts/world/forest_zone_3d.gd" id="1_forest3d"]
 [ext_resource type="PackedScene" uid="uid://bg1jlyg7413xs" path="res://TripoModels/blacksmith_shop_3d_model/blacksmith_shop_3d_model.fbx" id="9_d3b27"]
@@ -24,14 +24,14 @@
 [ext_resource type="Texture2D" uid="uid://duwln1xay8382" path="res://TripoModels/sun_statue_3d_model/tripo_convert_af2f0ee4-f4ea-4197-be89-38196a0f0049.fbm/sun_statue_3d_model_metallic.JPEG" id="27_jhdur"]
 [ext_resource type="Texture2D" uid="uid://wu3s10vbe710" path="res://TripoModels/sun_statue_3d_model/tripo_convert_af2f0ee4-f4ea-4197-be89-38196a0f0049.fbm/sun_statue_3d_model_roughness.JPEG" id="28_oqdft"]
 [ext_resource type="PackedScene" uid="uid://bedixw5h6uxim" path="res://scenes/world/props/JapaneseLakeRestaurant.tscn" id="200_jlrest"]
+[ext_resource type="Script" uid="uid://dbduk0jwjotmy" path="res://scripts/world/auros_temple_door.gd" id="201_temple_door"]
+[ext_resource type="PackedScene" path="res://scenes/npc/MaleVillager.tscn" id="202_male_villager"]
+[ext_resource type="PackedScene" path="res://scenes/npc/FemaleVillager.tscn" id="203_female_villager"]
 [ext_resource type="Script" uid="uid://cjw4cchtypk10" path="res://scripts/world/forest_terrain.gd" id="ft_terrain"]
 [ext_resource type="PackedScene" path="res://scenes/npc/Kipatah.tscn" id="kipatah_scene"]
 [ext_resource type="Script" uid="uid://d1xbaqt3leghd" path="res://scripts/buildings/ruined_cottage.gd" id="ruined_cottage_gd"]
 [ext_resource type="PackedScene" uid="uid://btsmsmejmrvhc" path="res://scenes/animals/TottieGroup.tscn" id="tottie_group_scene"]
 
-[ext_resource type="Script" path="res://scripts/world/auros_temple_door.gd" id="201_temple_door"]
-[ext_resource type="PackedScene" path="res://scenes/npc/MaleVillager.tscn" id="202_male_villager"]
-[ext_resource type="PackedScene" path="res://scenes/npc/FemaleVillager.tscn" id="203_female_villager"]
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.32, 0.55, 0.9, 1)
 sky_horizon_color = Color(0.85, 0.82, 0.7, 1)
@@ -55,18 +55,7 @@ fog_density = 0.006
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_health_fill"]
 bg_color = Color(0.85, 0.15, 0.15, 1)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nsdua"]
-resource_name = "tripo_mat_261ce7ae"
-vertex_color_use_as_albedo = true
-albedo_texture = ExtResource("10_wat8f")
-emission_enabled = true
-emission = Color(1, 1, 1, 1)
-emission_energy_multiplier = 0.0
-normal_enabled = true
-normal_scale = 0.0
-normal_texture = ExtResource("11_b05ly")
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1oego"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jhdur"]
 resource_local_to_scene = true
 resource_name = "tripo_mat_261ce7ae"
 vertex_color_use_as_albedo = true
@@ -78,18 +67,7 @@ emission_energy_multiplier = 0.0
 normal_enabled = true
 normal_texture = ExtResource("11_b05ly")
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4l5dr"]
-resource_name = "tripo_mat_a72789f1"
-vertex_color_use_as_albedo = true
-albedo_texture = ExtResource("15_ujr8i")
-emission_enabled = true
-emission = Color(1, 1, 1, 1)
-emission_energy_multiplier = 0.0
-normal_enabled = true
-normal_scale = 0.0
-normal_texture = ExtResource("16_5kemr")
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ojpea"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_oqdft"]
 resource_local_to_scene = true
 resource_name = "tripo_mat_a72789f1"
 vertex_color_use_as_albedo = true
@@ -101,18 +79,7 @@ emission_energy_multiplier = 0.0
 normal_enabled = true
 normal_texture = ExtResource("16_5kemr")
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6fxf8"]
-resource_name = "tripo_mat_e1b0a9ac"
-vertex_color_use_as_albedo = true
-albedo_texture = ExtResource("20_s5gme")
-emission_enabled = true
-emission = Color(1, 1, 1, 1)
-emission_energy_multiplier = 0.0
-normal_enabled = true
-normal_scale = 0.0
-normal_texture = ExtResource("21_8uejd")
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_c2q7f"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1oego"]
 resource_local_to_scene = true
 resource_name = "tripo_mat_e1b0a9ac"
 vertex_color_use_as_albedo = true
@@ -124,18 +91,7 @@ emission_energy_multiplier = 0.0
 normal_enabled = true
 normal_texture = ExtResource("21_8uejd")
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lq5cg"]
-resource_name = "tripo_mat_af2f0ee4"
-vertex_color_use_as_albedo = true
-albedo_texture = ExtResource("25_s5gme")
-emission_enabled = true
-emission = Color(1, 1, 1, 1)
-emission_energy_multiplier = 0.0
-normal_enabled = true
-normal_scale = 0.0
-normal_texture = ExtResource("26_8uejd")
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qt2mp"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ojpea"]
 resource_local_to_scene = true
 resource_name = "tripo_mat_af2f0ee4"
 vertex_color_use_as_albedo = true
@@ -267,23 +223,23 @@ autowrap_mode = 3
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -100, 0, -100)
 
 [node name="ruined_stone_cottage_3d_model" parent="." unique_id=1903013167 instance=ExtResource("11_4g30s")]
-transform = Transform3D(-2.3841858e-07, 0, -4.9999995, 0, 4.9999995, 0, 4.9999995, 0, -2.3841858e-07, 204, 1.6580139, 100)
+transform = Transform3D(-3.934025e-07, 0, -9, 0, 9, 0, 9, 0, -3.934025e-07, 204, 1.6580139, 100)
 script = ExtResource("ruined_cottage_gd")
 
 [node name="ruined_stone_cottage_3d_model2" parent="." unique_id=1486810008 instance=ExtResource("11_4g30s")]
-transform = Transform3D(4.829629, 0, -1.2940947, 0, 5.0000005, 0, 1.2940947, 0, 4.829629, 198, 2.4225013, 89)
+transform = Transform3D(8.693333, 0, -2.3293703, 0, 9, 0, 2.3293703, 0, 8.693333, 198, 2.4225013, 89)
 script = ExtResource("ruined_cottage_gd")
 
 [node name="ruined_stone_cottage_3d_model3" parent="." unique_id=374365403 instance=ExtResource("11_4g30s")]
-transform = Transform3D(4.829629, 0, 1.2940956, 0, 5.0000005, 0, -1.2940956, 0, 4.829629, 177, 2.4225013, 86)
+transform = Transform3D(8.693333, 0, 2.3293722, 0, 9, 0, -2.3293722, 0, 8.693333, 177, 2.4225013, 86)
 script = ExtResource("ruined_cottage_gd")
 
 [node name="ruined_stone_cottage_3d_model4" parent="." unique_id=141836035 instance=ExtResource("11_4g30s")]
-transform = Transform3D(-4.330127, 0, -2.5, 0, 5.0000005, 0, 2.5, 0, -4.330127, 196, 2.7879689, 127)
+transform = Transform3D(-7.7942286, 0, -4.5000005, 0, 9, 0, 4.5000005, 0, -7.7942286, 196, 2.7879689, 127)
 script = ExtResource("ruined_cottage_gd")
 
 [node name="ruined_stone_cottage_3d_model5" parent="." unique_id=167554954 instance=ExtResource("11_4g30s")]
-transform = Transform3D(-2.4999998, 0, 4.330127, 0, 5, 0, -4.330127, 0, -2.4999998, 187, 2.5716293, 113)
+transform = Transform3D(-4.5000005, 0, 7.7942286, 0, 9, 0, -7.7942286, 0, -4.5000005, 187, 2.5716293, 113)
 script = ExtResource("ruined_cottage_gd")
 
 [node name="Kipatah" parent="." unique_id=186141039 instance=ExtResource("kipatah_scene")]
@@ -299,7 +255,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 2, 32)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 2, -18)
 
 [node name="SujiVillageSign" type="Label3D" parent="." unique_id=1776956272]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 195, 18, 95)
+transform = Transform3D(9, 0, 0, 0, 9, 0, 0, 0, 9, 195, 18, 95)
 pixel_size = 0.1
 billboard = 1
 modulate = Color(1, 0.8, 0.4, 1)
@@ -310,27 +266,23 @@ outline_size = 8
 [node name="blacksmith_shop_3d_model" parent="." unique_id=1619916510 instance=ExtResource("9_d3b27")]
 
 [node name="tripo_node_261ce7ae" parent="blacksmith_shop_3d_model" index="0" unique_id=1974530418]
-surface_material_override/0 = SubResource("StandardMaterial3D_1oego")
+surface_material_override/0 = SubResource("StandardMaterial3D_jhdur")
 
 [node name="blacksmith_shop_3d_model2" parent="." unique_id=231373339 instance=ExtResource("9_d3b27")]
-transform = Transform3D(-3.3397064, -0.14354223, -3.7183, 0.1740724, 4.984782, -0.34878236, 3.7169955, -0.36241683, -3.3245444, 223, 2.7, 118)
+transform = Transform3D(-6.0114717, -0.258376, -6.69294, 0.31333035, 8.972608, -0.62780815, 6.6905923, -0.65235025, -5.98418, 223, 2.7, 118)
 
 [node name="ancient_temple_ruin_3d_model" parent="." unique_id=1026573901 instance=ExtResource("14_oyxoi")]
 
 [node name="tripo_node_a72789f1" parent="ancient_temple_ruin_3d_model" index="0" unique_id=1153663468]
-transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -3.0487776e-05, 0, 0.00016784668)
-skeleton = NodePath("")
-surface_material_override/0 = SubResource("StandardMaterial3D_ojpea")
+surface_material_override/0 = SubResource("StandardMaterial3D_oqdft")
 
 [node name="fantasy_wooden_shop_3d_model" parent="." unique_id=794841683 instance=ExtResource("19_70yt2")]
 
 [node name="tripo_node_e1b0a9ac" parent="fantasy_wooden_shop_3d_model" index="0" unique_id=2070363746]
-transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -0.0002899319, 0, -4.5761466e-05)
-skeleton = NodePath("")
-surface_material_override/0 = SubResource("StandardMaterial3D_c2q7f")
+surface_material_override/0 = SubResource("StandardMaterial3D_1oego")
 
 [node name="fantasy_wooden_shop_3d_model2" parent="." unique_id=1201892022 instance=ExtResource("19_70yt2")]
-transform = Transform3D(1.8117335, 0, 6.761481, 0, 7, 0, -6.761481, 0, 1.8117335, 166, 1.5, 95)
+transform = Transform3D(2.3293717, 0, 8.693333, 0, 9, 0, -8.693333, 0, 2.3293717, 166, 1.5, 95)
 
 [node name="ancient_temple_ruin_3d_model2" parent="." unique_id=617885370 instance=ExtResource("14_oyxoi")]
 transform = Transform3D(17, 0, 0, 0, 16.95859, 1.18586, 0, -1.18586, 16.95859, 205, 2, 52)
@@ -338,21 +290,20 @@ transform = Transform3D(17, 0, 0, 0, 16.95859, 1.18586, 0, -1.18586, 16.95859, 2
 [node name="sun_statue_3d_model" parent="." unique_id=332895414 instance=ExtResource("24_70yt2")]
 
 [node name="tripo_node_af2f0ee4" parent="sun_statue_3d_model" index="0" unique_id=1956875857]
-transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 3.0517578e-05, 0, -0.00010679662)
-skeleton = NodePath("")
-surface_material_override/0 = SubResource("StandardMaterial3D_qt2mp")
+surface_material_override/0 = SubResource("StandardMaterial3D_ojpea")
 
-
-[node name="AurosTempleDoor" type="Node3D" parent="." unique_id=9876543210]
+[node name="AurosTempleDoor" type="Node3D" parent="." unique_id=1286608618]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -12)
 script = ExtResource("201_temple_door")
 
+[node name="MaleVillager" parent="." unique_id=547008762 instance=ExtResource("202_male_villager")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 190, 5, 100)
 
-[node name="MaleVillager" parent="." instance=ExtResource("202_male_villager")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 190, 2, 100)
+[node name="FemaleVillager" parent="." unique_id=901887428 instance=ExtResource("203_female_villager")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 185, 5, 108)
 
-[node name="FemaleVillager" parent="." instance=ExtResource("203_female_villager")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 185, 2, 108)
+[node name="sun_statue_3d_model2" parent="." unique_id=956565426 instance=ExtResource("24_70yt2")]
+transform = Transform3D(15.588457, 0, 9, 0, 18, 0, -9, 0, 15.588457, 192, 1, 59)
 
 [editable path="blacksmith_shop_3d_model"]
 [editable path="ancient_temple_ruin_3d_model"]

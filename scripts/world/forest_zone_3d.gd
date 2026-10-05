@@ -117,6 +117,12 @@ func _ready() -> void:
 		SaveManager.load_on_next_scene = false
 		SaveManager.load_game.call_deferred()
 
+	# Restore player position when returning from a scene transition (e.g. Auros Temple)
+	if not SaveManager.scene_transfer_data.is_empty():
+		var td: Dictionary = SaveManager.scene_transfer_data.duplicate()
+		SaveManager.scene_transfer_data = {}
+		_restore_from_transfer.call_deferred(td)
+
 
 
 func _setup_bg_music() -> void:
@@ -1212,3 +1218,19 @@ func _on_hunger_changed(current: int, maximum: int) -> void:
 		_hunger_bar.modulate = Color(0.95, 0.75, 0.1)
 	else:
 		_hunger_bar.modulate = Color(0.9, 0.2, 0.1)
+
+# ── Scene Transfer Restoration ───────────────────────────────────────────────
+
+func _restore_from_transfer(td: Dictionary) -> void:
+	## Called deferred after returning from a scene transition (e.g. Auros Temple).
+	## Waits one frame so physics is ready, then moves player to the return position.
+	await get_tree().process_frame
+	if _player == null:
+		_player = get_tree().get_first_node_in_group("player") as CharacterBody3D
+	if _player == null or not _player.has_method("apply_save_data"):
+		return
+	var restore: Dictionary = td.duplicate()
+	restore["x"] = float(td.get("spawn_x", _player.global_position.x))
+	restore["y"] = float(td.get("spawn_y", _player.global_position.y))
+	restore["z"] = float(td.get("spawn_z", _player.global_position.z))
+	_player.apply_save_data(restore)
