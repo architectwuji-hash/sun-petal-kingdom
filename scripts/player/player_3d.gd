@@ -1,18 +1,22 @@
 extends CharacterBody3D
 
+signal inventory_changed(item: String, new_count: int)
 signal health_changed(current: int, maximum: int)
+signal hunger_changed(current: int, maximum: int)
 signal player_died
 ## Emitted when the player makes noise enemies can hear.
 ## origin = world position of the sound, volume 0.0–1.0 scales hearing radius.
 signal made_noise(origin: Vector3, volume: float)
+signal dark_tier_changed(tier: int)
+signal divine_tier_changed(tier: int)
 ## Wall scenes used by build mode.
 const WOOD_WALL_SCENE  := preload("res://scenes/objects/WoodWall3D.tscn")
 const STONE_WALL_SCENE := preload("res://scenes/objects/StoneWall3D.tscn")
 enum BuildItem { WOOD_WALL, STONE_WALL }
 
 # ── tunables ──────────────────────────────────────────────────────────────────
-const MOVE_SPEED:   float = 6.0
-const SPRINT_SPEED: float = 10.0
+const MOVE_SPEED:   float = 3.5
+const SPRINT_SPEED: float = 6.5
 const JUMP_FORCE:   float = 9.0
 const GRAVITY:      float = 20.0
 const INTERACT_RANGE: float = 5.0
@@ -21,12 +25,14 @@ const INTERACT_RANGE: float = 5.0
 var max_health: int  = 100
 var health: int      = 100
 var _is_dead: bool   = false
+var _respawn_cancelled: bool = false  ## set by load_game to abort the pending _respawn()
+var _input_blocked: bool = false  # set by Kipatah or any UI panel
 var _jump_pending: bool = false
 var _cam_shake: float   = 0.0
 var _camera_pivot: Node3D = null
 var _spring_arm: SpringArm3D = null
 var _camera: Camera3D = null
-var _cam_pitch: float = -0.25
+var _cam_pitch: float = -0.35
 var _attack_cooldown: float = 0.0
 var _attack_hitbox: Area3D = null
 var _char_model: Node3D = null
@@ -34,6 +40,27 @@ var _anim: AnimationPlayer = null
 var _attack_anim_time: float = 0.0
 var _dev_inspect_mode: bool = false
 var _sprint_noise_timer: float = 0.0
+# ── hunger system ───────────────────────────────────────────────────────────
+var hunger: int        = 100
+var max_hunger: int    = 100
+var _hunger_timer: float  = 0.0   ## time since last hunger tick
+var _starve_timer: float  = 0.0   ## time since last starvation damage
+const HUNGER_DRAIN_INTERVAL: float = 10.0  ## seconds per 1 hunger drained
+const HUNGER_STARVE_INTERVAL: float = 3.0  ## seconds per 1 HP lost when starving
+# ── inventory UI ─────────────────────────────────────────────────────────────
+var _inv_ui_layer: CanvasLayer = null
+var _inv_ui_open: bool = false
+# ── shop UI ─────────────────────────────────────────────────────────────────
+var _shop_ui_layer: CanvasLayer = null
+var _shop_ui_open: bool = false
+# ── blacksmith UI ────────────────────────────────────────────────────────────
+var _blacksmith_ui_layer: CanvasLayer = null
+var _blacksmith_ui_open: bool = false
+# ── charge blast state ────────────────────────────────────────────────────────
+var _is_charging: bool = false
+var _charge_power: float = 0.0
+var _charge_vfx_layers: Array[Node3D] = []  # 4 instances, one per power tier
+var _charge_level_label: Label3D = null       # floating "LV.X" above player
 const _SPRINT_NOISE_INTERVAL := 1.2   ## seconds between sprint pings
 # Remap Quaternius UAL bone names → Mixamo bone names (after stripping "mixamorig:" prefix).
 # We strip that prefix at runtime because Godot's NodePath uses ":" as a separator, so a
@@ -108,6 +135,9 @@ const AXE_SWING_ANIM := "Sword_Attack"
 const AXE_SWING_SPEED: float = 1.3
 const AXE_DAMAGE: int = 25
 const AXE_COOLDOWN: float = 1.1
+const PLAYER_BLAST_SCENE: PackedScene = preload("res://scenes/player/PlayerBlast.tscn")
+const MAX_CHARGE_POWER: float = 5000.0
+const CHARGE_RATE: float      = 800.0   # fills 5000 in ~6.25 s
 # Fraction of the swing clip where the axe head actually connects - damage
 # is dealt at that moment instead of the instant the button is pressed.
 const AXE_HIT_FRACTION: float = 0.45
@@ -128,7 +158,7 @@ var _skeleton: Skeleton3D = null
 var _sword_equipped: bool = false
 var _axe: Node3D = null
 var _axe_equipped: bool = false
-var _current_weapon: String = "sword"  # "sword" | "axe"
+var _current_weapon: String = "sword"  # "sword" | "axe" | "hands"
 
 # Quaternius "Modular Character Outfits - Fantasy" - Ranger set, chosen for
 # the forest scenes. Ships as separate skinned-mesh parts that share the
@@ -150,16 +180,33 @@ var inventory: Dictionary = {
 	"monkey_fur": 0,
 	"wood":       0,
 	"stone":      0,
+	"mushroom":   0,
 }
+
+# ── Soul System ────────────────────────────────────────────────────────────
+var souls_sold_total: int       = 0   ## cumulative souls sold to demons
+var souls_sacrificed_total: int = 0   ## cumulative souls sacrificed to Auros
+var dark_tier: int              = 0   ## 0-5 (Tainted→Hellbound)
+var divine_tier: int            = 0   ## 0-5 (Acknowledged→Divine)
+var divine_bonus: int           = 0   ## permanent attack bonus from Auros
+
+const DARK_THRESHOLDS:   Array[int] = [100, 1000, 10000, 25000, 50000, 100000]
+const DIVINE_THRESHOLDS: Array[int] = [100, 1000, 10000, 25000, 50000, 100000]
+const DIVINE_BONUSES:    Array[int] = [10, 20, 35, 50, 65, 100]  ## % attack multipliers
+var dark_protection_percent: int = 0  ## % reduction on evil-type attacks (max 40 at divine tier 4)
 
 # ── build mode ──────────────────────────────────────────────────────────────
 const WALL_WOOD_COST    := 3          ## wood needed to place one wood wall
 const WALL_STONE_COST   := 5          ## stone needed to place one stone wall
-const WALL_PLACE_DIST   := 3.5        ## metres in front of player
+const WALL_PLACE_DIST   := 5.5        ## metres in front of player
+const WALL_SNAP_DIST    := 2.5        ## XZ distance to snap ghost to a wall edge
+const WALL_HALF_WIDTH   := 2.0        ## world-space half-width (model 2.0 * node scale 2.0 / 2)
 var _build_mode:  bool      = false
 var _build_item:  BuildItem = BuildItem.WOOD_WALL
 var _ghost_wall:  Node3D    = null    ## semi-transparent preview
 var _place_ray:   RayCast3D = null    ## ground-snapping ray
+var _ghost_mats:  Array[BaseMaterial3D] = []  ## ghost materials for snap tinting
+var _ghost_snapped: bool = false             ## true while ghost is locked to a snap socket
 
 func _ready() -> void:
 	add_to_group("player")
@@ -171,8 +218,8 @@ func _ready() -> void:
 	add_child(_camera_pivot)
 	_spring_arm = SpringArm3D.new()
 	_spring_arm.name = "SpringArm3D"
-	_spring_arm.spring_length = 8.0
-	_spring_arm.position = Vector3(0, 1.6, 0)
+	_spring_arm.spring_length = 5.5
+	_spring_arm.position = Vector3(0, 1.5, 0)
 	_camera_pivot.add_child(_spring_arm)
 	_camera = Camera3D.new()
 	_camera.name = "Camera"
@@ -180,6 +227,7 @@ func _ready() -> void:
 	_camera.make_current()
 	_camera_pivot.rotation.x = _cam_pitch
 	_attack_hitbox = get_node_or_null("AttackHitbox")
+	_create_charge_ring()
 	_char_model = get_node_or_null("CharacterModel")
 	if _char_model:
 		_anim = _find_anim_player(_char_model)
@@ -220,7 +268,24 @@ func _ready() -> void:
 	_spring_arm.add_excluded_object(get_rid())
 	_spring_arm.collision_mask = 0   # don't shorten for any geometry
 
+func set_input_blocked(v: bool) -> void:
+	_input_blocked = v
+
 func _input(event: InputEvent) -> void:
+	## Inventory / shop / blacksmith toggles must work even when blocked (to close the panel)
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.physical_keycode == KEY_I:
+			_toggle_inventory_ui()
+			return
+		if event.physical_keycode == KEY_E or event.physical_keycode == KEY_ESCAPE:
+			if _shop_ui_open:
+				close_shop_ui()
+				return
+			if _blacksmith_ui_open:
+				close_blacksmith_ui()
+				return
+	if _input_blocked:
+		return
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		if _dev_inspect_mode:
 			# Orbit the CAMERA around the stationary character - character does not turn
@@ -239,6 +304,7 @@ func _input(event: InputEvent) -> void:
 			KEY_Q:     _switch_weapon()
 			KEY_P:     _toggle_dev_inspect()
 			KEY_B:     _toggle_build_mode()
+			KEY_H:     _eat_food()
 			KEY_R:     _cycle_build_item()
 			KEY_G:     if not _is_dead and _play_clip("Mx_ChokeLift"): _apply_melee_hit(SWORD_DAMAGE)
 			KEY_ESCAPE:
@@ -246,8 +312,11 @@ func _input(event: InputEvent) -> void:
 					Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 				else:
 					Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT and not _build_mode and not _is_dead:
-		_play_clip("Mx_SpellCast")
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and not _build_mode and not _is_dead:
+		if event.pressed:
+			_start_charge()
+		else:
+			_release_charge()
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if _build_mode:
 			_place_build_item()
@@ -259,9 +328,31 @@ func _input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	if _is_dead:
 		return
+	if _input_blocked:
+		# Freeze the player while a UI panel (e.g. Kipatah menu) is open
+		velocity.x = move_toward(velocity.x, 0.0, 60.0 * delta)
+		velocity.z = move_toward(velocity.z, 0.0, 60.0 * delta)
+		if not is_on_floor():
+			velocity.y -= 9.8 * delta
+		move_and_slide()
+		return
 
 	_attack_cooldown = max(_attack_cooldown - delta, 0.0)
 	_combo_reset_timer = max(_combo_reset_timer - delta, 0.0)
+	# ── hunger drain ──
+	_hunger_timer += delta
+	if _hunger_timer >= HUNGER_DRAIN_INTERVAL:
+		_hunger_timer -= HUNGER_DRAIN_INTERVAL
+		if hunger > 0:
+			hunger -= 1
+			hunger_changed.emit(hunger, max_hunger)
+	if hunger == 0:
+		_starve_timer += delta
+		if _starve_timer >= HUNGER_STARVE_INTERVAL:
+			_starve_timer -= HUNGER_STARVE_INTERVAL
+			take_damage(1)
+	else:
+		_starve_timer = 0.0
 
 	if _dev_inspect_mode:
 		velocity = Vector3.ZERO
@@ -301,6 +392,7 @@ func _physics_process(delta: float) -> void:
 
 	_update_locomotion_anim(delta)
 	_update_build_mode(delta)
+	_update_charge(delta)
 
 func _attach_sword() -> void:
 	if not _skeleton:
@@ -364,6 +456,7 @@ func _attach_axe() -> void:
 	_axe.visible = false  # sword is default; shown only when player switches
 
 func _switch_weapon() -> void:
+	## Cycle: sword → axe → hands → sword
 	if _current_weapon == "sword":
 		if _sword:
 			_sword.visible = false
@@ -373,15 +466,26 @@ func _switch_weapon() -> void:
 		_axe_equipped = true
 		_current_weapon = "axe"
 		_swing_token += 1
+		_show_float_text("🪓 Axe", global_position + Vector3(0, 2.5, 0))
 		print("[DEV] Switched to axe")
-	else:
+	elif _current_weapon == "axe":
 		if _axe:
 			_axe.visible = false
+		if _sword:
+			_sword.visible = false
+		_axe_equipped = false
+		_sword_equipped = false
+		_current_weapon = "hands"
+		_show_float_text("✊ Bare Hands", global_position + Vector3(0, 2.5, 0))
+		print("[DEV] Switched to hands")
+	else:
+		## hands → sword
 		if _sword:
 			_sword.visible = true
 		_sword_equipped = true
 		_axe_equipped = false
 		_current_weapon = "sword"
+		_show_float_text("⚔ Sword", global_position + Vector3(0, 2.5, 0))
 		print("[DEV] Switched to sword")
 
 func _attach_outfit() -> void:
@@ -763,8 +867,8 @@ func _toggle_dev_inspect() -> void:
 		print("[DEV] Inspect mode ON - movement frozen, mouse orbits camera around character")
 	else:
 		if _spring_arm:
-			_spring_arm.spring_length = 8.0
-			_spring_arm.position = Vector3(0, 1.6, 0)
+			_spring_arm.spring_length = 5.5
+			_spring_arm.position = Vector3(0, 1.5, 0)
 		if _camera_pivot:
 			_camera_pivot.rotation.y = 0.0
 		print("[DEV] Inspect mode OFF")
@@ -781,6 +885,13 @@ func _find_anim_player(node: Node) -> AnimationPlayer:
 func _update_locomotion_anim(delta: float) -> void:
 	if _anim == null:
 		return
+	# While charging, hold the cast stance and skip locomotion blending
+	if _is_charging:
+		var cast_anim := "Mx_CastingSpell"
+		if _anim.has_animation(cast_anim):
+			if _anim.current_animation != cast_anim or not _anim.is_playing():
+				_anim.play(cast_anim, 0.25)
+		return
 	var flat_speed := Vector2(velocity.x, velocity.z).length()
 	if _attack_anim_time > 0.0:
 		_attack_anim_time -= delta
@@ -792,7 +903,7 @@ func _update_locomotion_anim(delta: float) -> void:
 	# The animation library only has a sword-specific pose for standing
 	# still (Sword_Idle) - no sword-specific walk/sprint - so we use it
 	# only at rest and fall back to the normal locomotion loops otherwise.
-	var want := "Sword_Idle" if (_sword_equipped or _axe_equipped) else "Idle"
+	var want := "Sword_Idle" if (_sword_equipped or _axe_equipped) else "Idle"  ## "Idle" also covers bare hands
 	# Moving backwards relative to where the player faces -> backpedal clip
 	var local_vel := global_transform.basis.inverse() * Vector3(velocity.x, 0, velocity.z)
 	if flat_speed > 0.3 and local_vel.z > 0.3 and _anim.has_animation("RunBackward"):
@@ -818,11 +929,18 @@ func set_health(value: int) -> void:
 
 func _die() -> void:
 	_is_dead = true
+	# Soul respawn cost
+	if inventory.get("souls", 0) > 0:
+		inventory["souls"] -= 1
+		inventory_changed.emit("souls", inventory["souls"])
 	if _anim and _anim.has_animation("Mx_KnockedOut"):
 		_anim.get_animation("Mx_KnockedOut").loop_mode = Animation.LOOP_NONE
 		_play_clip("Mx_KnockedOut")
 	player_died.emit()
 	await get_tree().create_timer(3.0).timeout
+	if _respawn_cancelled:
+		_respawn_cancelled = false
+		return  # load_game already restored us; don't overwrite
 	_respawn()
 
 func _respawn() -> void:
@@ -847,16 +965,68 @@ func add_item(item: String) -> void:
 	var display := item.replace("_", " ").capitalize()
 	_show_float_text("+1 " + display, global_position + Vector3(0, 2.0, 0))
 	print("Picked up: ", item, " (", inventory[item], ")")
+	inventory_changed.emit(item, inventory[item])
 
 func remove_item(item: String, count: int = 1) -> bool:
 	var have: int = inventory.get(item, 0)
 	if have < count:
 		return false
 	inventory[item] = have - count
+	inventory_changed.emit(item, inventory[item])
 	return true
 
 func get_item_count(item: String) -> int:
 	return inventory.get(item, 0) as int
+
+# ── Soul System ─────────────────────────────────────────────────────────────
+
+func sell_souls(amount: int) -> bool:
+	if inventory.get("souls", 0) < amount:
+		return false
+	inventory["souls"] -= amount
+	inventory_changed.emit("souls", inventory["souls"])
+	souls_sold_total += amount
+	_check_dark_tier()
+	return true
+
+func sacrifice_souls(amount: int) -> bool:
+	if inventory.get("souls", 0) < amount:
+		return false
+	inventory["souls"] -= amount
+	inventory_changed.emit("souls", inventory["souls"])
+	souls_sacrificed_total += amount
+	_check_divine_tier()
+	return true
+
+func _check_dark_tier() -> void:
+	var new_tier: int = 0
+	for i: int in DARK_THRESHOLDS.size():
+		if souls_sold_total >= DARK_THRESHOLDS[i]:
+			new_tier = i + 1
+	if new_tier != dark_tier:
+		dark_tier = new_tier
+		dark_tier_changed.emit(dark_tier)
+		var names: Array[String] = ["Tainted", "Corrupted", "Infernal", "Damned", "Forsaken", "Hellbound"]
+		_show_float_text("Dark Tier: " + names[dark_tier - 1], global_position + Vector3(0, 3.0, 0))
+		print("Dark Tier reached: ", dark_tier)
+
+func _check_divine_tier() -> void:
+	var new_tier: int = 0
+	for i: int in DIVINE_THRESHOLDS.size():
+		if souls_sacrificed_total >= DIVINE_THRESHOLDS[i]:
+			new_tier = i + 1
+	if new_tier != divine_tier:
+		divine_tier = new_tier
+		divine_bonus = DIVINE_BONUSES[divine_tier - 1]
+		divine_tier_changed.emit(divine_tier)
+		var names: Array[String] = ["Acknowledged", "Devoted", "Chosen", "Blessed", "Sacred", "Divine"]
+		_show_float_text("☀ " + names[divine_tier - 1] + " +" + str(divine_bonus) + "% ATK", global_position + Vector3(0, 3.0, 0))
+		print("Divine Tier reached: ", divine_tier, " | Bonus: +", divine_bonus, "%")
+
+func get_attack_power() -> int:
+	var base: int = inventory.get("souls", 0)
+	## Apply divine bonus as a percentage multiplier
+	return base + int(base * divine_bonus / 100.0)
 
 # ── build mode ─────────────────────────────────────────────────────────────
 func _toggle_build_mode() -> void:
@@ -881,19 +1051,22 @@ func _spawn_ghost_wall() -> void:
 	if _ghost_wall:
 		_ghost_wall.queue_free()
 		_ghost_wall = null
+	_ghost_mats.clear()
+	_ghost_snapped = false
 	var scene := WOOD_WALL_SCENE if _build_item == BuildItem.WOOD_WALL else STONE_WALL_SCENE
 	_ghost_wall = scene.instantiate()
 	_ghost_wall.name = "GhostWall"
-	for m in _ghost_wall.find_children("*", "MeshInstance3D", true, false):
+	for m: MeshInstance3D in _ghost_wall.find_children("*", "MeshInstance3D", true, false):
 		var mat: Material = m.get_active_material(0)
 		if mat:
 			var ghost_mat := mat.duplicate() as BaseMaterial3D
 			if ghost_mat:
 				ghost_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-				ghost_mat.albedo_color.a = 0.45
+				ghost_mat.albedo_color = Color(1.0, 1.0, 1.0, 0.45)
 				m.set_surface_override_material(0, ghost_mat)
-	for col in _ghost_wall.find_children("*", "CollisionShape3D", true, false):
-		col.disabled = true
+				_ghost_mats.append(ghost_mat)
+	for col: Node in _ghost_wall.find_children("*", "CollisionShape3D", true, false):
+		(col as CollisionShape3D).disabled = true
 	get_tree().root.add_child(_ghost_wall)
 
 func _cycle_build_item() -> void:
@@ -911,12 +1084,43 @@ func _update_build_mode(_delta: float) -> void:
 	fwd.y = 0.0
 	if fwd.length_squared() > 0.001:
 		fwd = fwd.normalized()
-	var target_xz := global_position + fwd * WALL_PLACE_DIST
+	var default_pos := global_position + fwd * WALL_PLACE_DIST
 	var ground_y := global_position.y
 	if _place_ray and _place_ray.is_colliding():
 		ground_y = _place_ray.get_collision_point().y
-	_ghost_wall.global_position = Vector3(target_xz.x, ground_y, target_xz.z)
-	_ghost_wall.rotation.y = rotation.y
+	default_pos.y = ground_y
+
+	# ── snap scan: find the nearest edge socket on any placed wall ──────────
+	var best_dist  := WALL_SNAP_DIST
+	var snap_pos   := default_pos
+	var snap_rot   := rotation.y
+	var did_snap   := false
+
+	for wall: Node3D in get_tree().get_nodes_in_group("placed_wall"):
+		# basis.x is the scaled local-X axis; normalize to get pure direction
+		var bx: Vector3 = wall.global_transform.basis.x.normalized()
+		var right_sock: Vector3 = wall.global_position + bx * WALL_HALF_WIDTH
+		var left_sock:  Vector3 = wall.global_position - bx * WALL_HALF_WIDTH
+		for sock: Vector3 in [right_sock, left_sock]:
+			var d: float = Vector2(sock.x - default_pos.x, sock.z - default_pos.z).length()
+			if d < best_dist:
+				best_dist = d
+				snap_pos  = sock
+				snap_rot  = wall.rotation.y
+				did_snap  = true
+
+	_ghost_wall.global_position = snap_pos
+	_ghost_wall.rotation.y      = snap_rot
+
+	# Update ghost tint only when snap state actually changes (avoids per-frame alloc)
+	if did_snap != _ghost_snapped:
+		_ghost_snapped = did_snap
+		_ghost_set_snap_color(did_snap)
+
+func _ghost_set_snap_color(snapped: bool) -> void:
+	var tint := Color(0.3, 1.0, 0.4, 0.6) if snapped else Color(1.0, 1.0, 1.0, 0.45)
+	for mat: BaseMaterial3D in _ghost_mats:
+		mat.albedo_color = tint
 
 func _place_build_item() -> void:
 	if not _build_mode or _ghost_wall == null:
@@ -1140,5 +1344,620 @@ func _try_interact() -> void:
 			if d < best_dist:
 				best_dist = d
 				best = node
-	if best and best.has_method("interact"):
+	if best == null:
+		return
+	if best.has_method("interact"):
 		best.interact(self)
+	elif best.has_meta("_interact_callable"):
+		## Used by runtime-built interactables (e.g. fruit trees) that cannot
+		## attach a script method but can store a Callable in metadata.
+		(best.get_meta("_interact_callable") as Callable).call(self)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CHARGE BLAST SYSTEM
+# RMB hold → charge up (ring VFX + cast stance), release → fire big blast.
+# ══════════════════════════════════════════════════════════════════════════════
+
+func _get_charge_color(t: float) -> Color:
+	## Color ladder for t in 0..1:
+	## white → blue → cyan → green → yellow → orange → red → violet (MAX)
+	if t < 0.05: return Color(1.0, 1.0, 1.0).lerp(Color(0.3, 0.5, 1.0), t / 0.05)
+	if t < 0.20: return Color(0.3, 0.5, 1.0).lerp(Color(0.0, 1.0, 1.0), (t - 0.05) / 0.15)
+	if t < 0.40: return Color(0.0, 1.0, 1.0).lerp(Color(0.1, 1.0, 0.2), (t - 0.20) / 0.20)
+	if t < 0.60: return Color(0.1, 1.0, 0.2).lerp(Color(1.0, 1.0, 0.0), (t - 0.40) / 0.20)
+	if t < 0.75: return Color(1.0, 1.0, 0.0).lerp(Color(1.0, 0.45, 0.0), (t - 0.60) / 0.15)
+	if t < 0.88: return Color(1.0, 0.45, 0.0).lerp(Color(1.0, 0.08, 0.0), (t - 0.75) / 0.13)
+	if t < 0.96: return Color(1.0, 0.08, 0.0).lerp(Color(0.65, 0.0, 1.0), (t - 0.88) / 0.08)
+	return Color(0.65, 0.0, 1.0)
+
+
+func _create_charge_ring() -> void:
+	var scene := load("res://assets/BinbunVFX_Vol2/StatusFX/effects/status/vfx_status_shatter.tscn") as PackedScene
+	if scene == null:
+		return
+
+	# 4 layers appear at t = 0.0 / 0.25 / 0.50 / 0.75
+	# Each sits at a slightly different height and starts at a different base scale
+	var positions: PackedVector3Array = [
+		Vector3(0.0, 0.5,  0.0),
+		Vector3(0.0, 0.8,  0.0),
+		Vector3(0.0, 0.35, 0.0),
+		Vector3(0.0, 1.0,  0.0),
+	]
+	var base_scales: PackedFloat32Array = [0.45, 0.7, 1.1, 1.5]
+	for i in range(4):
+		var vfx := scene.instantiate() as Node3D
+		vfx.position = positions[i]
+		vfx.scale    = Vector3.ONE * base_scales[i]
+		vfx.visible  = false
+		add_child(vfx)
+		_charge_vfx_layers.append(vfx)
+
+	# Floating power level label — always faces the camera (billboard)
+	_charge_level_label = Label3D.new()
+	_charge_level_label.text            = "LV.1"
+	_charge_level_label.font_size       = 72
+	_charge_level_label.outline_size    = 8
+	_charge_level_label.modulate        = Color.WHITE
+	_charge_level_label.outline_modulate = Color(0.0, 0.0, 0.0, 0.85)
+	_charge_level_label.billboard       = BaseMaterial3D.BILLBOARD_ENABLED
+	_charge_level_label.no_depth_test   = true
+	_charge_level_label.position        = Vector3(0.7, 2.4, 0.0)
+	_charge_level_label.visible         = false
+	add_child(_charge_level_label)
+
+
+func _start_charge() -> void:
+	if _is_charging:
+		return
+	_is_charging   = true
+	_charge_power  = 0.0
+	# Show tier-0 layer immediately; higher tiers appear in _update_charge
+	if _charge_vfx_layers.size() > 0:
+		var vfx0 := _charge_vfx_layers[0] as Node3D
+		vfx0.visible = true
+		vfx0.scale   = Vector3.ONE * 0.45
+		var ap0 := vfx0.get_node_or_null("AnimationPlayer") as AnimationPlayer
+		if ap0 and ap0.has_animation("open"):
+			ap0.play("open")
+	if _charge_level_label:
+		_charge_level_label.visible = true
+		_charge_level_label.text    = "LV.1"
+
+
+func _release_charge() -> void:
+	if not _is_charging:
+		return
+	_is_charging = false
+	for vfx: Node3D in _charge_vfx_layers:
+		if vfx.visible:
+			var ap := vfx.get_node_or_null("AnimationPlayer") as AnimationPlayer
+			if ap and ap.has_animation("close"):
+				ap.play("close")
+			vfx.visible = false
+	if _charge_level_label:
+		_charge_level_label.visible = false
+	var released_power := _charge_power
+	_charge_power = 0.0
+	if released_power > 50.0:
+		_fire_player_blast(released_power)
+	else:
+		# Tap with no charge — quick spell cast animation as before
+		_play_clip("Mx_SpellCast")
+	# Return to idle
+	if _anim and _anim.has_animation("Idle") and released_power <= 50.0:
+		_anim.play("Idle", 0.3)
+
+
+func _update_charge(delta: float) -> void:
+	if not _is_charging:
+		return
+	_charge_power = minf(_charge_power + CHARGE_RATE * delta, MAX_CHARGE_POWER)
+	var t := _charge_power / MAX_CHARGE_POWER
+	var col := _get_charge_color(t)
+
+	# Tier thresholds, base scales, max scales, base emission per layer
+	var thresholds:    PackedFloat32Array = [0.0,  0.25, 0.50, 0.75]
+	var base_scales:   PackedFloat32Array = [0.45, 0.7,  1.1,  1.5]
+	var max_scales:    PackedFloat32Array = [1.1,  1.6,  2.2,  3.0]
+	var base_emission: PackedFloat32Array = [4.0,  6.0,  10.0, 15.0]
+
+	for i in range(_charge_vfx_layers.size()):
+		var vfx: Node3D = _charge_vfx_layers[i]
+		if t >= thresholds[i]:
+			# Unlock this tier the first time we cross its threshold
+			if not vfx.visible:
+				vfx.visible = true
+				var ap := vfx.get_node_or_null("AnimationPlayer") as AnimationPlayer
+				if ap and ap.has_animation("open"):
+					ap.play("open")
+			# Normalize t within this tier's range so each layer grows independently
+			var next_thresh: float = thresholds[i] + 0.25 if i < 3 else 1.0
+			var local_t: float = clampf((t - thresholds[i]) / (next_thresh - thresholds[i]), 0.0, 1.0)
+			vfx.scale = Vector3.ONE * lerpf(base_scales[i], max_scales[i], local_t)
+			vfx.set("primary_color", col)
+			vfx.set("emission", lerpf(base_emission[i], base_emission[i] * 2.2, local_t))
+
+	# Power level label: LV.1 at t=0 → LV.10 at t=1
+	if _charge_level_label:
+		var level: int = clampi(int(t * 10.0) + 1, 1, 10)
+		_charge_level_label.text     = "LV.%d" % level
+		_charge_level_label.modulate = col
+
+
+func _fire_player_blast(blast_power: float) -> void:
+	var blast: Node3D = PLAYER_BLAST_SCENE.instantiate()
+	get_parent().add_child(blast)
+	var origin := global_position + Vector3(0, 1.4, 0)
+	blast.global_position = origin
+	blast.set("power",     blast_power)
+	blast.set("direction", -global_transform.basis.z)
+
+	# Cast flash VFX at player hands
+	var vfx_cast_path := "res://assets/BinbunVFX_Vol2/ElementalMagicFX/effects/cast/vfx_fire_cast_01.tscn"
+	var vfx_cast_res := load(vfx_cast_path) as PackedScene
+	if vfx_cast_res:
+		var fx := vfx_cast_res.instantiate() as Node3D
+		get_parent().add_child(fx)
+		fx.global_position = origin
+		var s := lerpf(0.9, 3.5, blast_power / MAX_CHARGE_POWER)
+		fx.scale = Vector3.ONE * s
+		if "one_shot" in fx:
+			fx.set("one_shot", true)
+		if fx.has_method("play"):
+			fx.call("play")
+		get_tree().create_timer(1.8).timeout.connect(fx.queue_free)
+
+	_play_clip("Mx_SpellCast")
+	print("[Player] BLAST fired! Power: ", int(blast_power), " / ", int(MAX_CHARGE_POWER))
+
+# ── Save / Load ───────────────────────────────────────────────────────────────
+
+func get_save_data() -> Dictionary:
+	return {
+		"class":       "Player3D",
+		"x":           global_position.x,
+		"y":           global_position.y,
+		"z":           global_position.z,
+		"rot_y":       rotation.y,
+		"health":      health,
+		"max_health":  max_health,
+		"inventory":   inventory.duplicate(),
+		"hunger":      hunger,
+		"max_hunger":  max_hunger,
+	}
+
+
+func apply_save_data(d: Dictionary) -> void:
+	global_position = Vector3(
+		float(d.get("x", 0.0)),
+		float(d.get("y", 1.0)),
+		float(d.get("z", 0.0))
+	)
+	rotation.y = float(d.get("rot_y", 0.0))
+	max_health = int(d.get("max_health", 100))
+	health     = clampi(int(d.get("health", max_health)), 0, max_health)
+	# Reset all inventory slots to 0, then apply saved values,
+	# then fire inventory_changed for every slot so the HUD refreshes.
+	for key: String in inventory:
+		inventory[key] = 0
+	var saved_inv: Dictionary = d.get("inventory", {})
+	for key: String in saved_inv:
+		inventory[key] = int(saved_inv[key])
+	for key: String in inventory:
+		inventory_changed.emit(key, inventory[key])
+	# Cancel any in-flight respawn and clear the dead flag
+	if _is_dead:
+		_respawn_cancelled = true
+	_is_dead = false
+	emit_signal("health_changed", health, max_health)
+	max_hunger = int(d.get("max_hunger", 100))
+	hunger     = clampi(int(d.get("hunger", max_hunger)), 0, max_hunger)
+	emit_signal("hunger_changed", hunger, max_hunger)
+
+
+# ── Hunger: Eat Food ─────────────────────────────────────────────────────────
+
+func _eat_food() -> void:
+	## Press H to eat. Tries fruit first, then tottie. (H key)
+	for food: String in ["fruit", "tottie"]:
+		if inventory.get(food, 0) > 0:
+			inventory[food] -= 1
+			inventory_changed.emit(food, inventory[food])
+			var restore: int = 25 if food == "fruit" else 50
+			hunger = mini(hunger + restore, max_hunger)
+			hunger_changed.emit(hunger, max_hunger)
+			_show_float_text("🍽 Ate %s (+%d hunger)" % [food.capitalize(), restore],
+				global_position + Vector3(0, 2.5, 0))
+			return
+	_show_float_text("No food! (need Fruit or Tottie)", global_position + Vector3(0, 2.5, 0))
+
+
+# ── Inventory UI ─────────────────────────────────────────────────────────────
+
+func _toggle_inventory_ui() -> void:
+	if _inv_ui_open:
+		_close_inventory_ui()
+	else:
+		_open_inventory_ui()
+
+
+func _open_inventory_ui() -> void:
+	if _inv_ui_layer != null:
+		_inv_ui_layer.queue_free()
+	_inv_ui_open = true
+	set_input_blocked(true)
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
+	_inv_ui_layer = CanvasLayer.new()
+	_inv_ui_layer.layer = 15
+	add_child(_inv_ui_layer)
+
+	## Dark overlay
+	var bg := ColorRect.new()
+	bg.color = Color(0.0, 0.0, 0.0, 0.72)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_inv_ui_layer.add_child(bg)
+
+	## Center panel
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.offset_left   = -260.0
+	panel.offset_right  = 260.0
+	panel.offset_top    = -210.0
+	panel.offset_bottom = 210.0
+	_inv_ui_layer.add_child(panel)
+
+	var margin := MarginContainer.new()
+	for side: String in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 14)
+	panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	margin.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "🎒 Inventory"
+	title.add_theme_font_size_override("font_size", 22)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	var hint := Label.new()
+	hint.text = "[ H ] Eat Food  •  [ I ] Close"
+	hint.add_theme_font_size_override("font_size", 11)
+	hint.modulate = Color(0.65, 0.65, 0.65)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(hint)
+
+	vbox.add_child(HSeparator.new())
+
+	## Hunger bar row
+	var hunger_row := HBoxContainer.new()
+	vbox.add_child(hunger_row)
+	var hunger_icon := Label.new()
+	hunger_icon.text = "🍽 Hunger"
+	hunger_icon.add_theme_font_size_override("font_size", 13)
+	hunger_row.add_child(hunger_icon)
+	var hunger_bar := ProgressBar.new()
+	hunger_bar.min_value = 0.0
+	hunger_bar.max_value = float(max_hunger)
+	hunger_bar.value = float(hunger)
+	hunger_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var hunger_color: Color = Color(0.95, 0.75, 0.1) if hunger < 30 else Color(0.35, 0.9, 0.35)
+	hunger_bar.modulate = hunger_color
+	hunger_row.add_child(hunger_bar)
+	var hunger_val := Label.new()
+	hunger_val.text = " %d" % hunger
+	hunger_val.add_theme_font_size_override("font_size", 13)
+	hunger_row.add_child(hunger_val)
+
+	vbox.add_child(HSeparator.new())
+
+	## Item grid
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 24)
+	grid.add_theme_constant_override("v_separation", 8)
+	vbox.add_child(grid)
+
+	var icons: Dictionary = {
+		"souls":      "💀 Souls",
+		"wood":       "🪵 Wood",
+		"stone":      "🪨 Stone",
+		"mushroom":   "🍄 Mushroom",
+		"fruit":      "🍊 Fruit",
+		"tottie":     "🐾 Tottie",
+		"meat":       "🥩 Meat",
+		"cowhide":    "🐄 Cowhide",
+		"monkey_fur":    "🐒 Monkey Fur",
+		"campfire_kit":  "🔥 Campfire Kit",
+		"potion":        "🧪 Healing Potion",
+		"hide_armor":    "🦺 Hide Armour",
+		"stone_blade":   "🗡️ Stone Blade",
+	}
+	for key: String in inventory:
+		var count: int = inventory.get(key, 0)
+		if count <= 0 and key not in ["souls"]:
+			continue
+		var lbl := Label.new()
+		var display: String = icons.get(key, key.capitalize())
+		lbl.text = "%s: %d" % [display, count]
+		lbl.add_theme_font_size_override("font_size", 14)
+		## Highlight food items in warm color
+		if key in ["fruit", "tottie", "meat"]:
+			lbl.modulate = Color(1.0, 0.85, 0.4)
+		grid.add_child(lbl)
+
+	## Close button
+	vbox.add_child(HSeparator.new())
+	var close_btn := Button.new()
+	close_btn.text = "Close  [ I ]"
+	close_btn.pressed.connect(_close_inventory_ui)
+	vbox.add_child(close_btn)
+
+
+func _close_inventory_ui() -> void:
+	_inv_ui_open = false
+	set_input_blocked(false)
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	if _inv_ui_layer != null:
+		_inv_ui_layer.queue_free()
+		_inv_ui_layer = null
+
+
+# ── Shop UI ───────────────────────────────────────────────────────────────────
+
+func open_shop_ui(items: Array) -> void:
+	if _shop_ui_open:
+		return
+	_shop_ui_open = true
+	set_input_blocked(true)
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
+	_shop_ui_layer = CanvasLayer.new()
+	_shop_ui_layer.layer = 15
+	add_child(_shop_ui_layer)
+
+	## Dark overlay
+	var bg := ColorRect.new()
+	bg.color = Color(0.0, 0.0, 0.0, 0.72)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_shop_ui_layer.add_child(bg)
+
+	## Center panel
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.offset_left   = -280.0
+	panel.offset_right  =  280.0
+	panel.offset_top    = -240.0
+	panel.offset_bottom =  240.0
+	_shop_ui_layer.add_child(panel)
+
+	var margin := MarginContainer.new()
+	for side: String in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 14)
+	panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	margin.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "🏪 General Store"
+	title.add_theme_font_size_override("font_size", 22)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	## Soul balance
+	var souls_lbl := Label.new()
+	souls_lbl.name = "SoulsLabel"
+	souls_lbl.text = "💀 Souls: %d" % inventory.get("souls", 0)
+	souls_lbl.add_theme_font_size_override("font_size", 14)
+	souls_lbl.modulate = Color(0.85, 0.75, 1.0)
+	souls_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(souls_lbl)
+
+	vbox.add_child(HSeparator.new())
+
+	## Item rows
+	for item: Dictionary in items:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		vbox.add_child(row)
+
+		var item_lbl := Label.new()
+		item_lbl.text = "%s %s" % [item.get("emoji", ""), item.get("label", item.get("name", ""))]
+		item_lbl.add_theme_font_size_override("font_size", 15)
+		item_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(item_lbl)
+
+		var cost_lbl := Label.new()
+		cost_lbl.text = "💀 %d" % item.get("cost", 0)
+		cost_lbl.add_theme_font_size_override("font_size", 15)
+		cost_lbl.modulate = Color(0.85, 0.75, 1.0)
+		row.add_child(cost_lbl)
+
+		var buy_btn := Button.new()
+		buy_btn.text = "Buy"
+		var item_name: String   = item.get("name", "")
+		var item_cost: int      = item.get("cost", 0)
+		var item_emoji: String  = item.get("emoji", "")
+		var item_label: String  = item.get("label", item_name)
+		buy_btn.pressed.connect(func() -> void:
+			if remove_item("souls", item_cost):
+				add_item(item_name)
+				var sl: Label = _shop_ui_layer.get_node_or_null("PanelContainer/MarginContainer/VBoxContainer/SoulsLabel")
+				if sl:
+					sl.text = "💀 Souls: %d" % inventory.get("souls", 0)
+				_show_float_text("Bought %s %s!" % [item_emoji, item_label], global_position + Vector3(0, 2.5, 0))
+			else:
+				_show_float_text("Not enough souls! (need %d 💀)" % item_cost, global_position + Vector3(0, 2.5, 0))
+		)
+		row.add_child(buy_btn)
+
+	vbox.add_child(HSeparator.new())
+	var close_btn := Button.new()
+	close_btn.text = "Close  [ E ]"
+	close_btn.pressed.connect(close_shop_ui)
+	vbox.add_child(close_btn)
+
+	## Pressing E or Escape also closes
+	var close_action := func(event: InputEvent) -> void:
+		if event.is_action_pressed("interact") or event.is_action_pressed("ui_cancel"):
+			close_shop_ui()
+	_shop_ui_layer.set_meta("_input_cb", close_action)
+	get_viewport().connect("gui_focus_changed", func(_n):pass)  # keep viewport active
+
+
+func close_shop_ui() -> void:
+	if not _shop_ui_open:
+		return
+	_shop_ui_open = false
+	set_input_blocked(false)
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	if _shop_ui_layer != null:
+		_shop_ui_layer.queue_free()
+		_shop_ui_layer = null
+
+
+# ── Blacksmith UI ─────────────────────────────────────────────────────────────
+
+func open_blacksmith_ui(recipes: Array) -> void:
+	if _blacksmith_ui_open:
+		return
+	_blacksmith_ui_open = true
+	set_input_blocked(true)
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
+	_blacksmith_ui_layer = CanvasLayer.new()
+	_blacksmith_ui_layer.layer = 15
+	add_child(_blacksmith_ui_layer)
+
+	## Dark overlay
+	var bg := ColorRect.new()
+	bg.color = Color(0.0, 0.0, 0.0, 0.72)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_blacksmith_ui_layer.add_child(bg)
+
+	## Center panel
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.offset_left   = -320.0
+	panel.offset_right  =  320.0
+	panel.offset_top    = -260.0
+	panel.offset_bottom =  260.0
+	_blacksmith_ui_layer.add_child(panel)
+
+	var margin := MarginContainer.new()
+	for side: String in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 14)
+	panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	margin.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "⚒️ Blacksmith"
+	title.add_theme_font_size_override("font_size", 22)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	## Materials summary
+	var mat_lbl := Label.new()
+	mat_lbl.name = "MatLabel"
+	_update_blacksmith_mat_label(mat_lbl)
+	mat_lbl.add_theme_font_size_override("font_size", 12)
+	mat_lbl.modulate = Color(0.75, 0.85, 0.75)
+	mat_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(mat_lbl)
+
+	vbox.add_child(HSeparator.new())
+
+	## Recipe rows
+	for recipe: Dictionary in recipes:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		vbox.add_child(row)
+
+		## Result label
+		var out_lbl := Label.new()
+		out_lbl.text = "%s %s" % [recipe.get("emoji", ""), recipe.get("label", recipe.get("result", ""))]
+		out_lbl.add_theme_font_size_override("font_size", 15)
+		out_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(out_lbl)
+
+		## Cost label
+		var cost_dict: Dictionary = recipe.get("cost", {})
+		var cost_parts: Array = []
+		for mat: String in cost_dict:
+			cost_parts.append("%d %s" % [cost_dict[mat], mat.capitalize()])
+		var cost_lbl := Label.new()
+		cost_lbl.text = " + ".join(cost_parts)
+		cost_lbl.add_theme_font_size_override("font_size", 12)
+		cost_lbl.modulate = Color(0.75, 0.85, 0.75)
+		row.add_child(cost_lbl)
+
+		## Craft button
+		var craft_btn := Button.new()
+		craft_btn.text = "Craft"
+		var result_name: String  = recipe.get("result", "")
+		var result_count: int    = recipe.get("count", 1)
+		var result_emoji: String = recipe.get("emoji", "")
+		var result_label: String = recipe.get("label", result_name)
+		craft_btn.pressed.connect(func() -> void:
+			var ok := true
+			for mat: String in cost_dict:
+				if inventory.get(mat, 0) < cost_dict[mat]:
+					ok = false
+					break
+			if ok:
+				for mat: String in cost_dict:
+					remove_item(mat, cost_dict[mat])
+				for _i: int in range(result_count):
+					add_item(result_name)
+				## Refresh mat label
+				var ml: Label = _blacksmith_ui_layer.get_node_or_null("PanelContainer/MarginContainer/VBoxContainer/MatLabel")
+				if ml:
+					_update_blacksmith_mat_label(ml)
+				_show_float_text("Crafted %s %s!" % [result_emoji, result_label], global_position + Vector3(0, 2.5, 0))
+			else:
+				var missing_parts: Array = []
+				for mat: String in cost_dict:
+					var have := inventory.get(mat, 0)
+					if have < cost_dict[mat]:
+						missing_parts.append("%s (%d/%d)" % [mat.capitalize(), have, cost_dict[mat]])
+				_show_float_text("Missing: " + ", ".join(missing_parts), global_position + Vector3(0, 2.5, 0))
+		)
+		row.add_child(craft_btn)
+
+	vbox.add_child(HSeparator.new())
+	var close_btn := Button.new()
+	close_btn.text = "Close  [ E ]"
+	close_btn.pressed.connect(close_blacksmith_ui)
+	vbox.add_child(close_btn)
+
+
+func _update_blacksmith_mat_label(lbl: Label) -> void:
+	var mats := ["wood", "stone", "cowhide", "monkey_fur", "mushroom"]
+	var parts: Array = []
+	for m: String in mats:
+		var c := inventory.get(m, 0)
+		if c > 0:
+			parts.append("%s %d" % [m.capitalize().replace("_", " "), c])
+	if parts.is_empty():
+		lbl.text = "No materials"
+	else:
+		lbl.text = " | ".join(parts)
+
+
+func close_blacksmith_ui() -> void:
+	if not _blacksmith_ui_open:
+		return
+	_blacksmith_ui_open = false
+	set_input_blocked(false)
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	if _blacksmith_ui_layer != null:
+		_blacksmith_ui_layer.queue_free()
+		_blacksmith_ui_layer = null
