@@ -30,6 +30,8 @@
 [ext_resource type="PackedScene" uid="uid://btsmsmejmrvhc" path="res://scenes/animals/TottieGroup.tscn" id="tottie_group_scene"]
 
 [ext_resource type="Script" path="res://scripts/world/auros_temple_door.gd" id="201_temple_door"]
+[ext_resource type="PackedScene" path="res://scenes/npc/MaleVillager.tscn" id="202_male_villager"]
+[ext_resource type="PackedScene" path="res://scenes/npc/FemaleVillager.tscn" id="203_female_villager"]
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.32, 0.55, 0.9, 1)
 sky_horizon_color = Color(0.85, 0.82, 0.7, 1)
@@ -344,6 +346,13 @@ surface_material_override/0 = SubResource("StandardMaterial3D_qt2mp")
 [node name="AurosTempleDoor" type="Node3D" parent="." unique_id=9876543210]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -12)
 script = ExtResource("201_temple_door")
+
+
+[node name="MaleVillager" parent="." instance=ExtResource("202_male_villager")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 190, 2, 100)
+
+[node name="FemaleVillager" parent="." instance=ExtResource("203_female_villager")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 185, 2, 108)
 
 [editable path="blacksmith_shop_3d_model"]
 [editable path="ancient_temple_ruin_3d_model"]
