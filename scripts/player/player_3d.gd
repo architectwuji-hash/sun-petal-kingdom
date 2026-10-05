@@ -1925,7 +1925,7 @@ func open_blacksmith_ui(recipes: Array) -> void:
 			else:
 				var missing_parts: Array = []
 				for mat: String in cost_dict:
-					var have := inventory.get(mat, 0)
+					var have: int = inventory.get(mat, 0) as int
 					if have < cost_dict[mat]:
 						missing_parts.append("%s (%d/%d)" % [mat.capitalize(), have, cost_dict[mat]])
 				_show_float_text("Missing: " + ", ".join(missing_parts), global_position + Vector3(0, 2.5, 0))
@@ -1943,7 +1943,7 @@ func _update_blacksmith_mat_label(lbl: Label) -> void:
 	var mats := ["wood", "stone", "cowhide", "monkey_fur", "mushroom"]
 	var parts: Array = []
 	for m: String in mats:
-		var c := inventory.get(m, 0)
+		var c: int = inventory.get(m, 0) as int
 		if c > 0:
 			parts.append("%s %d" % [m.capitalize().replace("_", " "), c])
 	if parts.is_empty():
