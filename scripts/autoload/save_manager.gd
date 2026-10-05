@@ -15,6 +15,10 @@ signal game_loaded
 ## Set to true by the main menu Continue button; forest_zone_3d reads and clears it.
 var load_on_next_scene: bool = false
 
+## Temporary storage for scene transitions (temple door → interior → return).
+## Set before calling change_scene_to_file; cleared by the destination zone.
+var scene_transfer_data: Dictionary = {}
+
 # ── Input ─────────────────────────────────────────────────────────────────────
 
 func _unhandled_input(event: InputEvent) -> void:

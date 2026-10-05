@@ -1,0 +1,15 @@
+[gd_scene load_steps=4 format=3 uid="uid://aurostemplespk01"]
+
+[ext_resource type="PackedScene" uid="uid://player3dspk01" path="res://scenes/player/Player3D.tscn" id="1_player"]
+[ext_resource type="Script" path="res://scripts/world/auros_temple_interior.gd" id="2_zone"]
+[ext_resource type="Script" path="res://scripts/world/auros_temple_return_portal.gd" id="3_portal"]
+
+[node name="AurosTempleInterior" type="Node3D"]
+script = ExtResource("2_zone")
+
+[node name="Player3D" parent="." instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 18)
+
+[node name="ReturnPortal" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 22)
+script = ExtResource("3_portal")
