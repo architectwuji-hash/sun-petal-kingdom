@@ -2,12 +2,12 @@
 
 [ext_resource type="Script" path="res://scripts/world/forest_zone_3d.gd" id="1_forest3d"]
 [ext_resource type="PackedScene" uid="uid://dy2dmmcl33xqq" path="res://scenes/player/Player3D.tscn" id="11_player3d"]
-[ext_resource type="PackedScene" path="res://scenes/enemies/Puglin.tscn" id="99_6vv3i"]
-[ext_resource type="PackedScene" path="res://scenes/enemies/Imp.tscn" id="100_1l6wf"]
 [ext_resource type="PackedScene" path="res://scenes/world/props/JapaneseLakeRestaurant.tscn" id="200_jlrest"]
 [ext_resource type="Script" path="res://scripts/world/forest_terrain.gd" id="ft_terrain"]
 [ext_resource type="PackedScene" uid="uid://dif5veu78j37d" path="res://TripoModels/ruined_stone_cottage_3d_model/ruined_stone_cottage_3d_model.fbx" id="11_4g30s"]
 [ext_resource type="Script" path="res://scripts/buildings/ruined_cottage.gd" id="ruined_cottage_gd"]
+[ext_resource type="PackedScene" path="res://scenes/npc/Kipatah.tscn" id="kipatah_scene"]
+[ext_resource type="PackedScene" uid="uid://758fb14ea34f3045" path="res://scenes/animals/TottieGroup.tscn" id="tottie_group_scene"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.32, 0.55, 0.9, 1)
@@ -157,39 +157,6 @@ theme_override_font_sizes/font_size = 13
 text = "Welcome to the forest, traveler."
 autowrap_mode = 3
 
-[node name="Puglin" parent="." instance=ExtResource("99_6vv3i")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 2, -28)
-
-[node name="Imp" parent="." instance=ExtResource("100_1l6wf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 2.17, -22)
-
-[node name="Imp2" parent="." instance=ExtResource("100_1l6wf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 2.33, -19)
-
-[node name="Imp3" parent="." instance=ExtResource("100_1l6wf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 2.61, -18)
-
-[node name="Imp4" parent="." instance=ExtResource("100_1l6wf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28, 2.94, 5)
-
-[node name="Imp5" parent="." instance=ExtResource("100_1l6wf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 3.24, 9)
-
-[node name="Imp6" parent="." instance=ExtResource("100_1l6wf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 2.89, 10)
-
-[node name="Imp7" parent="." instance=ExtResource("100_1l6wf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 3.02, 30)
-
-[node name="Imp8" parent="." instance=ExtResource("100_1l6wf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 3.22, 32)
-
-[node name="Imp9" parent="." instance=ExtResource("100_1l6wf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 2.46, 33)
-
-[node name="Puglin2" parent="." instance=ExtResource("99_6vv3i")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 2.2, 20)
-
 [node name="JapaneseLakeRestaurant" parent="." instance=ExtResource("200_jlrest")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -100, 0, -100)
 
@@ -216,6 +183,18 @@ script = ExtResource("ruined_cottage_gd")
 [node name="ruined_stone_cottage_3d_model6" parent="." unique_id=677364337 instance=ExtResource("11_4g30s")]
 transform = Transform3D(1.2940954, 0, -4.829629, 0, 5, 0, 4.829629, 0, 1.2940954, 221, 1.8879286, 96)
 script = ExtResource("ruined_cottage_gd")
+
+[node name="Kipatah" parent="." instance=ExtResource("kipatah_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 2.35, 8)
+
+[node name="TottieGroup" parent="." instance=ExtResource("tottie_group_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 55, 2, 75)
+
+[node name="TottieGroup2" parent="." instance=ExtResource("tottie_group_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -45, 2, 60)
+
+[node name="TottieGroup3" parent="." instance=ExtResource("tottie_group_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100, 2, 40)
 
 [node name="SujiVillageSign" type="Label3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 195, 18, 95)
