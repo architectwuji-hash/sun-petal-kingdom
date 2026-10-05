@@ -28,6 +28,8 @@ var _is_dead: bool   = false
 var _respawn_cancelled: bool = false  ## set by load_game to abort the pending _respawn()
 var _input_blocked: bool = false  # set by Kipatah or any UI panel
 var _jump_pending: bool = false
+var _jump_count: int  = 0
+const MAX_AIR_JUMPS: int = 2  ## 1 ground jump + 2 air jumps = triple jump
 var _cam_shake: float   = 0.0
 var _camera_pivot: Node3D = null
 var _spring_arm: SpringArm3D = null
@@ -298,7 +300,9 @@ func _input(event: InputEvent) -> void:
 				_camera_pivot.rotation.x = _cam_pitch
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.physical_keycode:
-			KEY_SPACE: _jump_pending = true
+			KEY_SPACE:
+				if is_on_floor() or _jump_count < MAX_AIR_JUMPS:
+					_jump_pending = true
 			KEY_E:     _try_interact()
 			KEY_F:     _do_attack()
 			KEY_Q:     _switch_weapon()
@@ -323,7 +327,8 @@ func _input(event: InputEvent) -> void:
 		else:
 			_do_attack()
 	if event.is_action_pressed("ui_accept"):
-		_jump_pending = true
+		if is_on_floor() or _jump_count < MAX_AIR_JUMPS:
+			_jump_pending = true
 
 func _physics_process(delta: float) -> void:
 	if _is_dead:
@@ -361,11 +366,16 @@ func _physics_process(delta: float) -> void:
 		return
 
 	if is_on_floor():
+		_jump_count = 0
 		velocity.y = max(velocity.y, 0.0)
 		if _jump_pending:
 			velocity.y = JUMP_FORCE
+			_jump_count = 1
 	else:
 		velocity.y -= GRAVITY * delta
+		if _jump_pending and _jump_count < MAX_AIR_JUMPS:
+			velocity.y = JUMP_FORCE * 0.85  ## air jumps slightly weaker
+			_jump_count += 1
 	_jump_pending = false
 
 	var is_sprinting := Input.is_action_pressed("sprint")
@@ -1117,8 +1127,8 @@ func _update_build_mode(_delta: float) -> void:
 		_ghost_snapped = did_snap
 		_ghost_set_snap_color(did_snap)
 
-func _ghost_set_snap_color(snapped: bool) -> void:
-	var tint := Color(0.3, 1.0, 0.4, 0.6) if snapped else Color(1.0, 1.0, 1.0, 0.45)
+func _ghost_set_snap_color(is_snapped: bool) -> void:
+	var tint := Color(0.3, 1.0, 0.4, 0.6) if is_snapped else Color(1.0, 1.0, 1.0, 0.45)
 	for mat: BaseMaterial3D in _ghost_mats:
 		mat.albedo_color = tint
 

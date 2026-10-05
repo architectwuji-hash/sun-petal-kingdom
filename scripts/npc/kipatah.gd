@@ -58,7 +58,6 @@ var _hint_label: Label = null      # "Press E — Commands" shown near Kipatah
 # Hunt Totties state
 var _ki_inventory: Dictionary = {}   # Kipatah own inventory {"tottie": int, ...}
 var _hunt_target: Node3D = null       # Current tottie being hunted
-var _hunt_cooldown: float = 0.0       # Between harvests
 var _hunt_session_count: int = 0       # Totties hunted this session (resets on new hunt command)
 var _hunt_search_target: Vector3 = Vector3.ZERO  # Where she is walking to look for totties
 var _hunt_search_timer: float = 0.0              # How long until she picks a new search spot
@@ -73,6 +72,14 @@ var kip_xp: int = 0
 var _kip_level_label: Label3D = null
 
 
+## ── Tree Running ──────────────────────────────────────────────────────────────
+var _tree_jump_target  : StaticBody3D = null
+var _tree_jump_pending : bool         = false
+var _tree_jump_timer   : float        = 0.0
+const KIPATAH_TREE_JUMP_DELAY : float = 0.8   ## seconds behind player
+const KIPATAH_JUMP_SPEED_H    : float = 12.0
+const KIPATAH_JUMP_SPEED_V    : float = 10.0
+
 func _ready() -> void:
 	add_to_group("companion")
 	add_to_group("kipatah")
@@ -81,6 +88,11 @@ func _ready() -> void:
 	add_child(ai_node)
 	ai_node.add_to_group("kipatah_ai")
 	_player = get_tree().get_first_node_in_group("player") as CharacterBody3D
+	# Hook into player's tree running so Kipatah follows
+	if _player:
+		var tree_run_node : Node = _player.get_node_or_null("TreeRunning")
+		if tree_run_node and tree_run_node.has_signal("jumped_to_tree"):
+			tree_run_node.jumped_to_tree.connect(_on_player_jumped_to_tree)
 
 	_nav = NavigationAgent3D.new()
 	_nav.name = "NavigationAgent3D"
@@ -114,6 +126,16 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	# ── Tree running follow ───────────────────────────────────────────────────
+	if _tree_jump_pending:
+		_tree_jump_timer -= delta
+		if _tree_jump_timer <= 0.0:
+			_tree_jump_pending = false
+			if is_instance_valid(_tree_jump_target):
+				var dir : Vector3 = (_tree_jump_target.global_position - global_position).normalized()
+				velocity   = dir * KIPATAH_JUMP_SPEED_H
+				velocity.y = KIPATAH_JUMP_SPEED_V
+	
 	if not is_on_floor():
 		velocity.y -= GRAVITY * delta
 
@@ -628,10 +650,14 @@ func _fix_skin_bind_names(node: Node) -> void:
 func _load_animations() -> void:
 	if _anim == null or _skeleton == null:
 		return
+	# Stop any autoplay that fired before our _ready() ran
+	_anim.stop()
+	_anim.active = false
 	for _ln in _anim.get_animation_library_list():
 		_anim.remove_animation_library(_ln)
 	var dst_lib: AnimationLibrary = AnimationLibrary.new()
 	_anim.add_animation_library("", dst_lib)
+	_anim.active = true
 	var anim_root: Node = _anim.get_node(_anim.root_node)
 	var skel_rel: NodePath = anim_root.get_path_to(_skeleton)
 	print("[K-DBG] anim_root=", anim_root.name, " skel_rel=", skel_rel)
@@ -855,3 +881,14 @@ func apply_save_data(d: Dictionary) -> void:
 	kip_xp    = int(d.get("kip_xp",    0))
 	_kip_level_label_update()
 	emit_signal("kip_level_changed", kip_level, kip_xp, _kip_xp_required())
+
+## ── Tree Running ──────────────────────────────────────────────────────────────
+
+func _on_player_jumped_to_tree(platform: StaticBody3D) -> void:
+	## Called when the player uses tree running to jump to a new platform.
+	## Kipatah follows after a short delay so she stays in sync.
+	if not is_instance_valid(platform):
+		return
+	_tree_jump_target  = platform
+	_tree_jump_timer   = KIPATAH_TREE_JUMP_DELAY
+	_tree_jump_pending = true

@@ -45,7 +45,16 @@ func _spawn_model() -> void:
 	var model: Node3D = packed.instantiate()
 	model.scale = Vector3(0.01, 0.01, 0.01)
 	add_child(model)
-	_load_animations.call_deferred()  # defer so FBX loading doesn't freeze main thread
+	# Silence FBX built-in AnimationPlayer immediately (before next frame)
+	var fbx_anim: AnimationPlayer = _find_anim_player(model)
+	if fbx_anim != null:
+		fbx_anim.active = false
+	# Strip mixamorig bone names before any animation evaluation
+	var skel: Skeleton3D = _find_skeleton(model)
+	if skel != null:
+		_strip_mixamo_prefix(skel)
+		_fix_skin_bind_names(model)
+	_load_animations.call_deferred()
 
 func _add_placeholder() -> void:
 	var mesh_inst := MeshInstance3D.new()
@@ -60,40 +69,91 @@ func _add_placeholder() -> void:
 	add_child(mesh_inst)
 
 func _load_animations() -> void:
+	# Find the skeleton that was stripped in _spawn_model
+	var skeleton: Skeleton3D = _find_skeleton(self)
+	if skeleton == null:
+		push_warning("MaleVillager: no Skeleton3D found — animations disabled")
+		return
+
 	_anim_player = AnimationPlayer.new()
+	_anim_player.name = "AnimationPlayer"
 	add_child(_anim_player)
+
+	# Path from AnimationPlayer's root (= self/CharacterBody3D) to the skeleton
+	var anim_root: Node = _anim_player.get_node(_anim_player.root_node)
+	var skel_rel: NodePath = anim_root.get_path_to(skeleton)
+
 	var lib := AnimationLibrary.new()
-	for anim_name in ANIM_FILES:
-		var path: String = ANIM_DIR + ANIM_FILES[anim_name]
-		var packed = load(path)
+	for anim_name: String in ANIM_FILES:
+		var fpath: String = ANIM_DIR + str(ANIM_FILES[anim_name])
+		var packed = load(fpath)
 		if packed == null:
-			push_warning("MaleVillager: animation not found: " + path)
+			push_warning("MaleVillager: animation not found: " + fpath)
 			continue
-		var anim_root: Node3D = packed.instantiate()
-		var src_player: AnimationPlayer = _find_anim_player(anim_root)
+		var anim_root_node: Node3D = packed.instantiate()
+		var src_player: AnimationPlayer = _find_anim_player(anim_root_node)
 		if src_player == null:
-			anim_root.queue_free()
+			anim_root_node.queue_free()
 			continue
-		for src_name in src_player.get_animation_list():
-			if src_name == "RESET":
-				continue
-			var anim: Animation = src_player.get_animation(src_name).duplicate()
-			for ti in range(anim.get_track_count()):
-				anim.track_set_path(ti, str(anim.track_get_path(ti)).replace("mixamorig:", ""))
-			if not lib.has_animation(anim_name):
-				lib.add_animation(anim_name, anim)
-		anim_root.queue_free()
+		for lib_name in src_player.get_animation_library_list():
+			var src_lib: AnimationLibrary = src_player.get_animation_library(lib_name)
+			for src_name in src_lib.get_animation_list():
+				if src_name == "RESET":
+					continue
+				var anim: Animation = src_lib.get_animation(src_name).duplicate(true)
+				# Rewrite every track to point at our skeleton with correct root
+				for ti: int in anim.get_track_count():
+					var subpath: String = anim.track_get_path(ti).get_concatenated_subnames()
+					if subpath.begins_with("mixamorig:") or subpath.begins_with("mixamorig_"):
+						subpath = subpath.substr(10)
+					anim.track_set_path(ti, NodePath(str(skel_rel) + ":" + subpath))
+				if anim_name in ["Idle", "Walk"]:
+					anim.loop_mode = Animation.LOOP_LINEAR
+				if not lib.has_animation(anim_name):
+					lib.add_animation(anim_name, anim)
+		anim_root_node.queue_free()
 	_anim_player.add_animation_library("", lib)
 	_play_anim("Idle")
 
 func _find_anim_player(node: Node) -> AnimationPlayer:
 	if node is AnimationPlayer:
-		return node
-	for child in node.get_children():
-		var r = _find_anim_player(child)
-		if r:
+		return node as AnimationPlayer
+	for child: Node in node.get_children(true):
+		var r: AnimationPlayer = _find_anim_player(child)
+		if r != null:
 			return r
 	return null
+
+func _find_skeleton(node: Node) -> Skeleton3D:
+	if node is Skeleton3D:
+		return node as Skeleton3D
+	for child: Node in node.get_children(true):
+		var r: Skeleton3D = _find_skeleton(child)
+		if r != null:
+			return r
+	return null
+
+func _strip_mixamo_prefix(skel: Skeleton3D) -> void:
+	for i: int in skel.get_bone_count():
+		var bname: String = skel.get_bone_name(i)
+		if bname.begins_with("mixamorig:") or bname.begins_with("mixamorig_"):
+			skel.set_bone_name(i, bname.substr(10))
+
+func _fix_skin_bind_names(node: Node) -> void:
+	if node is MeshInstance3D:
+		var mi := node as MeshInstance3D
+		if mi.skin != null:
+			var sk: Skin = mi.skin.duplicate()
+			var changed := false
+			for b: int in sk.get_bind_count():
+				var bn: String = String(sk.get_bind_name(b))
+				if bn.begins_with("mixamorig:") or bn.begins_with("mixamorig_"):
+					sk.set_bind_name(b, bn.substr(10))
+					changed = true
+			if changed:
+				mi.skin = sk
+	for child: Node in node.get_children(true):
+		_fix_skin_bind_names(child)
 
 func _add_collision() -> void:
 	var col := CollisionShape3D.new()
