@@ -96,6 +96,7 @@ func _ready() -> void:
 	_generate()
 	if not Engine.is_editor_hint() and snap_characters_on_start:
 		_snap_characters()
+		_snap_buildings()
 
 
 func _queue_regen() -> void:
@@ -174,7 +175,60 @@ func _generate() -> void:
 	_scatter()
 	if sun_motes:
 		_build_motes()
+	_build_village_beacon()
 
+
+
+# ── VILLAGE BEACON ────────────────────────────────────────────────────────────
+## Tall glowing pillar marking Suji Village — visible anywhere in the editor
+## and in-game.  Remove once the village has a permanent landmark prop.
+func _build_village_beacon() -> void:
+	const VX := 195.0
+	const VZ := 95.0
+	const POLE_H  := 60.0
+	const POLE_R  := 0.4
+	const ORB_R   := 2.5
+
+	var ground_y := height_at(VX, VZ)
+
+	# Bright orange emissive material shared by pole and orb
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color          = Color(1.0, 0.55, 0.05)
+	mat.emission_enabled      = true
+	mat.emission              = Color(1.0, 0.55, 0.05)
+	mat.emission_energy_multiplier = 4.0
+
+	# Pole
+	var pole_mesh := CylinderMesh.new()
+	pole_mesh.top_radius    = POLE_R
+	pole_mesh.bottom_radius = POLE_R
+	pole_mesh.height        = POLE_H
+	var pole := MeshInstance3D.new()
+	pole.name = "SujiVillageBeacon_Pole"
+	pole.mesh = pole_mesh
+	pole.material_override = mat
+	pole.position = Vector3(VX, ground_y + POLE_H * 0.5, VZ)
+	_root.add_child(pole)
+
+	# Orb on top
+	var orb_mesh := SphereMesh.new()
+	orb_mesh.radius = ORB_R
+	orb_mesh.height = ORB_R * 2.0
+	var orb := MeshInstance3D.new()
+	orb.name = "SujiVillageBeacon_Orb"
+	orb.mesh = orb_mesh
+	orb.material_override = mat
+	orb.position = Vector3(VX, ground_y + POLE_H + ORB_R, VZ)
+	_root.add_child(orb)
+
+	# Omni light so the orb glows in the scene
+	var light := OmniLight3D.new()
+	light.name = "SujiVillageBeacon_Light"
+	light.light_color  = Color(1.0, 0.65, 0.2)
+	light.light_energy = 8.0
+	light.omni_range   = 30.0
+	light.position = Vector3(VX, ground_y + POLE_H + ORB_R, VZ)
+	_root.add_child(light)
 
 func _build_ground() -> void:
 	var n := int(map_size / CELL) + 1
@@ -567,6 +621,16 @@ func _snap_characters() -> void:
 			pos.y = height_at(pos.x, pos.z) + 0.3
 			c.global_position = pos
 
+## Snaps ruined-cottage instances to terrain height so they never float.
+## Matches any node whose name starts with "ruined_stone_cottage".
+func _snap_buildings() -> void:
+	for n in get_parent().get_children():
+		if n is Node3D and n.name.begins_with("ruined_stone_cottage"):
+			var b := n as Node3D
+			var pos := b.global_position
+			pos.y = height_at(pos.x, pos.z)
+			b.global_position = pos
+
 
 # ════════════════════════════════════════════════════════════════════════════
 #  Tree harvesting
@@ -609,6 +673,23 @@ func chop_at(point: Vector3, reach: float, chopper: Node3D) -> bool:
 		_shake_tree(best, chopper)
 	return true
 
+
+
+## Returns the world position of the nearest standing tree within max_radius of `from`.
+## Returns Vector3(INF, INF, INF) when no tree is found.
+## Called by Tottie and other creatures to find a tree to eat.
+func get_nearest_tree_pos(from: Vector3, max_radius: float) -> Vector3:
+	var best_pos := Vector3(INF, INF, INF)
+	var best_d := max_radius * max_radius
+	for t in _harvest:
+		if t["felled"]:
+			continue
+		var tp: Vector3 = t["pos"]
+		var d := (Vector2(tp.x - from.x, tp.z - from.z)).length_squared()
+		if d < best_d:
+			best_d = d
+			best_pos = tp
+	return best_pos
 
 func _set_tree_xform(tree: Dictionary, xf: Transform3D) -> void:
 	var entry: Dictionary = _mm_parts.get(tree["model"], {})

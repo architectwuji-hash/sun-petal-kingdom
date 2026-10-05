@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://1tt2ji4se8ep"]
+[gd_scene load_steps=14 format=3 uid="uid://1tt2ji4se8ep"]
 
 [ext_resource type="Script" path="res://scripts/world/forest_zone_3d.gd" id="1_forest3d"]
 [ext_resource type="PackedScene" uid="uid://dy2dmmcl33xqq" path="res://scenes/player/Player3D.tscn" id="11_player3d"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/enemies/Imp.tscn" id="100_1l6wf"]
 [ext_resource type="PackedScene" path="res://scenes/world/props/JapaneseLakeRestaurant.tscn" id="200_jlrest"]
 [ext_resource type="Script" path="res://scripts/world/forest_terrain.gd" id="ft_terrain"]
+[ext_resource type="PackedScene" uid="uid://dif5veu78j37d" path="res://TripoModels/ruined_stone_cottage_3d_model/ruined_stone_cottage_3d_model.fbx" id="11_4g30s"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.32, 0.55, 0.9, 1)
@@ -190,3 +191,30 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 2.2, 20)
 
 [node name="JapaneseLakeRestaurant" parent="." instance=ExtResource("200_jlrest")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -100, 0, -100)
+
+[node name="ruined_stone_cottage_3d_model" parent="." unique_id=1903013167 instance=ExtResource("11_4g30s")]
+transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, 204, 2.4, 100)
+
+[node name="ruined_stone_cottage_3d_model2" parent="." unique_id=1486810008 instance=ExtResource("11_4g30s")]
+transform = Transform3D(4.829629, 0, -1.2940947, 0, 5.0000005, 0, 1.2940947, 0, 4.829629, 198, 2.4225013, 89)
+
+[node name="ruined_stone_cottage_3d_model3" parent="." unique_id=374365403 instance=ExtResource("11_4g30s")]
+transform = Transform3D(4.829629, 0, 1.2940956, 0, 5.0000005, 0, -1.2940956, 0, 4.829629, 177, 2.4225013, 86)
+
+[node name="ruined_stone_cottage_3d_model4" parent="." unique_id=141836035 instance=ExtResource("11_4g30s")]
+transform = Transform3D(-4.330127, 0, -2.5, 0, 5.0000005, 0, 2.5, 0, -4.330127, 196, 2.7879689, 127)
+
+[node name="ruined_stone_cottage_3d_model5" parent="." unique_id=167554954 instance=ExtResource("11_4g30s")]
+transform = Transform3D(-2.4999998, 0, 4.330127, 0, 5, 0, -4.330127, 0, -2.4999998, 187, 2.5716293, 113)
+
+[node name="ruined_stone_cottage_3d_model6" parent="." unique_id=677364337 instance=ExtResource("11_4g30s")]
+transform = Transform3D(1.2940954, 0, -4.829629, 0, 5, 0, 4.829629, 0, 1.2940954, 221, 1.8879286, 96)
+
+[node name="SujiVillageSign" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 195, 18, 95)
+pixel_size = 0.1
+billboard = 1
+text = "Suji Village"
+font_size = 64
+modulate = Color(1, 0.8, 0.4, 1)
+outline_size = 8
