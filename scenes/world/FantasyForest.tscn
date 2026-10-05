@@ -1,13 +1,33 @@
-[gd_scene load_steps=15 format=3 uid="uid://1tt2ji4se8ep"]
+[gd_scene format=4 uid="uid://1tt2ji4se8ep"]
 
-[ext_resource type="Script" path="res://scripts/world/forest_zone_3d.gd" id="1_forest3d"]
-[ext_resource type="PackedScene" uid="uid://dy2dmmcl33xqq" path="res://scenes/player/Player3D.tscn" id="11_player3d"]
-[ext_resource type="PackedScene" path="res://scenes/world/props/JapaneseLakeRestaurant.tscn" id="200_jlrest"]
-[ext_resource type="Script" path="res://scripts/world/forest_terrain.gd" id="ft_terrain"]
+[ext_resource type="Script" uid="uid://cneyrc0uub06b" path="res://scripts/world/forest_zone_3d.gd" id="1_forest3d"]
+[ext_resource type="PackedScene" uid="uid://bg1jlyg7413xs" path="res://TripoModels/blacksmith_shop_3d_model/blacksmith_shop_3d_model.fbx" id="9_d3b27"]
+[ext_resource type="Texture2D" uid="uid://cwtethju8xpqd" path="res://TripoModels/blacksmith_shop_3d_model/tripo_convert_261ce7ae-2790-42ac-bdf4-908406addf2d.fbm/blacksmith_shop_3d_model_basecolor.JPEG" id="10_wat8f"]
 [ext_resource type="PackedScene" uid="uid://dif5veu78j37d" path="res://TripoModels/ruined_stone_cottage_3d_model/ruined_stone_cottage_3d_model.fbx" id="11_4g30s"]
-[ext_resource type="Script" path="res://scripts/buildings/ruined_cottage.gd" id="ruined_cottage_gd"]
+[ext_resource type="Texture2D" uid="uid://bc68f4kxjs1kg" path="res://TripoModels/blacksmith_shop_3d_model/tripo_convert_261ce7ae-2790-42ac-bdf4-908406addf2d.fbm/blacksmith_shop_3d_model_normal.JPEG" id="11_b05ly"]
+[ext_resource type="PackedScene" uid="uid://dy2dmmcl33xqq" path="res://scenes/player/Player3D.tscn" id="11_player3d"]
+[ext_resource type="Texture2D" uid="uid://cjgoclkj2vxj4" path="res://TripoModels/blacksmith_shop_3d_model/tripo_convert_261ce7ae-2790-42ac-bdf4-908406addf2d.fbm/blacksmith_shop_3d_model_metallic.JPEG" id="12_6w33c"]
+[ext_resource type="Texture2D" uid="uid://bbhycmedod36j" path="res://TripoModels/blacksmith_shop_3d_model/tripo_convert_261ce7ae-2790-42ac-bdf4-908406addf2d.fbm/blacksmith_shop_3d_model_roughness.JPEG" id="13_v48ys"]
+[ext_resource type="PackedScene" uid="uid://c873iwhvppowm" path="res://TripoModels/ancient_temple_ruin_3d_model/ancient_temple_ruin_3d_model.fbx" id="14_oyxoi"]
+[ext_resource type="Texture2D" uid="uid://sbya0i7wo1i3" path="res://TripoModels/ancient_temple_ruin_3d_model/tripo_convert_a72789f1-4022-4d6e-8574-449825830407.fbm/ancient_temple_ruin_3d_model_basecolor.JPEG" id="15_ujr8i"]
+[ext_resource type="Texture2D" uid="uid://xhcncg7kms1o" path="res://TripoModels/ancient_temple_ruin_3d_model/tripo_convert_a72789f1-4022-4d6e-8574-449825830407.fbm/ancient_temple_ruin_3d_model_normal.JPEG" id="16_5kemr"]
+[ext_resource type="Texture2D" uid="uid://b16s0x0uoq1eu" path="res://TripoModels/ancient_temple_ruin_3d_model/tripo_convert_a72789f1-4022-4d6e-8574-449825830407.fbm/ancient_temple_ruin_3d_model_metallic.JPEG" id="17_edwtm"]
+[ext_resource type="Texture2D" uid="uid://d2mmfay6mfyrr" path="res://TripoModels/ancient_temple_ruin_3d_model/tripo_convert_a72789f1-4022-4d6e-8574-449825830407.fbm/ancient_temple_ruin_3d_model_roughness.JPEG" id="18_c2mx6"]
+[ext_resource type="PackedScene" uid="uid://cs2ih2iludlju" path="res://TripoModels/fantasy_wooden_shop_3d_model/fantasy_wooden_shop_3d_model.fbx" id="19_70yt2"]
+[ext_resource type="Texture2D" uid="uid://uagykd3cn1ny" path="res://TripoModels/fantasy_wooden_shop_3d_model/tripo_convert_e1b0a9ac-8319-48f2-9fbc-94df72ad4414.fbm/fantasy_wooden_shop_3d_model_basecolor.JPEG" id="20_s5gme"]
+[ext_resource type="Texture2D" uid="uid://chq3imi4xybu" path="res://TripoModels/fantasy_wooden_shop_3d_model/tripo_convert_e1b0a9ac-8319-48f2-9fbc-94df72ad4414.fbm/fantasy_wooden_shop_3d_model_normal.JPEG" id="21_8uejd"]
+[ext_resource type="Texture2D" uid="uid://yi58cncbbbbk" path="res://TripoModels/fantasy_wooden_shop_3d_model/tripo_convert_e1b0a9ac-8319-48f2-9fbc-94df72ad4414.fbm/fantasy_wooden_shop_3d_model_metallic.JPEG" id="22_jhdur"]
+[ext_resource type="Texture2D" uid="uid://c0qbqyl6f7af0" path="res://TripoModels/fantasy_wooden_shop_3d_model/tripo_convert_e1b0a9ac-8319-48f2-9fbc-94df72ad4414.fbm/fantasy_wooden_shop_3d_model_roughness.JPEG" id="23_oqdft"]
+[ext_resource type="PackedScene" uid="uid://b73x8upg1w12l" path="res://TripoModels/sun_statue_3d_model/sun_statue_3d_model.fbx" id="24_70yt2"]
+[ext_resource type="Texture2D" uid="uid://bebl4po1tk3od" path="res://TripoModels/sun_statue_3d_model/tripo_convert_af2f0ee4-f4ea-4197-be89-38196a0f0049.fbm/sun_statue_3d_model_basecolor.JPEG" id="25_s5gme"]
+[ext_resource type="Texture2D" uid="uid://ya6bb0v55lg0" path="res://TripoModels/sun_statue_3d_model/tripo_convert_af2f0ee4-f4ea-4197-be89-38196a0f0049.fbm/sun_statue_3d_model_normal.JPEG" id="26_8uejd"]
+[ext_resource type="Texture2D" uid="uid://duwln1xay8382" path="res://TripoModels/sun_statue_3d_model/tripo_convert_af2f0ee4-f4ea-4197-be89-38196a0f0049.fbm/sun_statue_3d_model_metallic.JPEG" id="27_jhdur"]
+[ext_resource type="Texture2D" uid="uid://wu3s10vbe710" path="res://TripoModels/sun_statue_3d_model/tripo_convert_af2f0ee4-f4ea-4197-be89-38196a0f0049.fbm/sun_statue_3d_model_roughness.JPEG" id="28_oqdft"]
+[ext_resource type="PackedScene" uid="uid://bedixw5h6uxim" path="res://scenes/world/props/JapaneseLakeRestaurant.tscn" id="200_jlrest"]
+[ext_resource type="Script" uid="uid://cjw4cchtypk10" path="res://scripts/world/forest_terrain.gd" id="ft_terrain"]
 [ext_resource type="PackedScene" path="res://scenes/npc/Kipatah.tscn" id="kipatah_scene"]
-[ext_resource type="PackedScene" uid="uid://758fb14ea34f3045" path="res://scenes/animals/TottieGroup.tscn" id="tottie_group_scene"]
+[ext_resource type="Script" uid="uid://d1xbaqt3leghd" path="res://scripts/buildings/ruined_cottage.gd" id="ruined_cottage_gd"]
+[ext_resource type="PackedScene" uid="uid://btsmsmejmrvhc" path="res://scenes/animals/TottieGroup.tscn" id="tottie_group_scene"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.32, 0.55, 0.9, 1)
@@ -32,73 +52,156 @@ fog_density = 0.006
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_health_fill"]
 bg_color = Color(0.85, 0.15, 0.15, 1)
 
-[node name="FantasyForest" type="Node3D"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nsdua"]
+resource_name = "tripo_mat_261ce7ae"
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("10_wat8f")
+emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 0.0
+normal_enabled = true
+normal_scale = 0.0
+normal_texture = ExtResource("11_b05ly")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1oego"]
+resource_local_to_scene = true
+resource_name = "tripo_mat_261ce7ae"
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("10_wat8f")
+metallic = 1.0
+metallic_texture = ExtResource("12_6w33c")
+roughness_texture = ExtResource("13_v48ys")
+emission_energy_multiplier = 0.0
+normal_enabled = true
+normal_texture = ExtResource("11_b05ly")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4l5dr"]
+resource_name = "tripo_mat_a72789f1"
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("15_ujr8i")
+emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 0.0
+normal_enabled = true
+normal_scale = 0.0
+normal_texture = ExtResource("16_5kemr")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ojpea"]
+resource_local_to_scene = true
+resource_name = "tripo_mat_a72789f1"
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("15_ujr8i")
+metallic = 1.0
+metallic_texture = ExtResource("17_edwtm")
+roughness_texture = ExtResource("18_c2mx6")
+emission_energy_multiplier = 0.0
+normal_enabled = true
+normal_texture = ExtResource("16_5kemr")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6fxf8"]
+resource_name = "tripo_mat_e1b0a9ac"
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("20_s5gme")
+emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 0.0
+normal_enabled = true
+normal_scale = 0.0
+normal_texture = ExtResource("21_8uejd")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_c2q7f"]
+resource_local_to_scene = true
+resource_name = "tripo_mat_e1b0a9ac"
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("20_s5gme")
+metallic = 1.0
+metallic_texture = ExtResource("22_jhdur")
+roughness_texture = ExtResource("23_oqdft")
+emission_energy_multiplier = 0.0
+normal_enabled = true
+normal_texture = ExtResource("21_8uejd")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lq5cg"]
+resource_name = "tripo_mat_af2f0ee4"
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("25_s5gme")
+emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 0.0
+normal_enabled = true
+normal_scale = 0.0
+normal_texture = ExtResource("26_8uejd")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qt2mp"]
+resource_local_to_scene = true
+resource_name = "tripo_mat_af2f0ee4"
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("25_s5gme")
+metallic = 1.0
+metallic_texture = ExtResource("27_jhdur")
+roughness_texture = ExtResource("28_oqdft")
+emission_energy_multiplier = 0.0
+normal_enabled = true
+normal_texture = ExtResource("26_8uejd")
+
+[node name="FantasyForest" type="Node3D" unique_id=624943236]
 script = ExtResource("1_forest3d")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1414760588]
 environment = SubResource("Environment_world")
 
-[node name="Terrain" type="Node3D" parent="."]
+[node name="Terrain" type="Node3D" parent="." unique_id=1828654386]
 script = ExtResource("ft_terrain")
 
-[node name="Sun" type="DirectionalLight3D" parent="."]
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=1710663691]
 transform = Transform3D(0.819152, 0.42625, -0.383798, 0, 0.669131, 0.743145, 0.573576, -0.608749, 0.54812, 0, 30, 0)
 light_color = Color(1, 0.93, 0.8, 1)
 shadow_enabled = true
 directional_shadow_max_distance = 80.0
 
-[node name="Ground" type="StaticBody3D" parent="."]
+[node name="Ground" type="StaticBody3D" parent="." unique_id=1914432300]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -20, 0)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground" unique_id=1726180490]
 transform = Transform3D(25, 0, 0, 0, 25, 0, 0, 0, 25, 0, 0, 0)
 shape = SubResource("WorldBoundaryShape3D_ground")
 metadata/_edit_group_ = true
 metadata/_edit_lock_ = true
 
-[node name="Player3D" parent="." instance=ExtResource("11_player3d")]
+[node name="Player3D" parent="." unique_id=1127296051 instance=ExtResource("11_player3d")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.35, 6)
 metadata/_edit_lock_ = true
 
-# Camera3D removed: player_3d.gd builds its own follow-cam in _ready()
-
-[node name="HUD" type="CanvasLayer" parent="."]
-layer = 8
-
-[node name="VBoxContainer" type="VBoxContainer" parent="HUD"]
+[node name="HUD#VBoxContainer" type="VBoxContainer" parent="." unique_id=486421479]
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 196.0
 offset_bottom = 96.0
 
-[node name="Label" type="Label" parent="HUD/VBoxContainer"]
-layout_mode = 2
+[node name="HUD_VBoxContainer#Label" type="Label" parent="." unique_id=206793120]
 theme_override_font_sizes/font_size = 13
 text = "HP"
 
-[node name="HealthBar" type="ProgressBar" parent="HUD/VBoxContainer"]
+[node name="HUD_VBoxContainer#HealthBar" type="ProgressBar" parent="." unique_id=1692295199]
 custom_minimum_size = Vector2(180, 18)
-layout_mode = 2
 theme_override_styles/fill = SubResource("StyleBoxFlat_health_fill")
 value = 100.0
 show_percentage = false
 
-[node name="PetalLabel" type="Label" parent="HUD/VBoxContainer"]
+[node name="HUD_VBoxContainer#PetalLabel" type="Label" parent="." unique_id=1340478997]
 modulate = Color(1, 0.9, 0.2, 1)
-layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = "🌸 0 / 10"
 
-[node name="KillLabel" type="Label" parent="HUD/VBoxContainer"]
-layout_mode = 2
+[node name="HUD_VBoxContainer#KillLabel" type="Label" parent="." unique_id=1563096172]
 theme_override_colors/font_color = Color(0.9, 0.5, 0.5, 1)
 theme_override_font_sizes/font_size = 13
 text = "☠ 0 kills"
 
-[node name="MinimapLayer" type="CanvasLayer" parent="."]
+[node name="MinimapLayer" type="CanvasLayer" parent="." unique_id=602327405]
 layer = 10
 
-[node name="MinimapPanel" type="Control" parent="MinimapLayer"]
+[node name="MinimapPanel" type="Control" parent="MinimapLayer" unique_id=1808814167]
 layout_mode = 3
 anchors_preset = 1
 anchor_left = 1.0
@@ -109,7 +212,7 @@ offset_right = -20.0
 offset_bottom = 180.0
 grow_horizontal = 0
 
-[node name="Background" type="ColorRect" parent="MinimapLayer/MinimapPanel"]
+[node name="Background" type="ColorRect" parent="MinimapLayer/MinimapPanel" unique_id=815260675]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -118,16 +221,16 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
-[node name="PlayerDot" type="ColorRect" parent="MinimapLayer/MinimapPanel"]
+[node name="PlayerDot" type="ColorRect" parent="MinimapLayer/MinimapPanel" unique_id=767012954]
 layout_mode = 0
 offset_right = 8.0
 offset_bottom = 8.0
 
-[node name="DialogLayer" type="CanvasLayer" parent="."]
+[node name="DialogLayer" type="CanvasLayer" parent="." unique_id=1643221077]
 layer = 5
 visible = false
 
-[node name="PanelContainer" type="PanelContainer" parent="DialogLayer"]
+[node name="PanelContainer" type="PanelContainer" parent="DialogLayer" unique_id=1256795792]
 custom_minimum_size = Vector2(600, 120)
 anchors_preset = 7
 anchor_left = 0.5
@@ -141,27 +244,27 @@ offset_bottom = -24.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="VBoxContainer" type="VBoxContainer" parent="DialogLayer/PanelContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="DialogLayer/PanelContainer" unique_id=666256283]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="NpcName" type="Label" parent="DialogLayer/PanelContainer/VBoxContainer"]
+[node name="NpcName" type="Label" parent="DialogLayer/PanelContainer/VBoxContainer" unique_id=113946201]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "Village Elder"
 horizontal_alignment = 1
 
-[node name="DialogText" type="Label" parent="DialogLayer/PanelContainer/VBoxContainer"]
+[node name="DialogText" type="Label" parent="DialogLayer/PanelContainer/VBoxContainer" unique_id=772099384]
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = "Welcome to the forest, traveler."
 autowrap_mode = 3
 
-[node name="JapaneseLakeRestaurant" parent="." instance=ExtResource("200_jlrest")]
+[node name="JapaneseLakeRestaurant" parent="." unique_id=74472218 instance=ExtResource("200_jlrest")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -100, 0, -100)
 
 [node name="ruined_stone_cottage_3d_model" parent="." unique_id=1903013167 instance=ExtResource("11_4g30s")]
-transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, 204, 2.4, 100)
+transform = Transform3D(-2.3841858e-07, 0, -4.9999995, 0, 4.9999995, 0, 4.9999995, 0, -2.3841858e-07, 204, 1.6580139, 100)
 script = ExtResource("ruined_cottage_gd")
 
 [node name="ruined_stone_cottage_3d_model2" parent="." unique_id=1486810008 instance=ExtResource("11_4g30s")]
@@ -180,27 +283,63 @@ script = ExtResource("ruined_cottage_gd")
 transform = Transform3D(-2.4999998, 0, 4.330127, 0, 5, 0, -4.330127, 0, -2.4999998, 187, 2.5716293, 113)
 script = ExtResource("ruined_cottage_gd")
 
-[node name="ruined_stone_cottage_3d_model6" parent="." unique_id=677364337 instance=ExtResource("11_4g30s")]
-transform = Transform3D(1.2940954, 0, -4.829629, 0, 5, 0, 4.829629, 0, 1.2940954, 221, 1.8879286, 96)
-script = ExtResource("ruined_cottage_gd")
-
-[node name="Kipatah" parent="." instance=ExtResource("kipatah_scene")]
+[node name="Kipatah" parent="." unique_id=186141039 instance=ExtResource("kipatah_scene")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 2.35, 8)
 
-[node name="TottieGroup" parent="." instance=ExtResource("tottie_group_scene")]
+[node name="TottieGroup" parent="." unique_id=1635827051 instance=ExtResource("tottie_group_scene")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 2, 28)
 
-[node name="TottieGroup2" parent="." instance=ExtResource("tottie_group_scene")]
+[node name="TottieGroup2" parent="." unique_id=724243557 instance=ExtResource("tottie_group_scene")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 2, 32)
 
-[node name="TottieGroup3" parent="." instance=ExtResource("tottie_group_scene")]
+[node name="TottieGroup3" parent="." unique_id=386578892 instance=ExtResource("tottie_group_scene")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 2, -18)
 
-[node name="SujiVillageSign" type="Label3D" parent="."]
+[node name="SujiVillageSign" type="Label3D" parent="." unique_id=1776956272]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 195, 18, 95)
 pixel_size = 0.1
 billboard = 1
+modulate = Color(1, 0.8, 0.4, 1)
 text = "Suji Village"
 font_size = 64
-modulate = Color(1, 0.8, 0.4, 1)
 outline_size = 8
+
+[node name="blacksmith_shop_3d_model" parent="." unique_id=1619916510 instance=ExtResource("9_d3b27")]
+
+[node name="tripo_node_261ce7ae" parent="blacksmith_shop_3d_model" index="0" unique_id=1974530418]
+surface_material_override/0 = SubResource("StandardMaterial3D_1oego")
+
+[node name="blacksmith_shop_3d_model2" parent="." unique_id=231373339 instance=ExtResource("9_d3b27")]
+transform = Transform3D(-3.3397064, -0.14354223, -3.7183, 0.1740724, 4.984782, -0.34878236, 3.7169955, -0.36241683, -3.3245444, 223, 2.7, 118)
+
+[node name="ancient_temple_ruin_3d_model" parent="." unique_id=1026573901 instance=ExtResource("14_oyxoi")]
+
+[node name="tripo_node_a72789f1" parent="ancient_temple_ruin_3d_model" index="0" unique_id=1153663468]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -3.0487776e-05, 0, 0.00016784668)
+skeleton = NodePath("")
+surface_material_override/0 = SubResource("StandardMaterial3D_ojpea")
+
+[node name="fantasy_wooden_shop_3d_model" parent="." unique_id=794841683 instance=ExtResource("19_70yt2")]
+
+[node name="tripo_node_e1b0a9ac" parent="fantasy_wooden_shop_3d_model" index="0" unique_id=2070363746]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -0.0002899319, 0, -4.5761466e-05)
+skeleton = NodePath("")
+surface_material_override/0 = SubResource("StandardMaterial3D_c2q7f")
+
+[node name="fantasy_wooden_shop_3d_model2" parent="." unique_id=1201892022 instance=ExtResource("19_70yt2")]
+transform = Transform3D(1.8117335, 0, 6.761481, 0, 7, 0, -6.761481, 0, 1.8117335, 166, 1.5, 95)
+
+[node name="ancient_temple_ruin_3d_model2" parent="." unique_id=617885370 instance=ExtResource("14_oyxoi")]
+transform = Transform3D(17, 0, 0, 0, 16.95859, 1.18586, 0, -1.18586, 16.95859, 205, 2, 52)
+
+[node name="sun_statue_3d_model" parent="." unique_id=332895414 instance=ExtResource("24_70yt2")]
+
+[node name="tripo_node_af2f0ee4" parent="sun_statue_3d_model" index="0" unique_id=1956875857]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 3.0517578e-05, 0, -0.00010679662)
+skeleton = NodePath("")
+surface_material_override/0 = SubResource("StandardMaterial3D_qt2mp")
+
+[editable path="blacksmith_shop_3d_model"]
+[editable path="ancient_temple_ruin_3d_model"]
+[editable path="fantasy_wooden_shop_3d_model"]
+[editable path="sun_statue_3d_model"]

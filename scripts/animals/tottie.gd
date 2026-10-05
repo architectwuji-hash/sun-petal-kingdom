@@ -218,7 +218,7 @@ func _autoplay(ap: AnimationPlayer) -> void:
 	for lib_name in ap.get_animation_library_list():
 		var lib := ap.get_animation_library(lib_name)
 		for anim_name in lib.get_animation_list():
-			var full_name: String = (lib_name + "/" + anim_name) if lib_name != "" else anim_name
+			var full_name: String = (lib_name + "/" + anim_name) if lib_name != "" else str(anim_name)
 			if ap.current_animation != full_name:
 				ap.play(full_name)
 			return

@@ -889,7 +889,7 @@ func _open_soul_menu(menu_type: String) -> void:
 	vbox.add_child(title)
 
 	var soul_lbl := Label.new()
-	var soul_count: int = _player.inventory.get("souls", 0) if is_instance_valid(_player) else 0
+	var soul_count: int = (_player.inventory.get("souls", 0) as int) if is_instance_valid(_player) else 0
 	soul_lbl.text = "Souls: %d" % soul_count
 	soul_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	soul_lbl.add_theme_font_size_override("font_size", 14)
@@ -944,7 +944,7 @@ func _close_soul_menu() -> void:
 func _on_soul_option(action: String, cost: int) -> void:
 	if not is_instance_valid(_player):
 		return
-	var soul_count: int = _player.inventory.get("souls", 0)
+	var soul_count: int = _player.inventory.get("souls", 0) as int
 	if soul_count < cost:
 		return
 
