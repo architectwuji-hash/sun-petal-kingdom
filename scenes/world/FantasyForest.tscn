@@ -188,13 +188,13 @@ script = ExtResource("ruined_cottage_gd")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 2.35, 8)
 
 [node name="TottieGroup" parent="." instance=ExtResource("tottie_group_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 55, 2, 75)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 2, 28)
 
 [node name="TottieGroup2" parent="." instance=ExtResource("tottie_group_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -45, 2, 60)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 2, 32)
 
 [node name="TottieGroup3" parent="." instance=ExtResource("tottie_group_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100, 2, 40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 2, -18)
 
 [node name="SujiVillageSign" type="Label3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 195, 18, 95)

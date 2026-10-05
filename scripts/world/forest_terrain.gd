@@ -31,6 +31,7 @@ const TREE_HITS := 4          # axe hits to fell a tree
 const WOOD_PER_TREE := 5      # logs dropped per tree (+1 wood each)
 const REGROW_TIME := 60.0     # seconds until a felled tree grows back
 const LOG_PICKUP_DELAY := 0.8 # logs can't be grabbed until they've landed
+const FRUIT_TREE_CHANCE := 0.18  # fraction of trees that bear fruit
 
 const COL_MEADOW := Color(0.33, 0.50, 0.21)
 const COL_FOREST := Color(0.17, 0.30, 0.12)
@@ -386,6 +387,7 @@ func _scatter() -> void:
 		var tree_model: String = tree_pool[rng.randi() % tree_pool.size()]
 		_add(buckets, tree_model, x, z, s, rng)
 		_register_tree(buckets, tree_model, x, z, s, _add_cylinder(colliders, x, z, 0.35 * s, 3.5))
+		_maybe_add_fruit_tree(x, z, rng)
 
 	# --- Dead trees (a few eerie ones) ---
 	for _i in int(14 * area_scale * decor_density):
@@ -646,6 +648,43 @@ func _register_tree(buckets: Dictionary, model: String, x: float, z: float, s: f
 		"pos": Vector3(x, height_at(x, z), z), "scale": s,
 		"hp": TREE_HITS, "felled": false, "busy": false, "stump": null,
 	})
+
+
+## Randomly makes this tree position a fruit-pickup interactable (~FRUIT_TREE_CHANCE chance).
+## The node lives at tree ground position so _try_interact()'s distance check works normally.
+func _maybe_add_fruit_tree(x: float, z: float, rng: RandomNumberGenerator) -> void:
+	if rng.randf() > FRUIT_TREE_CHANCE:
+		return
+	var y := height_at(x, z)
+	var fruit_node := Node3D.new()
+	fruit_node.name = "FruitTree"
+	fruit_node.position = Vector3(x, y, z)
+
+	# Floating prompt label above canopy
+	var lbl := Label3D.new()
+	lbl.text = "[E] Pick Fruit \U0001F34A"
+	lbl.font_size = 28
+	lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	lbl.position = Vector3(0, 5.0, 0)
+	lbl.no_depth_test = true
+	lbl.modulate = Color(1.0, 0.85, 0.3)
+	fruit_node.add_child(lbl)
+
+	_root.add_child(fruit_node)
+	fruit_node.add_to_group("interactable")
+
+	fruit_node.set_meta("_interact_callable", func(player: Node) -> void:
+		player.add_item("fruit")
+		# Remove from interactable group while on cooldown
+		fruit_node.remove_from_group("interactable")
+		lbl.visible = false
+		# Respawn fruit after 2 minutes
+		fruit_node.get_tree().create_timer(120.0).timeout.connect(func() -> void:
+			if is_instance_valid(fruit_node):
+				lbl.visible = true
+				fruit_node.add_to_group("interactable")
+		)
+	)
 
 
 ## Called by the player's axe swing. Damages the closest standing tree within
