@@ -84,11 +84,12 @@ func interact(player: Node) -> void:
 	vbox.add_child(title)
 
 	# Build cost string.
-	var cost_parts: PackedStringArray = []
+	var cost_str := ""
 	for item in repair_materials:
-		cost_parts.append("%d %s" % [repair_materials[item], item])
+		if cost_str != "": cost_str += ", "
+		cost_str += str(int(repair_materials[item])) + " " + str(item)
 	var cost_lbl := Label.new()
-	cost_lbl.text = "Requires: " + ", ".join(cost_parts)
+	cost_lbl.text = "Requires: " + cost_str
 	cost_lbl.add_theme_font_size_override("font_size", 16)
 	cost_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(cost_lbl)
