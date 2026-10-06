@@ -435,7 +435,7 @@ func interact(player: Node) -> void:
 	if _dialogue_canvas != null:
 		return
 	if player != null and is_instance_valid(player):
-		var ld := player.global_position - global_position
+		var ld: Vector3 = (player as Node3D).global_position - global_position
 		ld.y = 0.0
 		_look_dir(ld)
 	if player and player.has_method("set"):
