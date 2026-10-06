@@ -56,7 +56,7 @@ func _on_day_started() -> void:
 	_is_night = false
 	for enemy in _enemies:
 		if is_instance_valid(enemy):
-			var tw := enemy.create_tween()
+			var tw := (enemy as Node).create_tween()
 			tw.tween_property(enemy, "scale", Vector3.ZERO, 1.8)
 			tw.tween_callback(enemy.queue_free)
 	_enemies.clear()
