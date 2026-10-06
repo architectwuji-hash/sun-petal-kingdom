@@ -84,7 +84,7 @@ func interact(player: Node) -> void:
 	vbox.add_child(title)
 
 	# Build cost string.
-	var cost_parts: Array = []
+	var cost_parts: PackedStringArray = []
 	for item in repair_materials:
 		cost_parts.append("%d %s" % [repair_materials[item], item])
 	var cost_lbl := Label.new()
