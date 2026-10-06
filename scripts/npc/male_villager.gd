@@ -28,6 +28,11 @@ const HOME_ARRIVE_DIST := 2.0
 ## Set in scene — the home cottage position (Cottage 4)
 @export var home_position: Vector3 = Vector3(196.0, 2.8, 127.0)
 
+## Which cottage this NPC belongs to (set in scene or by VillageManager).
+@export var house_id: String = "cottage_4"
+## Override the displayed name (used for replacement NPCs).
+var display_name: String = ""
+
 var _anim_player: AnimationPlayer = null
 var _current_anim := ""
 var _target_pos: Vector3
@@ -38,8 +43,15 @@ var _at_home := false
 var _player_ref: Node = null
 var _dialogue_canvas: CanvasLayer = null
 var _dnc: Node = null   # DayNightCycle reference
+var _walking_in := false   # True while NPC is walking from entrance to home
 
 func _ready() -> void:
+	# If house not yet repaired, go dormant until VillageManager activates us.
+	if house_id != "" and not VillageManager.is_repaired(house_id):
+		process_mode = Node.PROCESS_MODE_DISABLED
+		visible = false
+		VillageManager.register_dormant_npc(house_id, self)
+		return
 	add_to_group("interactable")
 	_target_pos = work_position
 	_wander_timer = randf_range(WANDER_WAIT_MIN, WANDER_WAIT_MAX)
@@ -242,6 +254,25 @@ func _physics_process(delta: float) -> void:
 		if label:
 			label.visible = false
 
+	# Walk-in: newly arrived NPC walks straight to home first.
+	if _walking_in:
+		var dist_home := global_position.distance_to(home_position)
+		if dist_home < HOME_ARRIVE_DIST:
+			_walking_in = false
+			_target_pos = work_position
+			_wander_timer = randf_range(WANDER_WAIT_MIN, WANDER_WAIT_MAX)
+			_play_anim("Idle")
+		else:
+			var dir := (home_position - global_position).normalized()
+			dir.y = 0.0
+			velocity.x = dir.x * MOVE_SPEED
+			velocity.z = dir.z * MOVE_SPEED
+			_play_anim("Walk")
+			if dir.length() > 0.01:
+				look_at(global_position + dir, Vector3.UP)
+		move_and_slide()
+		return
+
 	# Night: walk straight home and stay put
 	if _is_night:
 		if _at_home:
@@ -301,6 +332,29 @@ func _play_anim(anim_name: String) -> void:
 		_anim_player.play(anim_name)
 	elif anim_name != "Idle":
 		_play_anim("Idle")
+
+## Called by VillageManager when the house is repaired and the NPC should walk in.
+func begin_walk_in() -> void:
+	_walking_in = true
+	_target_pos = home_position
+	add_to_group("interactable")
+	_spawn_model()
+	_add_collision()
+	_add_label()
+	# Connect DNC
+	if _dnc == null:
+		_dnc = get_tree().get_first_node_in_group("day_night")
+		if _dnc != null:
+			_dnc.night_started.connect(_on_night_started)
+			_dnc.day_started.connect(_on_day_started)
+
+## Call this when the NPC takes fatal damage.
+func report_death() -> void:
+	VillageManager.report_npc_death(house_id)
+	queue_free()
+
+func _get_display_name() -> String:
+	return display_name if display_name != "" else NPC_NAME
 
 func interact(player: Node) -> void:
 	## Called by the player's interact system when [E] is pressed near Aldric.

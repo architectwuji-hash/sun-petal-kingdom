@@ -2,6 +2,10 @@ extends CharacterBody3D
 ## Kipatah — Gomushi's magic companion.
 ## Follows the player, auto-attacks enemies, and obeys player commands.
 
+## VillageManager: which cottage Kipatah claims.
+@export var house_id: String = "cottage_5"
+var display_name: String = ""   # unused for Kipatah but keeps VillageManager interface consistent.
+
 # ── CONSTANTS ─────────────────────────────────────────────────────────────────
 const ANIM_DIR: String = "res://assets/animations/npc/kipatah/"
 const ANIM_CLIPS: Dictionary = {
@@ -75,7 +79,19 @@ const KIPATAH_TREE_JUMP_DELAY : float = 0.8   ## seconds behind player
 const KIPATAH_JUMP_SPEED_H    : float = 12.0
 const KIPATAH_JUMP_SPEED_V    : float = 10.0
 
+func begin_walk_in() -> void:
+	## Called by VillageManager when cottage_5 is repaired.
+	process_mode = Node.PROCESS_MODE_INHERIT
+	visible = true
+	_player = get_tree().get_first_node_in_group("player")
+
 func _ready() -> void:
+	# Kipatah only appears after her house is repaired.
+	if house_id != "" and not VillageManager.is_repaired(house_id):
+		process_mode = Node.PROCESS_MODE_DISABLED
+		visible = false
+		VillageManager.register_dormant_npc(house_id, self)
+		return
 	add_to_group("companion")
 	add_to_group("kipatah")
 	var ai_node: Node = AI_SCENE.instantiate()

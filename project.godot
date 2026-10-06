@@ -24,7 +24,8 @@ config/renderer/rendering_method.mobile="gl_compatibility"
 [autoload]
 
 UIPositions="*res://scripts/ui/ui_positions.gd"
-CoordReadout="*res://scripts/ui/coord_readout.gd"
+SaveManager="*res://scripts/autoload/save_manager.gd"
+VillageManager="*res://scripts/autoload/village_manager.gd"
 
 [display]
 
@@ -34,7 +35,7 @@ window/stretch/mode="canvas_items"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/Tripo3d_Godot_Bridge/plugin.cfg")
+enabled=PackedStringArray("res://addons/Tripo3d_Godot_Bridge/plugin.cfg", "res://addons/claude_check/plugin.cfg")
 
 [filesystem]
 
@@ -114,4 +115,4 @@ textures/canvas_textures/default_texture_filter=0
 
 [tripo_bridge]
 
-last_cleanup="2026-09-30T20:12:58"
+last_cleanup="2026-10-06T11:49:29"

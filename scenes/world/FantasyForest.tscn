@@ -119,6 +119,7 @@ size = Vector3(9.0, 7.0, 9.0)
 
 
 [ext_resource type="PackedScene" uid="uid://priest_elder_solen01" path="res://scenes/npc/Priest.tscn" id="priest_scene_01"]
+[ext_resource type="Script" path="res://scripts/world/house_repair.gd" id="206_hrpair"]
 
 [node name="FantasyForest" type="Node3D" unique_id=624943236]
 script = ExtResource("1_forest3d")
@@ -241,6 +242,11 @@ transform = Transform3D(-3.934025e-07, 0, -9, 0, 9, 0, 9, 0, -3.934025e-07, 204,
 script = ExtResource("ruined_cottage_gd")
 metadata/owner = "Elder Solen"
 
+[node name="HouseRepair" type="Node3D" parent="ruined_stone_cottage_3d_model"]
+script = ExtResource("206_hrpair")
+house_id = "cottage_1"
+repair_label_text = "[E] Repair Elder Solen's Home"
+
 [node name="ruined_stone_cottage_3d_model2" parent="." unique_id=1486810008 instance=ExtResource("11_4g30s")]
 transform = Transform3D(8.693333, 0, -2.3293703, 0, 9, 0, 2.3293703, 0, 8.693333, 198, 2.4225013, 89)
 script = ExtResource("ruined_cottage_gd")
@@ -248,18 +254,36 @@ script = ExtResource("ruined_cottage_gd")
 [node name="ruined_stone_cottage_3d_model3" parent="." unique_id=374365403 instance=ExtResource("11_4g30s")]
 transform = Transform3D(8.693333, 0, 2.3293722, 0, 9, 0, -2.3293722, 0, 8.693333, 177, 2.4225013, 86)
 script = ExtResource("ruined_cottage_gd")
+metadata/owner = "Mara"
+
+[node name="HouseRepair" type="Node3D" parent="ruined_stone_cottage_3d_model3"]
+script = ExtResource("206_hrpair")
+house_id = "cottage_3"
+repair_label_text = "[E] Repair Mara's Home"
 
 [node name="ruined_stone_cottage_3d_model4" parent="." unique_id=141836035 instance=ExtResource("11_4g30s")]
 transform = Transform3D(-7.7942286, 0, -4.5000005, 0, 9, 0, 4.5000005, 0, -7.7942286, 196, 2.7879689, 127)
 script = ExtResource("ruined_cottage_gd")
+metadata/owner = "Aldric"
+
+[node name="HouseRepair" type="Node3D" parent="ruined_stone_cottage_3d_model4"]
+script = ExtResource("206_hrpair")
+house_id = "cottage_4"
+repair_label_text = "[E] Repair Aldric's Home"
 
 [node name="ruined_stone_cottage_3d_model5" parent="." unique_id=167554954 instance=ExtResource("11_4g30s")]
 transform = Transform3D(-4.5000005, 0, 7.7942286, 0, 9, 0, -7.7942286, 0, -4.5000005, 187, 2.5716293, 113)
 script = ExtResource("ruined_cottage_gd")
 metadata/owner = "Kipatah"
 
+[node name="HouseRepair" type="Node3D" parent="ruined_stone_cottage_3d_model5"]
+script = ExtResource("206_hrpair")
+house_id = "cottage_5"
+repair_label_text = "[E] Repair Kipatah's Cottage"
+
 [node name="Kipatah" parent="." unique_id=186141039 instance=ExtResource("kipatah_scene")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 188, 2, 102)
+house_id = "cottage_5"
 
 [node name="SujiVillageSign" type="Label3D" parent="." unique_id=1776956272]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 195, 18, 95)
@@ -319,9 +343,11 @@ script = ExtResource("201_temple_door")
 
 [node name="MaleVillager" parent="." unique_id=547008762 instance=ExtResource("202_male_villager")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 221, 3.5, 118)
+house_id = "cottage_4"
 
 [node name="FemaleVillager" parent="." unique_id=901887428 instance=ExtResource("203_female_villager")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 168, 2.5, 95)
+house_id = "cottage_3"
 
 [node name="sun_statue_3d_model2" parent="." unique_id=956565426 instance=ExtResource("24_70yt2")]
 transform = Transform3D(15.588457, 0, 9, 0, 18, 0, -9, 0, 15.588457, 192, 1, 59)
@@ -588,3 +614,4 @@ check_interval = 3.0
 [editable path="wooden_garden_gate_3d_model"]
 [node name="Priest" parent="." instance=ExtResource("priest_scene_01")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 204, 4, 68)
+house_id = "cottage_1"
