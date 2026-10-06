@@ -287,7 +287,7 @@ func _die() -> void:
 	velocity = Vector3.ZERO
 	_play_anim("Idle")
 	if _name_label:
-		_name_label.text = "Itachi  \u{1F480}"
+		_name_label.text = "Itachi  \U0001F480"
 		_name_label.modulate = Color(0.5, 0.5, 0.5)
 	if _interact_label:
 		_interact_label.text = "[E] Revive / Buy House"
@@ -456,7 +456,7 @@ func interact(player: Node) -> void:
 	panel.add_child(vbox)
 
 	var name_lbl := Label.new()
-	name_lbl.text = "Itachi" + ("  \u{1F480} (Dead)" if is_dead else "  (Farmer)")
+	name_lbl.text = "Itachi" + ("  \U0001F480 (Dead)" if is_dead else "  (Farmer)")
 	name_lbl.add_theme_color_override("font_color",
 		Color(0.5, 0.5, 0.5) if is_dead else Color(1.0, 0.85, 0.3))
 	name_lbl.add_theme_font_size_override("font_size", 17)
@@ -608,7 +608,7 @@ func apply_save_data(d: Dictionary) -> void:
 	if is_dead:
 		_state = State.DEAD
 		if _name_label:
-			_name_label.text = "Itachi  \u{1F480}"
+			_name_label.text = "Itachi  \U0001F480"
 			_name_label.modulate = Color(0.5, 0.5, 0.5)
 		if _interact_label:
 			_interact_label.text = "[E] Revive / Buy House"
