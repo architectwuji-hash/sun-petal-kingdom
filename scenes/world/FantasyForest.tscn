@@ -299,7 +299,8 @@ script = ExtResource("204_fbxcol")
 [node name="tripo_node_261ce7ae" parent="blacksmith_shop_3d_model" index="0" unique_id=1974530418]
 surface_material_override/0 = SubResource("StandardMaterial3D_37ycf")
 
-[node name="BlacksmithInteractable" type="Node3D" parent="blacksmith_shop_3d_model"]
+[node name="BlacksmithInteractable" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 223, 3.5, 118)
 script = ExtResource("blacksmith_building")
 
 [node name="blacksmith_shop_3d_model2" parent="." unique_id=231373339 instance=ExtResource("9_d3b27")]
@@ -318,7 +319,8 @@ script = ExtResource("204_fbxcol")
 [node name="tripo_node_e1b0a9ac" parent="fantasy_wooden_shop_3d_model" index="0" unique_id=2070363746]
 surface_material_override/0 = SubResource("StandardMaterial3D_n560j")
 
-[node name="ShopInteractable" type="Node3D" parent="fantasy_wooden_shop_3d_model"]
+[node name="ShopInteractable" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 166, 2.5, 95)
 script = ExtResource("shop_building")
 
 [node name="fantasy_wooden_shop_3d_model2" parent="." unique_id=1201892022 instance=ExtResource("19_70yt2")]
@@ -335,15 +337,15 @@ script = ExtResource("204_fbxcol")
 surface_material_override/0 = SubResource("StandardMaterial3D_ass53")
 
 [node name="AurosTempleDoor" type="Node3D" parent="." unique_id=1286608618]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 166, 2, 88)
-return_position = Vector3(170, 2, 80)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 205, 2, 68)
+return_position = Vector3(205, 2, 72)
 script = ExtResource("201_temple_door")
 
 [node name="MaleVillager" parent="." unique_id=547008762 instance=ExtResource("202_male_villager")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 190, 5, 100)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 190, 2, 100)
 
 [node name="FemaleVillager" parent="." unique_id=901887428 instance=ExtResource("203_female_villager")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 185, 5, 108)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 185, 2, 108)
 
 [node name="sun_statue_3d_model2" parent="." unique_id=956565426 instance=ExtResource("24_70yt2")]
 transform = Transform3D(15.588457, 0, 9, 0, 18, 0, -9, 0, 15.588457, 192, 1, 59)

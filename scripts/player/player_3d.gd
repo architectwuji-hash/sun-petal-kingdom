@@ -17,7 +17,7 @@ enum BuildItem { WOOD_WALL, STONE_WALL }
 # ── tunables ──────────────────────────────────────────────────────────────────
 const MOVE_SPEED:   float = 3.5
 const SPRINT_SPEED: float = 6.5
-const JUMP_FORCE:   float = 9.0
+const JUMP_FORCE:   float = 14.0
 const GRAVITY:      float = 20.0
 const INTERACT_RANGE: float = 5.0
 # ──────────────────────────────────────────────────────────────────────────────
@@ -374,7 +374,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y -= GRAVITY * delta
 		if _jump_pending and _jump_count < MAX_AIR_JUMPS:
-			velocity.y = JUMP_FORCE * 0.85  ## air jumps slightly weaker
+			velocity.y = JUMP_FORCE  ## air jumps full strength
 			_jump_count += 1
 	_jump_pending = false
 
