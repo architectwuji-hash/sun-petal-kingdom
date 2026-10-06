@@ -1583,10 +1583,10 @@ func apply_save_data(d: Dictionary) -> void:
 # ── Hunger: Eat Food ─────────────────────────────────────────────────────────
 
 func _eat_food() -> void:
-	## Press H to eat. Tries fruit first, then tottie. (H key)
+	## Press H to eat. Tries fruit first. (H key)
 	if _eat_anim_time > 0.0:
 		return  # already mid-eat
-	for food: String in ["fruit", "tottie"]:
+	for food: String in ["fruit"]:
 		if inventory.get(food, 0) > 0:
 			inventory[food] -= 1
 			inventory_changed.emit(food, inventory[food])
@@ -1600,7 +1600,7 @@ func _eat_food() -> void:
 				_anim.play("Consume", 0.15)
 				_eat_anim_time = _anim.get_animation("Consume").length
 			return
-	_show_float_text("No food! (need Fruit or Tottie)", global_position + Vector3(0, 2.5, 0))
+	_show_float_text("No food! (need Fruit or Meat)", global_position + Vector3(0, 2.5, 0))
 
 
 # ── Inventory UI ─────────────────────────────────────────────────────────────
@@ -1697,7 +1697,6 @@ func _open_inventory_ui() -> void:
 		"stone":      "🪨 Stone",
 		"mushroom":   "🍄 Mushroom",
 		"fruit":      "🍊 Fruit",
-		"tottie":     "🐾 Tottie",
 		"meat":       "🥩 Meat",
 		"cowhide":    "🐄 Cowhide",
 		"monkey_fur":    "🐒 Monkey Fur",
@@ -1715,7 +1714,7 @@ func _open_inventory_ui() -> void:
 		lbl.text = "%s: %d" % [display, count]
 		lbl.add_theme_font_size_override("font_size", 14)
 		## Highlight food items in warm color
-		if key in ["fruit", "tottie", "meat"]:
+		if key in ["fruit", "meat"]:
 			lbl.modulate = Color(1.0, 0.85, 0.4)
 		grid.add_child(lbl)
 

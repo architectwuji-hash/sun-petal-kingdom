@@ -716,7 +716,7 @@ func chop_at(point: Vector3, reach: float, chopper: Node3D) -> bool:
 
 ## Returns the world position of the nearest standing tree within max_radius of `from`.
 ## Returns Vector3(INF, INF, INF) when no tree is found.
-## Called by Tottie and other creatures to find a tree to eat.
+## Called by creatures to find a tree to interact with.
 func get_nearest_tree_pos(from: Vector3, max_radius: float) -> Vector3:
 	var best_pos := Vector3(INF, INF, INF)
 	var best_d := max_radius * max_radius

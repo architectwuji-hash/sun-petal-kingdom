@@ -33,7 +33,7 @@ const ROAM_RADIUS: float = 18.0        # Max distance from player when roaming
 const ROAM_CHANGE_TIME: float = 8.0   # Seconds before picking a new roam target
 
 # ── MODE ENUM ─────────────────────────────────────────────────────────────────
-enum KipatahMode { FOLLOW, GUARD, FREE_ROAM, HUNT_TOTTIES }
+enum KipatahMode { FOLLOW, GUARD, FREE_ROAM }
 
 # ── STATE ─────────────────────────────────────────────────────────────────────
 var _player: CharacterBody3D = null
@@ -55,11 +55,6 @@ var _cmd_options: Array[Array] = []
 var _cmd_layer: CanvasLayer = null
 var _hint_label: Label = null      # "Press E — Commands" shown near Kipatah
 
-# Hunt Totties state
-var _ki_inventory: Dictionary = {}   # Kipatah own inventory {"tottie": int, ...}
-var _hunt_target: Node3D = null       # Current tottie being hunted
-var _hunt_session_count: int = 0       # Totties hunted this session (resets on new hunt command)
-var _hunt_search_target: Vector3 = Vector3.ZERO  # Where she is walking to look for totties
 var _hunt_search_timer: float = 0.0              # How long until she picks a new search spot
 const HUNT_SEARCH_RADIUS: float = 55.0           # How far from player she roams to search
 const HUNT_SEARCH_CHANGE_TIME: float = 6.0       # Seconds at each search spot before moving on
@@ -167,11 +162,7 @@ func _physics_process(delta: float) -> void:
 			var key_code: int = int(KEY_1) + i
 			if Input.is_key_pressed(key_code as Key):
 				var opt: Array = _cmd_options[i] as Array
-				if opt[1] == -1:
-					# Special: Give Tottie
-					_give_tottie_to_player()
-				else:
-					set_mode(opt[1] as int as KipatahMode)
+				set_mode(opt[1] as int as KipatahMode)
 				_close_command_menu()
 				break
 		velocity.x = move_toward(velocity.x, 0.0, MOVE_SPEED * 4 * delta)
@@ -201,8 +192,6 @@ func _physics_process(delta: float) -> void:
 			_guard_behavior(delta)
 		KipatahMode.FREE_ROAM:
 			_free_roam_behavior(delta)
-		KipatahMode.HUNT_TOTTIES:
-			_hunt_tottie_behavior(delta)
 
 	move_and_slide()
 
@@ -220,10 +209,6 @@ func set_mode(new_mode: KipatahMode) -> void:
 			print("[Kipatah] Free roam mode")
 		KipatahMode.FOLLOW:
 			print("[Kipatah] Follow mode")
-		KipatahMode.HUNT_TOTTIES:
-			_hunt_target = null
-			_hunt_session_count = 0
-			print("[Kipatah] Hunt Totties mode — on the prowl!")
 	_close_command_menu()
 
 
@@ -364,11 +349,7 @@ func _open_command_menu() -> void:
 		["📣  Follow Me",    KipatahMode.FOLLOW],
 		["🛡  Guard",        KipatahMode.GUARD],
 		["🌸  Free Roam",    KipatahMode.FREE_ROAM],
-		["🍗  Hunt Totties", KipatahMode.HUNT_TOTTIES],
 	]
-	var tottie_count: int = _ki_inventory.get("tottie", 0)
-	if tottie_count > 0:
-		_cmd_options.append(["Give Tottie (%d)" % tottie_count, -1])
 
 	# Container panel
 	var panel := PanelContainer.new()
@@ -419,100 +400,6 @@ func _close_command_menu() -> void:
 	var panel := _cmd_layer.get_node_or_null("KipatahCmdPanel")
 	if panel != null:
 		panel.queue_free()
-
-
-# ── HUNT TOTTIES ─────────────────────────────────────────────────────────────
-
-func _hunt_tottie_behavior(delta: float) -> void:
-	# Phase 1: Do we have a live tottie in range to chase?
-	if not is_instance_valid(_hunt_target):
-		_hunt_target = _find_nearest_tottie()
-
-	if is_instance_valid(_hunt_target):
-		# Chase and harvest
-		var dist: float = global_position.distance_to(_hunt_target.global_position)
-		if dist > 1.5:
-			_move_toward_target(_hunt_target.global_position, delta)
-		else:
-			if _hunt_target.has_method("harvest_by_kipatah"):
-				if not _hunt_target.is_connected("tottie_harvested", _on_tottie_harvested):
-					_hunt_target.connect("tottie_harvested", _on_tottie_harvested, CONNECT_ONE_SHOT)
-				_hunt_target.harvest_by_kipatah()
-			_hunt_target = null
-		return
-
-	# Phase 2: No tottie spotted yet — roam the forest searching
-	_hunt_search_timer -= delta
-	if _hunt_search_timer <= 0.0 or global_position.distance_to(_hunt_search_target) < 2.5:
-		_pick_hunt_search_spot()
-
-	_move_toward_target(_hunt_search_target, delta)
-
-
-func _move_toward_target(target_pos: Vector3, _delta: float) -> void:
-	var dir: Vector3 = (target_pos - global_position)
-	dir.y = 0.0
-	if dir.length_squared() < 0.01:
-		return
-	dir = dir.normalized()
-	var dist: float = (target_pos - global_position).length()
-	var spd: float = MOVE_SPEED * (1.5 if dist > RUN_THRESHOLD else 1.0)
-	velocity.x = dir.x * spd
-	velocity.z = dir.z * spd
-	rotation.y = atan2(dir.x, dir.z)
-	if dist > RUN_THRESHOLD:
-		_play("Run")
-	else:
-		_play("Walk")
-
-
-func _on_tottie_harvested(_tottie: Node3D) -> void:
-	_ki_inventory["tottie"] = _ki_inventory.get("tottie", 0) + 1
-	_hunt_session_count += 1
-	print("[Kipatah] Harvested a Tottie! I now have ", _ki_inventory["tottie"], " (", _hunt_session_count, "/3 this hunt).")
-	_hunt_target = null
-	if _hunt_session_count >= 3:
-		print("[Kipatah] Got 3 Totties — returning to follow!")
-		set_mode(KipatahMode.FOLLOW)
-
-
-func _find_nearest_tottie() -> Node3D:
-	var best: Node3D = null
-	var best_dist: float = 200.0   # Search the whole world — she is hunting!
-	for t in get_tree().get_nodes_in_group("tottie"):
-		if not is_instance_valid(t):
-			continue
-		if t.get("_dead") == true:
-			continue
-		var d: float = global_position.distance_to((t as Node3D).global_position)
-		if d < best_dist:
-			best_dist = d
-			best = t as Node3D
-	return best
-
-
-func _pick_hunt_search_spot() -> void:
-	# Pick a random spot in the forest to walk to while searching
-	var player_pos: Vector3 = _player.global_position if is_instance_valid(_player) else global_position
-	var angle: float = randf() * TAU
-	var radius: float = randf_range(20.0, HUNT_SEARCH_RADIUS)
-	_hunt_search_target = player_pos + Vector3(cos(angle) * radius, 0.0, sin(angle) * radius)
-	_hunt_search_timer = randf_range(HUNT_SEARCH_CHANGE_TIME * 0.7, HUNT_SEARCH_CHANGE_TIME)
-	print("[Kipatah] Hunting — searching at ", _hunt_search_target)
-
-
-func _give_tottie_to_player() -> void:
-	var count: int = _ki_inventory.get("tottie", 0)
-	if count <= 0:
-		print("[Kipatah] I don't have any Totties to give.")
-		_close_command_menu()
-		return
-	var player: Node3D = _player as Node3D
-	if player != null and player.has_method("add_item"):
-		player.add_item("tottie")
-	_ki_inventory["tottie"] = count - 1
-	print("[Kipatah] Gave you a Tottie! I have ", _ki_inventory["tottie"], " left.")
-	_close_command_menu()
 
 
 # ── COMBAT ────────────────────────────────────────────────────────────────────
