@@ -44,6 +44,8 @@ func save_game() -> void:
 		"walls":     [],
 		"kipatah":   null,
 		"cottages":  [],
+		"purchased_fences": [],
+		"itachi": null,
 	}
 
 	# ── Players ───────────────────────────────────────────────────────────────
@@ -72,10 +74,22 @@ func save_game() -> void:
 		if kip.has_method("get_save_data"):
 			data["kipatah"] = kip.get_save_data()
 
+	# ── Itachi ───────────────────────────────────────────────────────────────────
+	var itachi_nodes: Array = get_tree().get_nodes_in_group("itachi_npc")
+	if itachi_nodes.size() > 0:
+		var it: Node = itachi_nodes[0]
+		if it.has_method("get_save_data"):
+			data["itachi"] = it.get_save_data()
+
 	# ── Cottages ─────────────────────────────────────────────────────────────────
 	for cottage: Node in get_tree().get_nodes_in_group("ruined_cottage"):
 		if cottage.has_method("get_save_data"):
 			data["cottages"].append(cottage.get_save_data())
+
+	# ── Purchased fences / gate ───────────────────────────────────────────────
+	for pf: Node in get_tree().get_nodes_in_group("purchasable_fence"):
+		if pf.get("purchased") == true:
+			data["purchased_fences"].append(pf.get_path())
 
 	# ── Write to disk ─────────────────────────────────────────────────────────
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
@@ -152,6 +166,15 @@ func load_game() -> void:
 			if kip.has_method("apply_save_data"):
 				kip.apply_save_data(kip_data as Dictionary)
 
+	# ── Itachi ───────────────────────────────────────────────────────────────────
+	var itachi_data: Variant = data.get("itachi", null)
+	if itachi_data is Dictionary:
+		var it_nodes: Array = get_tree().get_nodes_in_group("itachi_npc")
+		if it_nodes.size() > 0:
+			var it: Node = it_nodes[0]
+			if it.has_method("apply_save_data"):
+				it.apply_save_data(itachi_data as Dictionary)
+
 	# ── Cottages ─────────────────────────────────────────────────────────────────
 	var saved_cottages: Array = data.get("cottages", [])
 	if saved_cottages.size() > 0:
@@ -162,6 +185,20 @@ func load_game() -> void:
 					if cottage.has_method("apply_save_data"):
 						cottage.apply_save_data(cd)
 					break
+
+	# ── Purchased fences / gate ───────────────────────────────────────────────
+	var purchased_paths: Array = data.get("purchased_fences", [])
+	for pf: Node in get_tree().get_nodes_in_group("purchasable_fence"):
+		var pf_path: String = str(pf.get_path())
+		if pf_path in purchased_paths:
+			pf.set("purchased", true)
+			if pf.has_method("_apply_visual_state"):
+				pf._apply_visual_state()
+			var lbl = pf.get_node_or_null("BuyLabel")
+			if lbl: lbl.visible = false
+			var lbl2 = pf.get_node_or_null("InteractLabel")
+			if lbl2:
+				lbl2.modulate = Color(1.0, 0.92, 0.4)
 
 	emit_signal("game_loaded")
 	print("[SaveManager] Loaded ← ", SAVE_PATH)

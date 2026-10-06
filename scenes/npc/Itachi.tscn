@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://itachi_npc_spk01"]
+
+[ext_resource type="Script" path="res://scripts/npc/itachi.gd" id="1_itachi"]
+
+[node name="Itachi" type="CharacterBody3D"]
+script = ExtResource("1_itachi")
+collision_layer = 2
+collision_mask = 1

@@ -1,4 +1,4 @@
-[gd_scene format=4 uid="uid://1tt2ji4se8ep"]
+[gd_scene format=3 uid="uid://1tt2ji4se8ep"]
 
 [ext_resource type="Script" uid="uid://cneyrc0uub06b" path="res://scripts/world/forest_zone_3d.gd" id="1_forest3d"]
 [ext_resource type="PackedScene" uid="uid://bg1jlyg7413xs" path="res://TripoModels/blacksmith_shop_3d_model/blacksmith_shop_3d_model.fbx" id="9_d3b27"]
@@ -26,21 +26,20 @@
 [ext_resource type="PackedScene" uid="uid://b4lk8imuhvqkq" path="res://TripoModels/stone_cottage_3d_model/stone_cottage_3d_model.fbx" id="32_1oego"]
 [ext_resource type="PackedScene" path="res://scenes/objects/WoodWall3D.tscn" id="33_ojpea"]
 [ext_resource type="PackedScene" uid="uid://cjym5t8blwljh" path="res://TripoModels/wooden_garden_gate_3d_model/wooden_garden_gate_3d_model.fbx" id="34_37ycf"]
-[ext_resource type="Texture2D" uid="uid://dtge0qntm0j1m" path="res://TripoModels/wooden_garden_gate_3d_model/tripo_convert_606bce31-b027-42ac-9ff6-797b1af641b4.fbm/wooden_garden_gate_3d_model_basecolor.JPEG" id="35_htnae"]
-[ext_resource type="Texture2D" uid="uid://bkv0trm6uwd5s" path="res://TripoModels/wooden_garden_gate_3d_model/tripo_convert_606bce31-b027-42ac-9ff6-797b1af641b4.fbm/wooden_garden_gate_3d_model_normal.JPEG" id="36_n560j"]
-[ext_resource type="Texture2D" uid="uid://3h3qowwch06t" path="res://TripoModels/wooden_garden_gate_3d_model/tripo_convert_606bce31-b027-42ac-9ff6-797b1af641b4.fbm/wooden_garden_gate_3d_model_metallic.JPEG" id="37_ass53"]
-[ext_resource type="Texture2D" uid="uid://du87cifgh7f2t" path="res://TripoModels/wooden_garden_gate_3d_model/tripo_convert_606bce31-b027-42ac-9ff6-797b1af641b4.fbm/wooden_garden_gate_3d_model_roughness.JPEG" id="38_rgbe6"]
 [ext_resource type="Script" uid="uid://dbduk0jwjotmy" path="res://scripts/world/auros_temple_door.gd" id="201_temple_door"]
 [ext_resource type="PackedScene" path="res://scenes/npc/MaleVillager.tscn" id="202_male_villager"]
 [ext_resource type="PackedScene" path="res://scenes/npc/FemaleVillager.tscn" id="203_female_villager"]
+[ext_resource type="PackedScene" path="res://scenes/npc/Itachi.tscn" id="205_itachi"]
 [ext_resource type="Script" uid="uid://bdpo631v3fmnm" path="res://scripts/buildings/fbx_collision.gd" id="204_fbxcol"]
-[ext_resource type="Script" uid="uid://gate_script_spk01" path="res://scripts/world/gate.gd" id="gate_script"]
-[ext_resource type="Script" uid="uid://shop_building_spk01" path="res://scripts/buildings/shop_building.gd" id="shop_building"]
-[ext_resource type="Script" uid="uid://blacksmith_building_spk01" path="res://scripts/buildings/blacksmith_building.gd" id="blacksmith_building"]
+[ext_resource type="Script" uid="uid://cpjxdhkmavu7n" path="res://scripts/buildings/blacksmith_building.gd" id="blacksmith_building"]
 [ext_resource type="Script" uid="uid://cjw4cchtypk10" path="res://scripts/world/forest_terrain.gd" id="ft_terrain"]
+[ext_resource type="Script" uid="uid://bvvfienrtpbs0" path="res://scripts/world/gate.gd" id="gate_script"]
 [ext_resource type="PackedScene" path="res://scenes/npc/Kipatah.tscn" id="kipatah_scene"]
 [ext_resource type="Script" uid="uid://d1xbaqt3leghd" path="res://scripts/buildings/ruined_cottage.gd" id="ruined_cottage_gd"]
+[ext_resource type="Script" uid="uid://v6sicp5m1wxs" path="res://scripts/buildings/shop_building.gd" id="shop_building"]
 [ext_resource type="PackedScene" uid="uid://btsmsmejmrvhc" path="res://scenes/animals/TottieGroup.tscn" id="tottie_group_scene"]
+[ext_resource type="PackedScene" uid="uid://bluebull_scene01" path="res://scenes/animals/BlueBull.tscn" id="blue_bull_scene"]
+
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.32, 0.55, 0.9, 1)
@@ -65,7 +64,7 @@ fog_density = 0.006
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_health_fill"]
 bg_color = Color(0.85, 0.15, 0.15, 1)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_37ycf"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_r8f8i"]
 resource_local_to_scene = true
 resource_name = "tripo_mat_261ce7ae"
 vertex_color_use_as_albedo = true
@@ -77,7 +76,7 @@ emission_energy_multiplier = 0.0
 normal_enabled = true
 normal_texture = ExtResource("11_b05ly")
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_htnae"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_37ycf"]
 resource_local_to_scene = true
 resource_name = "tripo_mat_a72789f1"
 vertex_color_use_as_albedo = true
@@ -89,7 +88,7 @@ emission_energy_multiplier = 0.0
 normal_enabled = true
 normal_texture = ExtResource("16_5kemr")
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n560j"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_htnae"]
 resource_local_to_scene = true
 resource_name = "tripo_mat_e1b0a9ac"
 vertex_color_use_as_albedo = true
@@ -101,7 +100,7 @@ emission_energy_multiplier = 0.0
 normal_enabled = true
 normal_texture = ExtResource("21_8uejd")
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ass53"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n560j"]
 resource_local_to_scene = true
 resource_name = "tripo_mat_af2f0ee4"
 vertex_color_use_as_albedo = true
@@ -113,28 +112,9 @@ emission_energy_multiplier = 0.0
 normal_enabled = true
 normal_texture = ExtResource("26_8uejd")
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vpgii"]
-resource_name = "tripo_mat_606bce31"
-vertex_color_use_as_albedo = true
-albedo_texture = ExtResource("35_htnae")
-emission_enabled = true
-emission = Color(1, 1, 1, 1)
-emission_energy_multiplier = 0.0
-normal_enabled = true
-normal_scale = 0.0
-normal_texture = ExtResource("36_n560j")
+[sub_resource type="BoxShape3D" id="BoxShape3D_house2col"]
+size = Vector3(9.0, 7.0, 9.0)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rgbe6"]
-resource_local_to_scene = true
-resource_name = "tripo_mat_606bce31"
-vertex_color_use_as_albedo = true
-albedo_texture = ExtResource("35_htnae")
-metallic = 1.0
-metallic_texture = ExtResource("37_ass53")
-roughness_texture = ExtResource("38_rgbe6")
-emission_energy_multiplier = 0.0
-normal_enabled = true
-normal_texture = ExtResource("36_n560j")
 
 [node name="FantasyForest" type="Node3D" unique_id=624943236]
 script = ExtResource("1_forest3d")
@@ -285,7 +265,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 2, 32)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 2, -18)
 
 [node name="SujiVillageSign" type="Label3D" parent="." unique_id=1776956272]
-transform = Transform3D(9, 0, 0, 0, 9, 0, 0, 0, 9, 195, 18, 95)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 195, 18, 95)
 pixel_size = 0.1
 billboard = 1
 modulate = Color(1, 0.8, 0.4, 1)
@@ -297,9 +277,9 @@ outline_size = 8
 script = ExtResource("204_fbxcol")
 
 [node name="tripo_node_261ce7ae" parent="blacksmith_shop_3d_model" index="0" unique_id=1974530418]
-surface_material_override/0 = SubResource("StandardMaterial3D_37ycf")
+surface_material_override/0 = SubResource("StandardMaterial3D_r8f8i")
 
-[node name="BlacksmithInteractable" type="Node3D" parent="."]
+[node name="BlacksmithInteractable" type="Node3D" parent="." unique_id=1914722196]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 223, 3.5, 118)
 script = ExtResource("blacksmith_building")
 
@@ -311,15 +291,15 @@ script = ExtResource("204_fbxcol")
 script = ExtResource("204_fbxcol")
 
 [node name="tripo_node_a72789f1" parent="ancient_temple_ruin_3d_model" index="0" unique_id=1153663468]
-surface_material_override/0 = SubResource("StandardMaterial3D_htnae")
+surface_material_override/0 = SubResource("StandardMaterial3D_37ycf")
 
 [node name="fantasy_wooden_shop_3d_model" parent="." unique_id=794841683 instance=ExtResource("19_70yt2")]
 script = ExtResource("204_fbxcol")
 
 [node name="tripo_node_e1b0a9ac" parent="fantasy_wooden_shop_3d_model" index="0" unique_id=2070363746]
-surface_material_override/0 = SubResource("StandardMaterial3D_n560j")
+surface_material_override/0 = SubResource("StandardMaterial3D_htnae")
 
-[node name="ShopInteractable" type="Node3D" parent="."]
+[node name="ShopInteractable" type="Node3D" parent="." unique_id=1757510892]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 166, 2.5, 95)
 script = ExtResource("shop_building")
 
@@ -334,11 +314,10 @@ script = ExtResource("204_fbxcol")
 [node name="sun_statue_3d_model" parent="." unique_id=332895414 instance=ExtResource("24_70yt2")]
 
 [node name="tripo_node_af2f0ee4" parent="sun_statue_3d_model" index="0" unique_id=1956875857]
-surface_material_override/0 = SubResource("StandardMaterial3D_ass53")
+surface_material_override/0 = SubResource("StandardMaterial3D_n560j")
 
 [node name="AurosTempleDoor" type="Node3D" parent="." unique_id=1286608618]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 205, 2, 54)
-return_position = Vector3(205, 2, 58)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 204, 4, 60)
 script = ExtResource("201_temple_door")
 
 [node name="MaleVillager" parent="." unique_id=547008762 instance=ExtResource("202_male_villager")]
@@ -395,9 +374,201 @@ transform = Transform3D(-3.5355337, 0, -3.5355341, 0, 5, 0, 3.5355341, 0, -3.535
 
 [node name="wooden_garden_gate_3d_model" parent="." unique_id=1540215076 instance=ExtResource("34_37ycf")]
 script = ExtResource("gate_script")
+
 [node name="wooden_garden_gate_3d_model2" parent="." unique_id=1559593184 instance=ExtResource("34_37ycf")]
-script = ExtResource("gate_script")
 transform = Transform3D(3.535534, 0, 3.535534, 0, 5, 0, -3.535534, 0, 3.535534, -2, 2, 2)
+script = ExtResource("gate_script")
+
+[node name="stone_cottage_3d_model2" parent="." unique_id=1098692035 instance=ExtResource("32_1oego")]
+transform = Transform3D(6.994361, 0.28092253, 0, -0.28023824, 6.977323, -0.4882953, -0.019596167, 0.4879019, 6.9829483, 238, 2.9, 0)
+
+[node name="WoodWall3D14" parent="." unique_id=408058145 instance=ExtResource("33_ojpea")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 242, 3, -2)
+
+[node name="WoodWall3D15" parent="." unique_id=1153174153 instance=ExtResource("33_ojpea")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 244, 3, -2)
+
+[node name="WoodWall3D16" parent="." unique_id=1151841588 instance=ExtResource("33_ojpea")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 246, 3, -2)
+
+[node name="WoodWall3D17" parent="." unique_id=1426702763 instance=ExtResource("33_ojpea")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 248, 2.724409, -2)
+
+[node name="WoodWall3D18" parent="." unique_id=388496481 instance=ExtResource("33_ojpea")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 250, 2.6995132, -2)
+
+[node name="WoodWall3D19" parent="." unique_id=1690823200 instance=ExtResource("33_ojpea")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 252, 2.6274717, -2)
+
+[node name="WoodWall3D43" parent="." unique_id=1223916430 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, 2, 0, 2, 0, -2, 0, -8.742278e-08, 252, 2.5525455, -2)
+
+[node name="WoodWall3D44" parent="." unique_id=787380012 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, 2, 0, 2, 0, -2, 0, -8.742278e-08, 252, 2.618556, -4)
+
+[node name="WoodWall3D45" parent="." unique_id=32662664 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, 2, 0, 2, 0, -2, 0, -8.742278e-08, 252, 2.6848464, -6)
+
+[node name="WoodWall3D46" parent="." unique_id=999304446 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, 2, 0, 2, 0, -2, 0, -8.742278e-08, 252, 2.7471406, -8)
+
+[node name="WoodWall3D47" parent="." unique_id=1729454961 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, 2, 0, 2, 0, -2, 0, -8.742278e-08, 252, 3, -10)
+
+[node name="WoodWall3D48" parent="." unique_id=204971785 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, 2, 0, 2, 0, -2, 0, -8.742278e-08, 252, 3, -12)
+
+[node name="WoodWall3D49" parent="." unique_id=742676924 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, 2, 0, 2, 0, -2, 0, -8.742278e-08, 252, 3, -14)
+
+[node name="WoodWall3D50" parent="." unique_id=1761072115 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, 2, 0, 2, 0, -2, 0, -8.742278e-08, 252, 3, -16)
+
+[node name="WoodWall3D51" parent="." unique_id=1546294306 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, 2, 0, 2, 0, -2, 0, -8.742278e-08, 252, 3, -18)
+
+[node name="WoodWall3D52" parent="." unique_id=1584465763 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, 2, 0, 2, 0, -2, 0, -8.742278e-08, 252, 3, -20)
+
+[node name="WoodWall3D53" parent="." unique_id=762790088 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, 2, 0, 2, 0, -2, 0, -8.742278e-08, 252, 3, -22)
+
+[node name="WoodWall3D20" parent="." unique_id=1888700982 instance=ExtResource("33_ojpea")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 234, 3, -2)
+
+[node name="WoodWall3D21" parent="." unique_id=673585533 instance=ExtResource("33_ojpea")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 232, 3, -2)
+
+[node name="WoodWall3D22" parent="." unique_id=879881904 instance=ExtResource("33_ojpea")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 230, 3, -2)
+
+[node name="WoodWall3D23" parent="." unique_id=190655387 instance=ExtResource("33_ojpea")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 228, 3, -2)
+
+[node name="WoodWall3D24" parent="." unique_id=1608107495 instance=ExtResource("33_ojpea")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 226, 3, -2)
+
+[node name="WoodWall3D25" parent="." unique_id=1304562295 instance=ExtResource("33_ojpea")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 224, 3, -2)
+
+[node name="WoodWall3D26" parent="." unique_id=538005124 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, -2, 0, 2, 0, 2, 0, -8.742278e-08, 224, 3, -2)
+
+[node name="WoodWall3D27" parent="." unique_id=1972122216 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, -2, 0, 2, 0, 2, 0, -8.742278e-08, 224, 3, -4)
+
+[node name="WoodWall3D28" parent="." unique_id=1400640967 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, -2, 0, 2, 0, 2, 0, -8.742278e-08, 224, 3, -6)
+
+[node name="WoodWall3D29" parent="." unique_id=2050670080 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, -2, 0, 2, 0, 2, 0, -8.742278e-08, 224, 3, -8)
+
+[node name="WoodWall3D30" parent="." unique_id=1055099326 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, -2, 0, 2, 0, 2, 0, -8.742278e-08, 224, 3, -10)
+
+[node name="WoodWall3D31" parent="." unique_id=897921965 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, -2, 0, 2, 0, 2, 0, -8.742278e-08, 224, 3, -11)
+
+[node name="WoodWall3D32" parent="." unique_id=455165772 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, -2, 0, 2, 0, 2, 0, -8.742278e-08, 224, 3, -13)
+
+[node name="WoodWall3D33" parent="." unique_id=654544932 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, -2, 0, 2, 0, 2, 0, -8.742278e-08, 224, 3, -15)
+
+[node name="WoodWall3D34" parent="." unique_id=369115167 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, -2, 0, 2, 0, 2, 0, -8.742278e-08, 224, 3, -17)
+
+[node name="WoodWall3D35" parent="." unique_id=268608663 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, -2, 0, 2, 0, 2, 0, -8.742278e-08, 224, 3, -19)
+
+[node name="WoodWall3D36" parent="." unique_id=1071462348 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, -2, 0, 2, 0, 2, 0, -8.742278e-08, 224, 3, -21)
+
+[node name="WoodWall3D37" parent="." unique_id=372064692 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-8.742278e-08, 0, -2, 0, 2, 0, 2, 0, -8.742278e-08, 224, 3, -23)
+
+[node name="WoodWall3D38" parent="." unique_id=321124258 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-2, 0, 1.7484555e-07, 0, 2, 0, -1.7484555e-07, 0, -2, 224, 3, -23)
+
+[node name="WoodWall3D39" parent="." unique_id=1884169214 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-2, 0, 1.7484555e-07, 0, 2, 0, -1.7484555e-07, 0, -2, 226, 3, -23)
+
+[node name="WoodWall3D40" parent="." unique_id=908557987 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-2, 0, 1.7484555e-07, 0, 2, 0, -1.7484555e-07, 0, -2, 228, 3, -23)
+
+[node name="WoodWall3D41" parent="." unique_id=463123850 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-2, 0, 1.7484555e-07, 0, 2, 0, -1.7484555e-07, 0, -2, 230, 3, -23)
+
+[node name="WoodWall3D42" parent="." unique_id=1675926490 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-2, 0, 1.7484555e-07, 0, 2, 0, -1.7484555e-07, 0, -2, 232, 3, -23)
+
+[node name="WoodWall3D54" parent="." unique_id=2013916127 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-2, 0, 1.7484555e-07, 0, 2, 0, -1.7484555e-07, 0, -2, 234, 2.8294115, -23)
+
+[node name="WoodWall3D55" parent="." unique_id=1186974224 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-2, 0, 1.7484555e-07, 0, 2, 0, -1.7484555e-07, 0, -2, 236, 2.6138525, -23)
+
+[node name="WoodWall3D56" parent="." unique_id=1822727371 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-2, 0, 1.7484555e-07, 0, 2, 0, -1.7484555e-07, 0, -2, 238, 2.4908924, -23)
+
+[node name="WoodWall3D57" parent="." unique_id=2071353878 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-2, 0, 1.7484555e-07, 0, 2, 0, -1.7484555e-07, 0, -2, 240, 2.4337344, -23)
+
+[node name="WoodWall3D58" parent="." unique_id=1379184712 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-2, 0, 1.7484555e-07, 0, 2, 0, -1.7484555e-07, 0, -2, 242, 2.5988793, -23)
+
+[node name="WoodWall3D59" parent="." unique_id=1378536975 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-2, 0, 1.7484555e-07, 0, 2, 0, -1.7484555e-07, 0, -2, 244, 2.757915, -23)
+
+[node name="WoodWall3D60" parent="." unique_id=226910894 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-2, 0, 1.7484555e-07, 0, 2, 0, -1.7484555e-07, 0, -2, 246, 3, -23)
+
+[node name="WoodWall3D61" parent="." unique_id=1675458955 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-2, 0, 1.7484555e-07, 0, 2, 0, -1.7484555e-07, 0, -2, 248, 3, -23)
+
+[node name="WoodWall3D62" parent="." unique_id=452504945 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-2, 0, 1.7484555e-07, 0, 2, 0, -1.7484555e-07, 0, -2, 250, 3, -23)
+
+[node name="WoodWall3D63" parent="." unique_id=1016992125 instance=ExtResource("33_ojpea")]
+transform = Transform3D(-2, 0, 1.7484555e-07, 0, 2, 0, -1.7484555e-07, 0, -2, 252, 3, -23)
+
+[node name="HouseCollision2" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 238, 3.5, 0)
+
+[node name="HouseShape2" type="CollisionShape3D" parent="HouseCollision2"]
+shape = SubResource("BoxShape3D_house2col")
+
+[node name="BlueBull1" parent="." instance=ExtResource("blue_bull_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 232, 3, -8)
+wander_radius = 8.0
+
+[node name="BlueBull2" parent="." instance=ExtResource("blue_bull_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 238, 3, -14)
+wander_radius = 8.0
+
+[node name="BlueBull3" parent="." instance=ExtResource("blue_bull_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 244, 3, -18)
+wander_radius = 8.0
+
+
+
+
+
+
+
+
+
+[node name="Itachi" parent="." instance=ExtResource("205_itachi")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 235, 3, -10)
+
+[node name="ItachiFarmSign" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 238, 18, -13)
+pixel_size = 0.1
+billboard = 1
+modulate = Color(0.6, 1, 0.4, 1)
+text = "Itachi's Farm"
+font_size = 64
+outline_size = 8
 
 [editable path="blacksmith_shop_3d_model"]
 [editable path="ancient_temple_ruin_3d_model"]
