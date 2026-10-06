@@ -25,7 +25,13 @@ func _ready() -> void:
 
 func _add_label() -> void:
 	_label = Label3D.new()
-	_label.text = repair_label_text if repair_label_text != "" else "[E] Repair House"
+	# Build cost line so player sees requirements in the 3D world.
+	var cost_parts: Array = []
+	for item in repair_materials:
+		cost_parts.append(str(int(repair_materials[item])) + " " + str(item))
+	var cost_line: String = "  •  " + "  +  ".join(cost_parts) if cost_parts.size() > 0 else ""
+	var base_text: String = repair_label_text if repair_label_text != "" else "[E] Repair House"
+	_label.text = base_text + "\n" + cost_line if cost_line != "" else base_text
 	_label.position = Vector3(0, LABEL_HEIGHT, 0)
 	_label.font_size = 28
 	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
