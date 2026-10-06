@@ -63,29 +63,30 @@ func _try_purchase(player: Node) -> void:
 	else:
 		_float_msg(player, "Need " + str(WOOD_COST) + " Wood  (have " + str(wood_count) + ")")
 
-## Toggle open / closed — hides mesh AND disables collision when open.
+## Toggle open / closed.
 func _toggle(_player: Node) -> void:
 	_set_open(not _open)
 
 func _set_open(open: bool) -> void:
 	_open = open
-	_walk_nodes(self, not open)   # collision: enabled when closed
-	_walk_meshes(self, not open)  # visible:   shown when closed
 
-## Enable / disable every CollisionShape3D in the subtree.
-func _walk_nodes(node: Node, collision_on: bool) -> void:
-	if node is CollisionShape3D:
-		(node as CollisionShape3D).disabled = not collision_on
-	for child: Node in node.get_children():
-		_walk_nodes(child, collision_on)
+	# ── 1. Collision ──────────────────────────────────────────────────────
+	for cs: CollisionShape3D in find_children("*", "CollisionShape3D", true, false):
+		cs.disabled = open
 
-## Show / hide every MeshInstance3D in the subtree (skip the InteractLabel).
-func _walk_meshes(node: Node, show_mesh: bool) -> void:
-	if node is MeshInstance3D:
-		(node as MeshInstance3D).visible = show_mesh
-	for child: Node in node.get_children():
-		if child.name != "InteractLabel":
-			_walk_meshes(child, show_mesh)
+	# ── 2. Mesh visibility — three layers to be sure ──────────────────────
+	# Layer A: hide every MeshInstance3D in the entire subtree.
+	for m: MeshInstance3D in find_children("*", "MeshInstance3D", true, false):
+		m.visible = not open
+
+	# Layer B: hide every direct child Node3D that is NOT the InteractLabel.
+	#          This catches FBX wrapper roots whose own visible=false will
+	#          propagate to all their children automatically.
+	for child: Node in get_children():
+		if child.name == "InteractLabel":
+			continue
+		if child is Node3D:
+			(child as Node3D).visible = not open
 
 func _float_msg(player: Node, text: String) -> void:
 	if player.has_method("_show_float_text"):
