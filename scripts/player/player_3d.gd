@@ -118,6 +118,8 @@ const MIXAMO_CLIPS := {
 	"Mx_CastingSpell": "CastingSpell.fbx",
 	"Mx_ChokeLift": "ChokeLift.fbx",
 	"Mx_KnockedOut": "KnockedOut.fbx",
+	"Mx_FrontFlip": "FrontTwistFlip.fbx",
+	"Mx_FallAndLand": "FallAndLand.fbx",
 }
 # Playback speed per clip - Mixamo clips are long, so they're sped up to feel snappy.
 const CLIP_SPEED := {
@@ -125,6 +127,7 @@ const CLIP_SPEED := {
 	"Mx_JumpAttack": 1.4, "Mx_RunJumpAttack": 2.0,
 	"Mx_Punch": 1.3, "Mx_Punch2": 1.3, "Mx_SideKick": 1.6,
 	"Mx_SpellCast": 2.0, "Mx_ChokeLift": 1.5, "Mx_KnockedOut": 1.8,
+	"Mx_FrontFlip": 1.2, "Mx_FallAndLand": 1.0,
 }
 const UNARMED_COMBO: Array[String] = ["Mx_Punch", "Mx_Punch2", "Mx_SideKick"]
 # Universal Animation Library 2's actual 3-hit sword combo (same rig, same
@@ -379,6 +382,8 @@ func _physics_process(delta: float) -> void:
 		if _jump_pending and _jump_count < MAX_AIR_JUMPS:
 			velocity.y = JUMP_FORCE  ## air jumps full strength
 			_jump_count += 1
+			if _jump_count == 2:  # second jump = front flip twist
+				_play_clip("Mx_FrontFlip")
 	_jump_pending = false
 
 	var is_sprinting := Input.is_action_pressed("sprint")
@@ -1322,6 +1327,11 @@ func _on_anim_finished(_anim_name: StringName) -> void:
 		_pending_recovery = ""
 		_anim.play(rec, 0.1)
 		_attack_anim_time = _anim.get_animation(rec).length
+	# After the front flip twist (double jump), chain into the fall+land animation
+	if _anim_name == &"Mx_FrontFlip" and _anim.has_animation("Mx_FallAndLand"):
+		var spd: float = CLIP_SPEED.get("Mx_FallAndLand", 1.0)
+		_anim.play("Mx_FallAndLand", 0.1, spd)
+		_attack_anim_time = _anim.get_animation("Mx_FallAndLand").length / spd
 
 func _spawn_slash_vfx() -> void:
 	# "Fiery Slash Shader for Godot 4" by DevQuest (itch.io, free/pay-what-
