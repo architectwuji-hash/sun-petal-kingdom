@@ -74,8 +74,8 @@ func _fill_population(arr: Array[Node3D], cap: int, scene: PackedScene) -> void:
 		var instance: Node3D = scene.instantiate() as Node3D
 		if instance == null:
 			continue
-		instance.global_position = pos
 		get_tree().current_scene.add_child(instance)
+		instance.global_position = pos
 		arr.append(instance)
 
 

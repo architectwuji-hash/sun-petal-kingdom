@@ -41,6 +41,10 @@
 [ext_resource type="PackedScene" path="res://scenes/animals/Wolf.tscn" id="wolf_scene"]
 [ext_resource type="PackedScene" path="res://scenes/animals/Deer.tscn" id="deer_scene"]
 [ext_resource type="Script" path="res://scripts/world/animal_spawner.gd" id="animal_spawner_gd"]
+[ext_resource type="Script" path="res://scripts/world/night_enemy_spawner.gd" id="night_spawner_gd"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/SlimeEnemy.tscn" id="slime_enemy_scene"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/ForestSprite.tscn" id="forest_sprite_scene"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/Imp.tscn" id="imp_scene"]
 [ext_resource type="PackedScene" uid="uid://priest_elder_solen01" path="res://scenes/npc/Priest.tscn" id="priest_scene_01"]
 [ext_resource type="Script" path="res://scripts/world/house_repair.gd" id="206_hrpair"]
 
@@ -615,3 +619,11 @@ check_interval = 3.0
 [node name="Priest" parent="." instance=ExtResource("priest_scene_01")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 204, 4, 68)
 house_id = "cottage_1"
+
+[node name="NightEnemySpawner" type="Node3D" parent="."]
+script = ExtResource("night_spawner_gd")
+enemy_scenes = [ExtResource("slime_enemy_scene"), ExtResource("forest_sprite_scene"), ExtResource("imp_scene")]
+max_enemies = 12
+spawn_min_dist = 30.0
+spawn_max_dist = 60.0
+spawn_interval = 20.0
