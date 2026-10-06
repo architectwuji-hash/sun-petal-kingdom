@@ -48,6 +48,7 @@
 [ext_resource type="PackedScene" uid="uid://priest_elder_solen01" path="res://scenes/npc/Priest.tscn" id="priest_scene_01"]
 [ext_resource type="PackedScene" uid="uid://village_defender_spk01" path="res://scenes/npc/VillageDefender.tscn" id="village_defender_scene"]
 [ext_resource type="Script" path="res://scripts/world/house_repair.gd" id="206_hrpair"]
+[ext_resource type="Script" path="res://scripts/world/cabin_door_trigger.gd" id="cabin_door_script"]
 
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
@@ -126,7 +127,6 @@ size = Vector3(9.0, 7.0, 9.0)
 
 
 
-[ext_resource type="Script" path="res://scripts/world/cabin_door_trigger.gd" id="cabin_door_script"]
 [node name="FantasyForest" type="Node3D" unique_id=624943236]
 script = ExtResource("1_forest3d")
 
