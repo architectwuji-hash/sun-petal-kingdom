@@ -14,6 +14,7 @@ const FIXED_SCENE := preload("res://TripoModels/stone_cottage_3d_model/stone_cot
 var _repaired:   bool     = false
 var _fixed_node: Node3D   = null   ## the live stone cottage instance
 var _prompt_label: Label3D = null
+var _player_ref:   Node3D   = null   ## cached, avoids per-frame group lookup
 
 # ── Setup ─────────────────────────────────────────────────────────────────────
 
@@ -21,6 +22,8 @@ func _ready() -> void:
 	add_to_group("interactable")
 	add_to_group("ruined_cottage")
 	_build_prompt_label()
+	await get_tree().process_frame
+	_generate_collision(self)
 
 func _build_prompt_label() -> void:
 	_prompt_label = Label3D.new()
@@ -40,11 +43,13 @@ func _build_prompt_label() -> void:
 func _process(_delta: float) -> void:
 	if _repaired or _prompt_label == null:
 		return
-	var players: Array = get_tree().get_nodes_in_group("player")
-	if players.is_empty():
+	# Cache the player once instead of allocating an Array every frame.
+	if _player_ref == null:
+		_player_ref = get_tree().get_first_node_in_group("player") as Node3D
+	if _player_ref == null:
 		_prompt_label.visible = false
 		return
-	var dist: float = global_position.distance_to((players[0] as Node3D).global_position)
+	var dist: float = global_position.distance_to(_player_ref.global_position)
 	_prompt_label.visible = dist < 12.0
 
 # ── E-key interaction: repair the ruin ───────────────────────────────────────
@@ -86,6 +91,9 @@ func _do_repair() -> void:
 	if _prompt_label:
 		_prompt_label.queue_free()
 		_prompt_label = null
+	# Generate collision for the restored model
+	await get_tree().process_frame
+	_generate_collision(_fixed_node)
 
 func _do_repair_silently() -> void:
 	## Used by the save system — no resource cost.
@@ -130,3 +138,13 @@ func apply_save_data(d: Dictionary) -> void:
 		_do_repair_silently()
 		if _fixed_node:
 			_fixed_node.set_meta("hp", d.get("hp", COTTAGE_MAX_HP))
+
+## ── Collision ─────────────────────────────────────────────────────────────────
+
+func _generate_collision(node: Node) -> void:
+	## Recursively adds trimesh collision to all MeshInstance3D descendants.
+	for child in node.get_children():
+		if child is MeshInstance3D:
+			child.create_trimesh_collision()
+		_generate_collision(child)
+
