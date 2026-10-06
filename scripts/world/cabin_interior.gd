@@ -1,9 +1,7 @@
 extends Node3D
 ## Cozy Cabin Interior -- top-down camera scene.
 ## Loaded when the player enters their house from FantasyForest.
-## Pattern mirrors auros_temple_interior.gd.
-
-const MODEL_PATH := "res://assets/models/buildings/cozy_cabin_interior/cozy_cabin_interior.fbx"
+## CabinModel (the FBX) is instantiated directly in the scene.
 
 ## Where the player appears inside the cabin (just past the door).
 const ENTRANCE_POSITION := Vector3(0.0, 0.5, 3.0)
@@ -16,49 +14,11 @@ var _camera: Camera3D = null
 var _player: Node3D  = null
 
 func _ready() -> void:
-	_load_model()
 	_setup_lighting()
 	_setup_camera()
 	_setup_collision_floor()
 	await get_tree().process_frame
 	_restore_player()
-
-# ---------------------------------------------------------------------------
-# Model
-# ---------------------------------------------------------------------------
-func _load_model() -> void:
-	var packed = load(MODEL_PATH)
-	if packed == null:
-		push_warning("CabinInterior: model not found -- using placeholder room.")
-		_build_placeholder()
-		return
-	var model: Node3D = packed.instantiate()
-	# Tripo FBX units are centimetres; scale to metres
-	model.scale = Vector3(0.01, 0.01, 0.01)
-	model.name = "CabinModel"
-	model.position = Vector3(0.0, 0.0, 0.0)
-	add_child(model)
-
-func _build_placeholder() -> void:
-	# Floor
-	var floor_sb := StaticBody3D.new()
-	var floor_col := CollisionShape3D.new()
-	var floor_box := BoxShape3D.new()
-	floor_box.size = Vector3(12.0, 0.4, 12.0)
-	floor_col.shape = floor_box
-	floor_sb.add_child(floor_col)
-	floor_sb.position = Vector3(0.0, -0.2, 0.0)
-	add_child(floor_sb)
-
-	var floor_vis := MeshInstance3D.new()
-	var floor_mesh := BoxMesh.new()
-	floor_mesh.size = Vector3(12.0, 0.4, 12.0)
-	floor_vis.mesh = floor_mesh
-	var floor_mat := StandardMaterial3D.new()
-	floor_mat.albedo_color = Color(0.55, 0.38, 0.22)
-	floor_vis.material_override = floor_mat
-	floor_vis.position = Vector3(0.0, -0.2, 0.0)
-	add_child(floor_vis)
 
 # ---------------------------------------------------------------------------
 # Collision floor (so the player doesn't fall through the FBX)

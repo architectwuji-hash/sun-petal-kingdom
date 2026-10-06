@@ -47,11 +47,11 @@ func interact(player: Node) -> void:
 	var return_scene: String = td.get("return_scene", "res://scenes/world/FantasyForest.tscn")
 
 	var pdata: Dictionary = player.get_save_data()
-	pdata["x"] = float(td.get("spawn_x", -4.0))
-	pdata["y"] = float(td.get("spawn_y", 2.35))
-	pdata["z"] = float(td.get("spawn_z", -1.5))
+	pdata["spawn_x"] = float(td.get("spawn_x", -4.0))
+	pdata["spawn_y"] = float(td.get("spawn_y", 2.35))
+	pdata["spawn_z"] = float(td.get("spawn_z", -1.5))
+	pdata["return_scene"] = ""
 	SaveManager.scene_transfer_data = pdata
-	SaveManager.scene_transfer_data["return_scene"] = ""
 
 	get_tree().change_scene_to_file(return_scene)
 
