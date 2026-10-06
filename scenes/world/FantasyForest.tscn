@@ -40,6 +40,7 @@
 [ext_resource type="PackedScene" uid="uid://bluebull_scene01" path="res://scenes/animals/BlueBull.tscn" id="blue_bull_scene"]
 [ext_resource type="PackedScene" path="res://scenes/animals/Wolf.tscn" id="wolf_scene"]
 [ext_resource type="PackedScene" path="res://scenes/animals/Deer.tscn" id="deer_scene"]
+[ext_resource type="Script" path="res://scripts/world/animal_spawner.gd" id="animal_spawner_gd"]
 
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
@@ -563,63 +564,18 @@ font_size = 64
 outline_size = 8
 
 
-[node name="WolfPack1A" parent="." instance=ExtResource("wolf_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 3, -30)
-
-[node name="WolfPack1B" parent="." instance=ExtResource("wolf_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 3, -35)
-
-[node name="WolfPack1C" parent="." instance=ExtResource("wolf_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 3, -25)
-
-[node name="WolfPack2A" parent="." instance=ExtResource("wolf_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 3, 20)
-
-[node name="WolfPack2B" parent="." instance=ExtResource("wolf_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56, 3, 15)
-
-[node name="WolfPack2C" parent="." instance=ExtResource("wolf_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44, 3, 26)
-
-[node name="WolfPack3A" parent="." instance=ExtResource("wolf_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 3, -20)
-
-[node name="WolfPack3B" parent="." instance=ExtResource("wolf_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -55, 3, -28)
-
-[node name="WolfPack3C" parent="." instance=ExtResource("wolf_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -65, 3, -14)
-
-[node name="WolfPack4A" parent="." instance=ExtResource("wolf_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 80, 3, -40)
-
-[node name="WolfPack4B" parent="." instance=ExtResource("wolf_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 86, 3, -46)
-
-[node name="WolfPack4C" parent="." instance=ExtResource("wolf_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 74, 3, -34)
 
 
-[node name="Deer1" parent="." instance=ExtResource("deer_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 3, -50)
-
-[node name="Deer2" parent="." instance=ExtResource("deer_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 3, 10)
-
-[node name="Deer3" parent="." instance=ExtResource("deer_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 3, 30)
-
-[node name="Deer4" parent="." instance=ExtResource("deer_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 3, -60)
-
-[node name="Deer5" parent="." instance=ExtResource("deer_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100, 3, -20)
-
-[node name="Deer6" parent="." instance=ExtResource("deer_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 3, 80)
-
-[node name="Deer7" parent="." instance=ExtResource("deer_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 3, 50)
+[node name="AnimalSpawner" type="Node3D" parent="."]
+script = ExtResource("animal_spawner_gd")
+wolf_scene = ExtResource("wolf_scene")
+deer_scene = ExtResource("deer_scene")
+max_wolves = 8
+max_deer = 14
+spawn_min_dist = 50.0
+spawn_max_dist = 75.0
+despawn_dist = 100.0
+check_interval = 3.0
 
 [editable path="blacksmith_shop_3d_model"]
 [editable path="ancient_temple_ruin_3d_model"]
