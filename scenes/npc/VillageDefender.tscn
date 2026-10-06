@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://village_defender_spk01"]
+
+[ext_resource type="Script" path="res://scripts/npc/village_defender.gd" id="1_script"]
+
+[node name="VillageDefender" type="CharacterBody3D"]
+script = ExtResource("1_script")
+house_id = "cottage_2"
+guard_position = Vector3(198, 2.4, 89)

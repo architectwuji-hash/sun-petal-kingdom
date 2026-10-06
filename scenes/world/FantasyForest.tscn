@@ -46,6 +46,7 @@
 [ext_resource type="PackedScene" path="res://scenes/enemies/ForestSprite.tscn" id="forest_sprite_scene"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/Imp.tscn" id="imp_scene"]
 [ext_resource type="PackedScene" uid="uid://priest_elder_solen01" path="res://scenes/npc/Priest.tscn" id="priest_scene_01"]
+[ext_resource type="PackedScene" uid="uid://village_defender_spk01" path="res://scenes/npc/VillageDefender.tscn" id="village_defender_scene"]
 [ext_resource type="Script" path="res://scripts/world/house_repair.gd" id="206_hrpair"]
 
 
@@ -254,6 +255,11 @@ repair_label_text = "[E] Repair Elder Solen's Home"
 [node name="ruined_stone_cottage_3d_model2" parent="." unique_id=1486810008 instance=ExtResource("11_4g30s")]
 transform = Transform3D(8.693333, 0, -2.3293703, 0, 9, 0, 2.3293703, 0, 8.693333, 198, 2.4225013, 89)
 script = ExtResource("ruined_cottage_gd")
+
+[node name="HouseRepair" type="Node3D" parent="ruined_stone_cottage_3d_model2"]
+script = ExtResource("206_hrpair")
+house_id = "cottage_2"
+repair_label_text = "[E] Repair Rook's Home"
 
 [node name="ruined_stone_cottage_3d_model3" parent="." unique_id=374365403 instance=ExtResource("11_4g30s")]
 transform = Transform3D(8.693333, 0, 2.3293722, 0, 9, 0, -2.3293722, 0, 8.693333, 177, 2.4225013, 86)
@@ -619,6 +625,11 @@ check_interval = 3.0
 [node name="Priest" parent="." instance=ExtResource("priest_scene_01")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 204, 4, 68)
 house_id = "cottage_1"
+
+[node name="VillageDefender" parent="." instance=ExtResource("village_defender_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 198, 2.4, 89)
+house_id = "cottage_2"
+guard_position = Vector3(198, 2.4, 89)
 
 [node name="NightEnemySpawner" type="Node3D" parent="."]
 script = ExtResource("night_spawner_gd")

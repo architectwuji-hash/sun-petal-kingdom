@@ -1,24 +1,21 @@
 extends Node3D
-## NightEnemySpawner — spawns hostile enemies at night, clears them at dawn.
-## Wire up enemy_scenes in the Inspector or via FantasyForest.tscn export slots.
-## Enemies are spawned in a ring around the player when night begins, and
-## additional enemies trickle in every spawn_interval seconds throughout the night.
+# NightEnemySpawner
+# Spawns hostile enemies at night, clears them at dawn.
+# Wire enemy_scenes in the Inspector or via FantasyForest.tscn.
+# Enemies burst-spawn when night starts, then trickle throughout the night.
 
-## ── Tuning ────────────────────────────────────────────────────────────────────
-@export var enemy_scenes: Array[PackedScene] = []  ## Populated in scene
+@export var enemy_scenes: Array[PackedScene] = []
+@export var max_enemies:    int   = 12
+@export var spawn_min_dist: float = 30.0
+@export var spawn_max_dist: float = 60.0
+@export var spawn_interval: float = 20.0
 
-@export var max_enemies:    int   = 12   ## Hard cap on simultaneously active enemies
-@export var spawn_min_dist: float = 30.0 ## Closest distance from player to spawn
-@export var spawn_max_dist: float = 60.0 ## Farthest distance from player to spawn
-@export var spawn_interval: float = 20.0 ## Seconds between trickle spawns during night
-
-## ── Internal ──────────────────────────────────────────────────────────────────
-var _player:      Node3D  = null
-var _enemies:     Array[Node3D] = []
-var _rng:         RandomNumberGenerator = RandomNumberGenerator.new()
-var _is_night:    bool   = false
+var _player:        Node3D = null
+var _enemies:       Array  = []
+var _rng:           RandomNumberGenerator = RandomNumberGenerator.new()
+var _is_night:      bool  = false
 var _trickle_timer: float = 0.0
-var _dnc:         Node   = null
+var _dnc:           Node  = null
 
 
 func _ready() -> void:
@@ -45,19 +42,18 @@ func _process(delta: float) -> void:
 	if _trickle_timer <= 0.0:
 		_trickle_timer = spawn_interval
 		_prune_dead()
-		_spawn_wave(3)  ## Trickle 3 enemies every spawn_interval seconds
+		_spawn_wave(3)
 
 
 func _on_night_started() -> void:
 	_is_night = true
-	_trickle_timer = 3.0  ## Brief delay before first wave so player sees transition
+	_trickle_timer = 3.0
 	_prune_dead()
-	_spawn_wave(6)  ## Initial burst of 6 enemies at night start
+	_spawn_wave(6)
 
 
 func _on_day_started() -> void:
 	_is_night = false
-	## Despawn all tracked enemies at dawn
 	for enemy in _enemies:
 		if is_instance_valid(enemy):
 			var tw := enemy.create_tween()
@@ -77,10 +73,10 @@ func _prune_dead() -> void:
 func _spawn_wave(count: int) -> void:
 	if enemy_scenes.is_empty():
 		return
-	var available_slots := max_enemies - _enemies.size()
-	var to_spawn := min(count, available_slots)
+	var available_slots: int = max_enemies - _enemies.size()
+	var to_spawn: int = min(count, available_slots)
 	for _i in range(to_spawn):
-		var pos := _pick_spawn_pos()
+		var pos: Vector3 = _pick_spawn_pos()
 		if pos == Vector3.ZERO:
 			continue
 		var scene: PackedScene = enemy_scenes[_rng.randi() % enemy_scenes.size()]
@@ -97,17 +93,17 @@ func _spawn_wave(count: int) -> void:
 func _pick_spawn_pos() -> Vector3:
 	if not is_instance_valid(_player):
 		return Vector3.ZERO
-	var player_pos := _player.global_position
-	var angle  := _rng.randf() * TAU
-	var dist   := _rng.randf_range(spawn_min_dist, spawn_max_dist)
-	var offset := Vector3(cos(angle) * dist, 0.0, sin(angle) * dist)
-	var target := player_pos + offset
+	var player_pos: Vector3 = _player.global_position
+	var angle: float  = _rng.randf() * TAU
+	var dist: float   = _rng.randf_range(spawn_min_dist, spawn_max_dist)
+	var offset: Vector3 = Vector3(cos(angle) * dist, 0.0, sin(angle) * dist)
+	var target: Vector3 = player_pos + offset
 
 	var space := get_world_3d().direct_space_state
 	var query := PhysicsRayQueryParameters3D.create(
 		target + Vector3(0, 60, 0),
 		target + Vector3(0, -60, 0),
-		1  ## layer 1 = terrain
+		1
 	)
 	var result := space.intersect_ray(query)
 	if result.is_empty():
