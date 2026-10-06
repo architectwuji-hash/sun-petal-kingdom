@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://cabin_interior_spk01"]
+
+[ext_resource type="PackedScene" uid="uid://dy2dmmcl33xqq" path="res://scenes/player/Player3D.tscn" id="1_player"]
+[ext_resource type="Script" path="res://scripts/world/cabin_interior.gd" id="2_zone"]
+[ext_resource type="Script" path="res://scripts/world/cabin_exit_portal.gd" id="3_exit"]
+
+[node name="CabinInterior" type="Node3D"]
+script = ExtResource("2_zone")
+
+[node name="Player3D" parent="." instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 3)
+
+[node name="ExitPortal" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4.2)
+script = ExtResource("3_exit")
+label_text = "[E] Leave Home"
