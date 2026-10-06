@@ -253,6 +253,7 @@ script = ExtResource("ruined_cottage_gd")
 [node name="ruined_stone_cottage_3d_model5" parent="." unique_id=167554954 instance=ExtResource("11_4g30s")]
 transform = Transform3D(-4.5000005, 0, 7.7942286, 0, 9, 0, -7.7942286, 0, -4.5000005, 187, 2.5716293, 113)
 script = ExtResource("ruined_cottage_gd")
+metadata/owner = "Kipatah"
 
 [node name="Kipatah" parent="." unique_id=186141039 instance=ExtResource("kipatah_scene")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 188, 2, 102)
@@ -314,10 +315,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 204, 4, 60)
 script = ExtResource("201_temple_door")
 
 [node name="MaleVillager" parent="." unique_id=547008762 instance=ExtResource("202_male_villager")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 190, 2, 100)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 221, 3.5, 118)
 
 [node name="FemaleVillager" parent="." unique_id=901887428 instance=ExtResource("203_female_villager")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 185, 2, 108)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 168, 2.5, 95)
 
 [node name="sun_statue_3d_model2" parent="." unique_id=956565426 instance=ExtResource("24_70yt2")]
 transform = Transform3D(15.588457, 0, 9, 0, 18, 0, -9, 0, 15.588457, 192, 1, 59)
