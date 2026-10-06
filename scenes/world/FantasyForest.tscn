@@ -118,6 +118,8 @@ normal_texture = ExtResource("26_8uejd")
 size = Vector3(9.0, 7.0, 9.0)
 
 
+[ext_resource type="PackedScene" uid="uid://priest_elder_solen01" path="res://scenes/npc/Priest.tscn" id="priest_scene_01"]
+
 [node name="FantasyForest" type="Node3D" unique_id=624943236]
 script = ExtResource("1_forest3d")
 
@@ -237,6 +239,7 @@ autowrap_mode = 3
 [node name="ruined_stone_cottage_3d_model" parent="." unique_id=1903013167 instance=ExtResource("11_4g30s")]
 transform = Transform3D(-3.934025e-07, 0, -9, 0, 9, 0, 9, 0, -3.934025e-07, 204, 1.6580139, 100)
 script = ExtResource("ruined_cottage_gd")
+metadata/owner = "Elder Solen"
 
 [node name="ruined_stone_cottage_3d_model2" parent="." unique_id=1486810008 instance=ExtResource("11_4g30s")]
 transform = Transform3D(8.693333, 0, -2.3293703, 0, 9, 0, 2.3293703, 0, 8.693333, 198, 2.4225013, 89)
@@ -583,3 +586,5 @@ check_interval = 3.0
 [editable path="fantasy_wooden_shop_3d_model"]
 [editable path="sun_statue_3d_model"]
 [editable path="wooden_garden_gate_3d_model"]
+[node name="Priest" parent="." instance=ExtResource("priest_scene_01")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 204, 4, 68)

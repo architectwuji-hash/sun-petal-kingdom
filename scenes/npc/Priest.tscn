@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://priest_elder_solen01"]
+
+[ext_resource type="Script" path="res://scripts/npc/priest.gd" id="2_script"]
+
+[node name="Priest" type="CharacterBody3D"]
+script = ExtResource("2_script")
