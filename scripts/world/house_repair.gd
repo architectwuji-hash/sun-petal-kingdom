@@ -42,7 +42,7 @@ func _process(_delta: float) -> void:
 	if _player_ref == null:
 		return
 	# Use parent node global_position for distance (this node is a child of the cottage).
-	var origin := get_parent().global_position if get_parent() is Node3D else global_position
+	var origin: Vector3 = get_parent().global_position if get_parent() is Node3D else global_position
 	var dist := origin.distance_to(_player_ref.global_position)
 	if _label:
 		_label.visible = dist < INTERACT_RANGE + 2.0
