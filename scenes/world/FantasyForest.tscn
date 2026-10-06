@@ -41,6 +41,8 @@
 [ext_resource type="PackedScene" path="res://scenes/animals/Wolf.tscn" id="wolf_scene"]
 [ext_resource type="PackedScene" path="res://scenes/animals/Deer.tscn" id="deer_scene"]
 [ext_resource type="Script" path="res://scripts/world/animal_spawner.gd" id="animal_spawner_gd"]
+[ext_resource type="PackedScene" uid="uid://priest_elder_solen01" path="res://scenes/npc/Priest.tscn" id="priest_scene_01"]
+[ext_resource type="Script" path="res://scripts/world/house_repair.gd" id="206_hrpair"]
 
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
@@ -118,8 +120,6 @@ normal_texture = ExtResource("26_8uejd")
 size = Vector3(9.0, 7.0, 9.0)
 
 
-[ext_resource type="PackedScene" uid="uid://priest_elder_solen01" path="res://scenes/npc/Priest.tscn" id="priest_scene_01"]
-[ext_resource type="Script" path="res://scripts/world/house_repair.gd" id="206_hrpair"]
 
 [node name="FantasyForest" type="Node3D" unique_id=624943236]
 script = ExtResource("1_forest3d")
