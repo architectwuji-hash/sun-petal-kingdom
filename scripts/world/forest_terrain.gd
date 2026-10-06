@@ -743,6 +743,9 @@ func _set_tree_xform(tree: Dictionary, xf: Transform3D) -> void:
 ## Tilts the tree around its base, away from `chopper`, by `angle` radians.
 func _tilted(tree: Dictionary, chopper: Node3D, angle: float) -> Transform3D:
 	var base: Transform3D = tree["xform"]
+	# Guard: chopper may have been freed while a tween is still running
+	if chopper == null or not is_instance_valid(chopper):
+		return Transform3D(Basis(Vector3.RIGHT, angle) * base.basis, base.origin)
 	var away := Vector3(base.origin.x - chopper.global_position.x, 0, base.origin.z - chopper.global_position.z)
 	if away.length_squared() < 0.0001:
 		away = Vector3.FORWARD

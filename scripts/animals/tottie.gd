@@ -412,7 +412,7 @@ func _die() -> void:
 	# Disable physics collision so player can walk through corpse
 	for child: Node in get_children():
 		if child is CollisionShape3D:
-			(child as CollisionShape3D).disabled = true
+			(child as CollisionShape3D).set_deferred("disabled", true)
 	_switch_visual("die")
 	add_to_group("interactable")  # player E key can now pick up
 	print("[Tottie] Tottie dropped! Press E to pick up.")
