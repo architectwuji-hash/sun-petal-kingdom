@@ -1,8 +1,8 @@
 extends Node3D
 
 ## Gate — press E to build (costs wood), then open / close to let the player through.
-## "Open" means collision disabled so the player can walk through.
-## "Closed" means collision active — player is blocked.
+## Open:   mesh hidden + collision disabled  → player can see through and walk through.
+## Closed: mesh visible + collision enabled  → player is blocked.
 
 const INTERACT_RANGE := 3.5
 const WOOD_COST      := 4   ## wood to build the gate (same as fence reinforce)
@@ -57,26 +57,35 @@ func _try_purchase(player: Node) -> void:
 		if player.has_method("remove_item"):
 			player.remove_item("wood", WOOD_COST)
 		_purchased = true
-		# Gate starts closed — keep collision enabled.
-		_set_collision_enabled(true)
+		# Gate starts closed — mesh visible, collision on.
+		_set_open(false)
 		_float_msg(player, "Gate built!  (-" + str(WOOD_COST) + " Wood)")
 	else:
 		_float_msg(player, "Need " + str(WOOD_COST) + " Wood  (have " + str(wood_count) + ")")
 
-## Toggle open / closed (collision only — no animation).
+## Toggle open / closed — hides mesh AND disables collision when open.
 func _toggle(_player: Node) -> void:
-	_open = not _open
-	_set_collision_enabled(not _open)
+	_set_open(not _open)
 
-## Walk the tree and disable / enable every CollisionShape3D found.
-func _set_collision_enabled(enable: bool) -> void:
-	_walk(self, enable)
+func _set_open(open: bool) -> void:
+	_open = open
+	_walk_nodes(self, not open)   # collision: enabled when closed
+	_walk_meshes(self, not open)  # visible:   shown when closed
 
-func _walk(node: Node, enable: bool) -> void:
+## Enable / disable every CollisionShape3D in the subtree.
+func _walk_nodes(node: Node, collision_on: bool) -> void:
 	if node is CollisionShape3D:
-		(node as CollisionShape3D).disabled = not enable
+		(node as CollisionShape3D).disabled = not collision_on
 	for child: Node in node.get_children():
-		_walk(child, enable)
+		_walk_nodes(child, collision_on)
+
+## Show / hide every MeshInstance3D in the subtree (skip the InteractLabel).
+func _walk_meshes(node: Node, show_mesh: bool) -> void:
+	if node is MeshInstance3D:
+		(node as MeshInstance3D).visible = show_mesh
+	for child: Node in node.get_children():
+		if child.name != "InteractLabel":
+			_walk_meshes(child, show_mesh)
 
 func _float_msg(player: Node, text: String) -> void:
 	if player.has_method("_show_float_text"):
