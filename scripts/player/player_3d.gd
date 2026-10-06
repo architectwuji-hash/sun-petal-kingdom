@@ -40,6 +40,7 @@ var _attack_hitbox: Area3D = null
 var _char_model: Node3D = null
 var _anim: AnimationPlayer = null
 var _attack_anim_time: float = 0.0
+var _eat_anim_time: float  = 0.0
 var _dev_inspect_mode: bool = false
 var _sprint_noise_timer: float = 0.0
 # ── hunger system ───────────────────────────────────────────────────────────
@@ -303,7 +304,8 @@ func _input(event: InputEvent) -> void:
 			KEY_SPACE:
 				if is_on_floor() or _jump_count < MAX_AIR_JUMPS:
 					_jump_pending = true
-			KEY_E:     _try_interact()
+			KEY_E:
+				_try_interact()
 			KEY_F:     _do_attack()
 			KEY_Q:     _switch_weapon()
 			KEY_P:     _toggle_dev_inspect()
@@ -364,6 +366,7 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		_update_locomotion_anim(delta)
 		return
+
 
 	if is_on_floor():
 		_jump_count = 0
@@ -910,6 +913,12 @@ func _update_locomotion_anim(delta: float) -> void:
 		if not (String(_anim.current_animation).ends_with("_Rec") and flat_speed > 0.3):
 			return
 		_attack_anim_time = 0.0
+	if _eat_anim_time > 0.0:
+		_eat_anim_time -= delta
+		if _eat_anim_time > 0.0:
+			return
+		# Eat finished — return to idle/locomotion blend
+		_anim.play("Idle", 0.2)
 	# The animation library only has a sword-specific pose for standing
 	# still (Sword_Idle) - no sword-specific walk/sprint - so we use it
 	# only at rest and fall back to the normal locomotion loops otherwise.
@@ -1348,14 +1357,19 @@ func _spawn_slash_vfx() -> void:
 func _try_interact() -> void:
 	var best: Node3D = null
 	var best_dist := INTERACT_RANGE * INTERACT_RANGE
-	for node in get_tree().get_nodes_in_group("interactable"):
+	var _group := get_tree().get_nodes_in_group("interactable")
+	print("[Player] _try_interact — pos: ", global_position, " | interactable count: ", _group.size())
+	for node in _group:
 		if node is Node3D:
-			var d := global_position.distance_squared_to(node.global_position)
+			var check_pos: Vector3 = (node as Node3D).global_position
+			var d := global_position.distance_squared_to(check_pos)
 			if d < best_dist:
 				best_dist = d
 				best = node
+	print("[Player] _try_interact best: ", best, " dist_sq: ", best_dist)
 	if best == null:
 		return
+	print("[Player] calling interact on: ", best.name, " at ", best.global_position)
 	if best.has_method("interact"):
 		best.interact(self)
 	elif best.has_meta("_interact_callable"):
@@ -1570,6 +1584,8 @@ func apply_save_data(d: Dictionary) -> void:
 
 func _eat_food() -> void:
 	## Press H to eat. Tries fruit first, then tottie. (H key)
+	if _eat_anim_time > 0.0:
+		return  # already mid-eat
 	for food: String in ["fruit", "tottie"]:
 		if inventory.get(food, 0) > 0:
 			inventory[food] -= 1
@@ -1579,6 +1595,10 @@ func _eat_food() -> void:
 			hunger_changed.emit(hunger, max_hunger)
 			_show_float_text("🍽 Ate %s (+%d hunger)" % [food.capitalize(), restore],
 				global_position + Vector3(0, 2.5, 0))
+			# Play eating animation if available
+			if _anim and _anim.has_animation("Consume"):
+				_anim.play("Consume", 0.15)
+				_eat_anim_time = _anim.get_animation("Consume").length
 			return
 	_show_float_text("No food! (need Fruit or Tottie)", global_position + Vector3(0, 2.5, 0))
 
