@@ -180,13 +180,18 @@ const OUTFIT_HOOD_SCENE       := preload("res://assets/models/characters/quatern
 const OUTFIT_PAULDRON_SCENE   := preload("res://assets/models/characters/quaternius/outfits/Male_Ranger_Acc_Pauldron.gltf")
 
 var inventory: Dictionary = {
-	"meat":       0,
-	"cowhide":    0,
-	"souls":      0,
-	"monkey_fur": 0,
-	"wood":       0,
-	"stone":      0,
-	"mushroom":   0,
+	"meat":           0,
+	"cowhide":        0,
+	"souls":          0,
+	"monkey_fur":     0,
+	"wood":           0,
+	"stone":          0,
+	"mushroom":       0,
+	"fruit":          0,
+	"raw_metal_ore":  0,
+	"coin":           0,
+	"miners_pick":    0,
+	"iron_sword":     0,
 }
 
 # ── Soul System ────────────────────────────────────────────────────────────
@@ -1702,18 +1707,22 @@ func _open_inventory_ui() -> void:
 	vbox.add_child(grid)
 
 	var icons: Dictionary = {
-		"souls":      "💀 Souls",
-		"wood":       "🪵 Wood",
-		"stone":      "🪨 Stone",
-		"mushroom":   "🍄 Mushroom",
-		"fruit":      "🍊 Fruit",
-		"meat":       "🥩 Meat",
-		"cowhide":    "🐄 Cowhide",
+		"souls":         "💀 Souls",
+		"wood":          "🪵 Wood",
+		"stone":         "🪨 Stone",
+		"mushroom":      "🍄 Mushroom",
+		"fruit":         "🍊 Fruit",
+		"meat":          "🥩 Meat",
+		"cowhide":       "🐄 Cowhide",
 		"monkey_fur":    "🐒 Monkey Fur",
 		"campfire_kit":  "🔥 Campfire Kit",
 		"potion":        "🧪 Healing Potion",
 		"hide_armor":    "🦺 Hide Armour",
 		"stone_blade":   "🗡️ Stone Blade",
+		"raw_metal_ore": "⛏ Raw Metal Ore",
+		"coin":          "🪙 Coin",
+		"miners_pick":   "⛏ Miner's Pick",
+		"iron_sword":    "⚔ Iron Sword",
 	}
 	for key: String in inventory:
 		var count: int = inventory.get(key, 0)

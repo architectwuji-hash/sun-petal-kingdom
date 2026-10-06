@@ -1,0 +1,29 @@
+[gd_scene load_steps=5 format=3 uid="uid://rawmetalore_pickup01"]
+
+[ext_resource type="Script" path="res://scripts/items/raw_metal_ore.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ore"]
+albedo_color = Color(0.4, 0.4, 0.44, 1)
+metallic = 0.7
+roughness = 0.45
+emission_enabled = true
+emission = Color(0.55, 0.55, 0.6, 1)
+emission_energy_multiplier = 0.25
+
+[sub_resource type="BoxMesh" id="BoxMesh_ore"]
+size = Vector3(0.28, 0.18, 0.22)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_pickup"]
+radius = 0.55
+
+[node name="RawMetalOre" type="Area3D"]
+collision_layer = 4
+collision_mask = 2
+script = ExtResource("1_script")
+
+[node name="OreMesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_ore")
+surface_material_override/0 = SubResource("StandardMaterial3D_ore")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_pickup")

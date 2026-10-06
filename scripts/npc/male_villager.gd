@@ -418,12 +418,180 @@ func interact(player: Node) -> void:
 	player.add_child(_dialogue_canvas)
 
 func _open_blacksmith_ui(player: Node) -> void:
-	## Hook: emit a signal or call the real blacksmith UI here.
-	## For now we close this panel — wire up the full UI once it's built.
-	_close_dialogue()
-	# Signal any autoload / UI manager
-	if get_tree().root.has_node("UIManager"):
-		get_tree().root.get_node("UIManager").open_blacksmith()
+	## Opens the full Blacksmith shop UI.
+	## Items: Miner's Pick, Iron Sword.
+	## Payment: Raw Metal Ore (required) + Coin OR Meat OR Fruit.
+	_close_dialogue()  # close the greeting panel first
+
+	_dialogue_canvas = CanvasLayer.new()
+	_dialogue_canvas.layer = 15
+
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.size = Vector2(540, 340)
+	panel.position = Vector2(-270, -170)
+	_dialogue_canvas.add_child(panel)
+
+	var vbox := VBoxContainer.new()
+	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vbox.add_theme_constant_override("separation", 10)
+	panel.add_child(vbox)
+
+	# Header
+	var title_lbl := Label.new()
+	title_lbl.text = "⚒  Aldric's Forge"
+	title_lbl.add_theme_color_override("font_color", Color(1.0, 0.78, 0.2))
+	title_lbl.add_theme_font_size_override("font_size", 22)
+	vbox.add_child(title_lbl)
+
+	# Inventory summary
+	var inv_lbl := Label.new()
+	inv_lbl.name = "InvSummary"
+	inv_lbl.add_theme_font_size_override("font_size", 14)
+	inv_lbl.add_theme_color_override("font_color", Color(0.78, 0.78, 0.85))
+	vbox.add_child(inv_lbl)
+	_refresh_inv_label(player, inv_lbl)
+
+	# Separator
+	vbox.add_child(HSeparator.new())
+
+	# --- SHOP ITEMS ---
+	# Miner's Pick: 3 Ore  +  ( 2 Coin  OR  5 Meat  OR  10 Fruit )
+	_add_shop_item(
+		vbox, player, inv_lbl,
+		"⛏  Miner's Pick",
+		"miners_pick",
+		3,   # ore cost
+		{ "coin": 2, "meat": 5, "fruit": 10 }
+	)
+
+	vbox.add_child(HSeparator.new())
+
+	# Iron Sword: 5 Ore  +  ( 8 Coin  OR  18 Meat  OR  32 Fruit )
+	_add_shop_item(
+		vbox, player, inv_lbl,
+		"⚔  Iron Sword",
+		"iron_sword",
+		5,   # ore cost
+		{ "coin": 8, "meat": 18, "fruit": 32 }
+	)
+
+	vbox.add_child(HSeparator.new())
+
+	var close_btn := Button.new()
+	close_btn.text = "Leave  [E]"
+	close_btn.pressed.connect(_close_dialogue)
+	vbox.add_child(close_btn)
+
+	player.add_child(_dialogue_canvas)
+
+
+func _add_shop_item(
+		vbox: VBoxContainer,
+		player: Node,
+		inv_lbl: Label,
+		label: String,
+		item_id: String,
+		ore_cost: int,
+		pay_options: Dictionary) -> void:
+	## Adds a single craftable item row to the shop VBox.
+	var row := VBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	vbox.add_child(row)
+
+	var item_lbl := Label.new()
+	item_lbl.text = label
+	item_lbl.add_theme_font_size_override("font_size", 17)
+	row.add_child(item_lbl)
+
+	# Cost description
+	var cost_parts: Array[String] = []
+	for pay_item: String in pay_options:
+		var icon: String = { "coin": "🪙", "meat": "🥩", "fruit": "🍊" }.get(pay_item, "")
+		cost_parts.append("%d %s%s" % [pay_options[pay_item], icon, pay_item.capitalize()])
+	var cost_lbl := Label.new()
+	cost_lbl.text = "  %d Ore  +  ( %s )" % [ore_cost, "  or  ".join(cost_parts)]
+	cost_lbl.add_theme_font_size_override("font_size", 13)
+	cost_lbl.add_theme_color_override("font_color", Color(0.75, 0.75, 0.75))
+	row.add_child(cost_lbl)
+
+	# Craft buttons (one per payment type)
+	var btn_row := HBoxContainer.new()
+	btn_row.add_theme_constant_override("separation", 6)
+	row.add_child(btn_row)
+
+	var pay_icons := { "coin": "🪙", "meat": "🥩", "fruit": "🍊" }
+	for pay_item: String in pay_options:
+		var pay_qty: int = pay_options[pay_item]
+		var icon: String = pay_icons.get(pay_item, "")
+		var btn := Button.new()
+		btn.text = "Craft (%s%d %s)" % [icon, pay_qty, pay_item.capitalize()]
+		btn.pressed.connect(_craft_item.bind(player, inv_lbl, item_id, ore_cost, pay_item, pay_qty, row))
+		btn_row.add_child(btn)
+
+
+func _craft_item(
+		player: Node,
+		inv_lbl: Label,
+		item_id: String,
+		ore_cost: int,
+		pay_item: String,
+		pay_qty: int,
+		row: VBoxContainer) -> void:
+	## Attempt to craft an item from the blacksmith shop.
+
+	# DEV BYPASS: allow crafting without checking materials.
+	# TODO: remove "can_afford = true" once Inventory is fully wired up.
+	var has_ore  := _bs_count(player, "raw_metal_ore") >= ore_cost
+	var has_pay  := _bs_count(player, pay_item) >= pay_qty
+	var can_afford := has_ore and has_pay
+	can_afford = true   # ← DEV bypass
+
+	if not can_afford:
+		_bs_feedback(row, "Not enough resources.")
+		return
+
+	# Consume
+	if player.has_method("remove_item"):
+		player.remove_item("raw_metal_ore", ore_cost)
+		player.remove_item(pay_item, pay_qty)
+	# Grant item
+	if player.has_method("add_item"):
+		player.add_item(item_id)
+
+	# Refresh inventory line
+	_refresh_inv_label(player, inv_lbl)
+	_bs_feedback(row, "✓ Crafted %s!" % item_id.replace("_", " ").capitalize())
+
+
+func _refresh_inv_label(player: Node, lbl: Label) -> void:
+	var ore   := _bs_count(player, "raw_metal_ore")
+	var coin  := _bs_count(player, "coin")
+	var meat  := _bs_count(player, "meat")
+	var fruit := _bs_count(player, "fruit")
+	lbl.text = "Ore: %d   🪙Coin: %d   🥩Meat: %d   🍊Fruit: %d" % [ore, coin, meat, fruit]
+
+
+func _bs_feedback(row: VBoxContainer, msg: String) -> void:
+	var existing: Node = row.get_node_or_null("Feedback")
+	if existing:
+		existing.queue_free()
+	var fb := Label.new()
+	fb.name = "Feedback"
+	fb.text = msg
+	var ok := msg.begins_with("✓")
+	fb.add_theme_color_override("font_color",
+		Color(0.3, 1.0, 0.3) if ok else Color(1.0, 0.35, 0.35))
+	fb.add_theme_font_size_override("font_size", 14)
+	row.add_child(fb)
+
+
+func _bs_count(player: Node, item: String) -> int:
+	if player == null:
+		return 0
+	if "inventory" in player:
+		return player.inventory.get(item, 0) as int
+	return 0
 
 func _close_dialogue() -> void:
 	if _dialogue_canvas == null:
