@@ -337,8 +337,8 @@ script = ExtResource("204_fbxcol")
 surface_material_override/0 = SubResource("StandardMaterial3D_ass53")
 
 [node name="AurosTempleDoor" type="Node3D" parent="." unique_id=1286608618]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 205, 2, 68)
-return_position = Vector3(205, 2, 72)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 205, 2, 54)
+return_position = Vector3(205, 2, 58)
 script = ExtResource("201_temple_door")
 
 [node name="MaleVillager" parent="." unique_id=547008762 instance=ExtResource("202_male_villager")]
