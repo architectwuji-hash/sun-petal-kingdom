@@ -85,7 +85,6 @@ func _ready() -> void:
 	_target_pos = global_position
 	_wander_timer = randf_range(WANDER_WAIT_MIN, WANDER_WAIT_MAX)
 	_spawn_model()
-	_add_collision()
 	_add_health_bar()
 	_add_labels()
 
@@ -191,15 +190,6 @@ func _fix_skin_bind_names(node: Node) -> void:
 	for c: Node in node.get_children(true):
 		_fix_skin_bind_names(c)
 
-# ── Collision ─────────────────────────────────────────────────────────────────
-
-func _add_collision() -> void:
-	var col := CollisionShape3D.new()
-	var cap := CapsuleShape3D.new()
-	cap.radius = 0.3; cap.height = 1.2
-	col.shape = cap
-	col.position.y = 0.9
-	add_child(col)
 
 # ── Health bar ────────────────────────────────────────────────────────────────
 
