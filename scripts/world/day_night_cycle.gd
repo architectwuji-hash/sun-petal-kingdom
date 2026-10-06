@@ -48,6 +48,7 @@ var _sun_azimuth: float = 0.0
 
 
 func _ready() -> void:
+	add_to_group("day_night")
 	time = start_time
 	var scene := get_parent()
 	_sun = scene.get_node_or_null("Sun") as DirectionalLight3D
@@ -140,7 +141,7 @@ func _apply() -> void:
 		_sky.ground_horizon_color = NIGHT_HORIZON.lerp(_day_ground_horizon, day_amt).lerp(DUSK_HORIZON, twilight * 0.4)
 		_sky.sky_cover_modulate = Color(1, 1, 1, clampf(1.0 - day_amt * 1.6, 0.0, 1.0))
 	if _env:
-		_env.ambient_light_energy = lerpf(0.35, _day_ambient_energy, day_amt)
+		_env.ambient_light_energy = lerpf(0.06, _day_ambient_energy, day_amt)
 		_env.ambient_light_sky_contribution = day_amt
 		_env.fog_light_color = NIGHT_FOG.lerp(_day_fog_color, day_amt).lerp(DUSK_HORIZON * 0.8, twilight * 0.35)
 

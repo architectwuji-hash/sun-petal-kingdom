@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://torchpickup_item01"]
+
+[ext_resource type="Script" path="res://scripts/items/torch_pickup.gd" id="1_torchpickup"]
+
+[node name="TorchPickup" type="Area3D"]
+script = ExtResource("1_torchpickup")

@@ -192,7 +192,14 @@ var inventory: Dictionary = {
 	"coin":           0,
 	"miners_pick":    0,
 	"iron_sword":     0,
+	"torch":           0,
 }
+
+# ── Torch System ──────────────────────────────────────────────────────────────
+var _torch_active:    bool        = false
+var _torch_light:     OmniLight3D = null
+var _torch_burn_secs: float       = 0.0   ## remaining burn time (seconds)
+const TORCH_BURN_DURATION := 90.0          ## seconds one torch burns
 
 # ── Soul System ────────────────────────────────────────────────────────────
 var souls_sold_total: int       = 0   ## cumulative souls sold to demons
@@ -321,6 +328,7 @@ func _input(event: InputEvent) -> void:
 			KEY_H:     _eat_food()
 			KEY_R:     _cycle_build_item()
 			KEY_G:     if not _is_dead and _play_clip("Mx_ChokeLift"): _apply_melee_hit(SWORD_DAMAGE)
+			KEY_T:     _toggle_torch()
 			KEY_ESCAPE:
 				if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 					Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
@@ -341,6 +349,11 @@ func _input(event: InputEvent) -> void:
 			_jump_pending = true
 
 func _physics_process(delta: float) -> void:
+	# ── Torch burn countdown ────────────────────────────────────────────────
+	if _torch_active:
+		_torch_burn_secs -= delta
+		if _torch_burn_secs <= 0.0:
+			_extinguish_torch(true)   # burned out naturally
 	if _is_dead:
 		return
 	if _input_blocked:
@@ -1595,6 +1608,69 @@ func apply_save_data(d: Dictionary) -> void:
 	emit_signal("hunger_changed", hunger, max_hunger)
 
 
+# ── Torch System ─────────────────────────────────────────────────────────────
+
+func _toggle_torch() -> void:
+	## Press T: light a new torch (costs 1 from inventory) or extinguish current one.
+	if _torch_active:
+		_extinguish_torch()
+		return
+	if inventory.get("torch", 0) <= 0:
+		_show_hud_message("No torch!")
+		return
+	# Consume one torch and ignite.
+	remove_item("torch", 1)
+	_torch_burn_secs = TORCH_BURN_DURATION
+	_torch_active    = true
+
+	_torch_light = OmniLight3D.new()
+	_torch_light.name             = "TorchLight"
+	_torch_light.light_color      = Color(1.0, 0.62, 0.18)
+	_torch_light.light_energy     = 2.8
+	_torch_light.omni_range       = 10.0
+	_torch_light.omni_attenuation = 1.4
+	_torch_light.shadow_enabled   = true
+	# Offset so it appears at roughly held-torch height (right side, slightly forward).
+	_torch_light.position = Vector3(0.35, 1.55, -0.25)
+	add_child(_torch_light)
+
+	_show_hud_message("🔦 Torch lit  (" + str(int(TORCH_BURN_DURATION)) + "s)")
+
+
+func _extinguish_torch(burned_out: bool = false) -> void:
+	_torch_active = false
+	_torch_burn_secs = 0.0
+	if is_instance_valid(_torch_light):
+		_torch_light.queue_free()
+		_torch_light = null
+	if burned_out:
+		_show_hud_message("Torch burned out!")
+	else:
+		_show_hud_message("Torch extinguished.")
+
+
+func _show_hud_message(msg: String) -> void:
+	## Brief floating label in screen centre — reuses or creates a CanvasLayer.
+	var hud_root: Node = get_tree().get_first_node_in_group("hud")
+	if hud_root == null:
+		hud_root = self
+	var lbl := Label.new()
+	lbl.text = msg
+	lbl.add_theme_font_size_override("font_size", 22)
+	lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
+	lbl.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	lbl.position = Vector2(-200, 80)
+	lbl.size     = Vector2(400, 40)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var cl := CanvasLayer.new()
+	cl.layer = 20
+	cl.add_child(lbl)
+	add_child(cl)
+	var tw := create_tween()
+	tw.tween_interval(2.2)
+	tw.tween_callback(cl.queue_free)
+
+
 # ── Hunger: Eat Food ─────────────────────────────────────────────────────────
 
 func _eat_food() -> void:
@@ -1723,6 +1799,7 @@ func _open_inventory_ui() -> void:
 		"coin":          "🪙 Coin",
 		"miners_pick":   "⛏ Miner's Pick",
 		"iron_sword":    "⚔ Iron Sword",
+		"torch":          "🔦 Torch",
 	}
 	for key: String in inventory:
 		var count: int = inventory.get(key, 0)
