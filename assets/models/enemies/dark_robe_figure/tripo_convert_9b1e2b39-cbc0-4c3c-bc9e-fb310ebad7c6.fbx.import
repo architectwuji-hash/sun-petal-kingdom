@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dark_robe_figure_spk01"
-path="res://.godot/imported/dark_robe_figure.fbx-dark_robe_figure_spk.scn"
+uid="uid://dark_robe_fbx_import01"
+path="res://.godot/imported/tripo_convert_9b1e2b39.fbx-dark_robe_figure.scn"
 
 [deps]
 
 source_file="res://assets/models/enemies/dark_robe_figure/tripo_convert_9b1e2b39-cbc0-4c3c-bc9e-fb310ebad7c6.fbx"
-dest_files=["res://.godot/imported/dark_robe_figure.fbx-dark_robe_figure_spk.scn"]
+dest_files=["res://.godot/imported/tripo_convert_9b1e2b39.fbx-dark_robe_figure.scn"]
 
 [params]
 
