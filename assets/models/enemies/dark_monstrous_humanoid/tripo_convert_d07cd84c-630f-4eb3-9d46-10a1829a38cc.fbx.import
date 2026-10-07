@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dark_monster_fbx_import01"
-path="res://.godot/imported/tripo_convert_d07cd84c.fbx-dark_monstrous_humanoid.scn"
+uid="uid://dtfano43a2cxy"
+path="res://.godot/imported/tripo_convert_d07cd84c-630f-4eb3-9d46-10a1829a38cc.fbx-e9d5a4842a91436d8ec3a3b21bb5605d.scn"
 
 [deps]
 
 source_file="res://assets/models/enemies/dark_monstrous_humanoid/tripo_convert_d07cd84c-630f-4eb3-9d46-10a1829a38cc.fbx"
-dest_files=["res://.godot/imported/tripo_convert_d07cd84c.fbx-dark_monstrous_humanoid.scn"]
+dest_files=["res://.godot/imported/tripo_convert_d07cd84c-630f-4eb3-9d46-10a1829a38cc.fbx-e9d5a4842a91436d8ec3a3b21bb5605d.scn"]
 
 [params]
 

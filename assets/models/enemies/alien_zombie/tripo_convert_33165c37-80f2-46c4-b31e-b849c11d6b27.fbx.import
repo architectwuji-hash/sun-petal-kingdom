@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://alien_zombie_fbx_import01"
-path="res://.godot/imported/tripo_convert_33165c37.fbx-alien_zombie.scn"
+uid="uid://c5o2xvdstejul"
+path="res://.godot/imported/tripo_convert_33165c37-80f2-46c4-b31e-b849c11d6b27.fbx-ebdc32517c1fe38f7a871320f4effc85.scn"
 
 [deps]
 
 source_file="res://assets/models/enemies/alien_zombie/tripo_convert_33165c37-80f2-46c4-b31e-b849c11d6b27.fbx"
-dest_files=["res://.godot/imported/tripo_convert_33165c37.fbx-alien_zombie.scn"]
+dest_files=["res://.godot/imported/tripo_convert_33165c37-80f2-46c4-b31e-b849c11d6b27.fbx-ebdc32517c1fe38f7a871320f4effc85.scn"]
 
 [params]
 
