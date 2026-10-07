@@ -42,8 +42,9 @@
 [ext_resource type="PackedScene" path="res://scenes/animals/Deer.tscn" id="deer_scene"]
 [ext_resource type="Script" path="res://scripts/world/animal_spawner.gd" id="animal_spawner_gd"]
 [ext_resource type="Script" path="res://scripts/world/night_enemy_spawner.gd" id="night_spawner_gd"]
-[ext_resource type="PackedScene" path="res://scenes/enemies/Imp.tscn" id="imp_scene"]
-[ext_resource type="PackedScene" path="res://scenes/enemies/Puglin.tscn" id="puglin_scene"]
+[ext_resource type="PackedScene" uid="uid://dark_robe_figure_scene_spk" path="res://scenes/enemies/DarkRobeFigure.tscn" id="dark_robe_figure_scene"]
+[ext_resource type="PackedScene" uid="uid://alien_zombie_scene_spk" path="res://scenes/enemies/AlienZombie.tscn" id="alien_zombie_scene"]
+[ext_resource type="PackedScene" uid="uid://dark_monstrous_humanoid_scene_spk" path="res://scenes/enemies/DarkMonstruousHumanoid.tscn" id="dark_monstrous_humanoid_scene"]
 [ext_resource type="PackedScene" uid="uid://priest_elder_solen01" path="res://scenes/npc/Priest.tscn" id="priest_scene_01"]
 [ext_resource type="PackedScene" uid="uid://village_defender_spk01" path="res://scenes/npc/VillageDefender.tscn" id="village_defender_scene"]
 [ext_resource type="Script" path="res://scripts/world/house_repair.gd" id="206_hrpair"]
@@ -639,7 +640,7 @@ guard_position = Vector3(198, 2.4, 89)
 
 [node name="NightEnemySpawner" type="Node3D" parent="."]
 script = ExtResource("night_spawner_gd")
-enemy_scenes = [ExtResource("imp_scene"), ExtResource("puglin_scene")]
+enemy_scenes = [ExtResource("dark_robe_figure_scene"), ExtResource("alien_zombie_scene"), ExtResource("dark_monstrous_humanoid_scene")]
 max_enemies = 12
 spawn_min_dist = 30.0
 spawn_max_dist = 60.0

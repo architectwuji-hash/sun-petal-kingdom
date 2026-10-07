@@ -1,0 +1,41 @@
+[gd_scene load_steps=5 format=3 uid="uid://dark_monstrous_humanoid_scene_spk"]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy_base.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/models/enemies/dark_monstrous_humanoid/tripo_convert_d07cd84c-630f-4eb3-9d46-10a1829a38cc.fbx" id="2_model"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+radius = 0.5
+height = 2.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_hurt"]
+radius = 1.3
+
+[node name="DarkMonstruousHumanoid" type="CharacterBody3D"]
+script = ExtResource("1_script")
+enemy_name = "Dark Monstrous Humanoid"
+enemy_level = 5
+move_speed = 2.8
+attack_range = 2.0
+attack_cooldown = 2.0
+detection_range = 20.0
+hit_damage = 20
+preserve_textures = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+shape = SubResource("CapsuleShape3D_body")
+
+[node name="CharacterModel" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="HurtBox" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+shape = SubResource("SphereShape3D_hurt")
+
+[node name="HealthLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+font_size = 48
+billboard = 1
+text = "100 / 100"
